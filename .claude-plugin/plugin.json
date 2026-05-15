@@ -1,0 +1,15 @@
+{
+  "name": "agent-skill-engineering",
+  "skills": [
+    "./skills/diagnose",
+    "./skills/grill-with-docs",
+    "./skills/impl",
+    "./skills/improve-codebase-architecture",
+    "./skills/prototype",
+    "./skills/retro",
+    "./skills/setup-agent-skills",
+    "./skills/to-prd",
+    "./skills/to-task",
+    "./skills/zoom-out"
+  ]
+}

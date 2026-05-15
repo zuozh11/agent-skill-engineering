@@ -96,26 +96,26 @@ docs/scratch/<feature-slug>/
 
 | Skill | 用途 |
 |-------|------|
-| **[grill-with-docs](./grill-with-docs/SKILL.md)** | 逼问式对话，收敛需求，同步更新 `CONTEXT.md` 和 ADR |
-| **[to-prd](./to-prd/SKILL.md)** | 将对话上下文合成为 PRD 文档 |
-| **[to-task](./to-task/SKILL.md)** | 将需求拆解为 vertical slice 任务卡 |
-| **[impl](./impl/SKILL.md)** | 按任务卡实现代码变更，一个 task = 一个原子提交 |
-| **[retro](./retro/SKILL.md)** | （可选）复盘 review 修改，提炼偏差和认知盲区，更新领域文档和行为规则 |
+| **[grill-with-docs](./skills/grill-with-docs/SKILL.md)** | 逼问式对话，收敛需求，同步更新 `CONTEXT.md` 和 ADR |
+| **[to-prd](./skills/to-prd/SKILL.md)** | 将对话上下文合成为 PRD 文档 |
+| **[to-task](./skills/to-task/SKILL.md)** | 将需求拆解为 vertical slice 任务卡 |
+| **[impl](./skills/impl/SKILL.md)** | 按任务卡实现代码变更，一个 task = 一个原子提交 |
+| **[retro](./skills/retro/SKILL.md)** | （可选）复盘 review 修改，提炼偏差和认知盲区，更新领域文档和行为规则 |
 
 ### 辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
-| **[diagnose](./diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
-| **[zoom-out](./zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
-| **[prototype](./prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
-| **[improve-codebase-architecture](./improve-codebase-architecture/SKILL.md)** | 发现"加深"机会，把浅模块变深模块，提升可测试性 |
+| **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
+| **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
+| **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
+| **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 发现"加深"机会，把浅模块变深模块，提升可测试性 |
 
 ### 配置
 
 | Skill | 用途 |
 |-------|------|
-| **[setup-agent-skills](./setup-agent-skills/SKILL.md)** | 为新仓库搭建 agent 工作流基础设施，首次使用前运行一次 |
+| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 为新仓库搭建 agent 工作流基础设施，首次使用前运行一次 |
 
 ## 安装
 
