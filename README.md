@@ -1,6 +1,6 @@
-# Agent Skills
+# Agent Skills — Engineering
 
-从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来的工程 skill 集合，面向中文开发者，专注于**需求收敛 → 拆解 → 实现**的完整工程管线。
+面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 拆解 → 实现**的完整工程管线。
 
 与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪 + vertical slice 实现模式，更适合个人开发者或小团队的轻量工作流。
 
