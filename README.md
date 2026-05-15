@@ -136,6 +136,23 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 | `/triage` Issue 分诊状态机 | 简化为四级标签 |
 | 英文 | 中文 skill 描述和交互 |
 
+## 通用工作流工具
+
+除工程 skill 外，推荐搭配安装 [mattpocock/skills](https://github.com/mattpocock/skills) 中的通用生产力工具：
+
+| Skill | 用途 |
+|-------|------|
+| **caveman** | 超压缩沟通模式，去除填充词同时保持技术准确性，可减少约 75% 的 token 使用量 |
+| **grill-me** | 针对计划或设计进行严苛的面试，直到决策树的每一个分支都得到解决 |
+| **handoff** | 将当前对话压缩为一份交接文档，以便其他 agent 可以继续后续工作 |
+| **write-a-skill** | 创建具有适当结构、渐进式披露和捆绑资源的新 skill |
+
+安装命令：
+
+```bash
+npx skills@latest add mattpocock/skills -s caveman,grill-me,handoff,write-a-skill
+```
+
 ## 致谢
 
 基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造。核心理念——共享语言、vertical slice、深模块——来自 Eric Evans 的 DDD、John Ousterhout 的 A Philosophy of Software Design、以及 The Pragmatic Programmer。
