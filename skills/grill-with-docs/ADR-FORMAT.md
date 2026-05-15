@@ -1,4 +1,4 @@
-# ADR 格式
+# ADR Format
 
 ADR 存放在 `docs/adr/` 目录下，使用顺序编号：`0001-slug.md`、`0002-slug.md`，以此类推。
 
@@ -7,9 +7,9 @@ ADR 存放在 `docs/adr/` 目录下，使用顺序编号：`0001-slug.md`、`000
 ## 模板
 
 ```md
-# {决策的简短标题}
+# {Short title of the decision}
 
-{1-3 句话：背景是什么，我们决定了什么，为什么。}
+{1-3 sentences: what's the context, what did we decide, and why.}
 ```
 
 就这些。一个 ADR 可以只是一段话。价值在于记录*做了*什么决策以及*为什么*——而不是填满各种章节。
@@ -19,8 +19,8 @@ ADR 存放在 `docs/adr/` 目录下，使用顺序编号：`0001-slug.md`、`000
 只在确实有价值时才包含这些。大多数 ADR 不需要它们。
 
 - **Status** 前置元数据（`proposed | accepted | deprecated | superseded by ADR-NNNN`）——在决策被重新审视时有用
-- **备选方案** ——只在被否决的替代方案值得记住时才写
-- **后果** ——只在非显而易见的下游影响需要指出时才写
+- **Considered Options** ——只在被否决的替代方案值得记住时才写
+- **Consequences** ——只在非显而易见的下游影响需要指出时才写
 
 ## 编号
 

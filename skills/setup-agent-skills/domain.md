@@ -11,7 +11,7 @@
 
 ## 文件结构
 
-单上下文仓库（大多数仓库）：
+单 Context 仓库（大多数仓库）：
 
 ```
 /
@@ -22,7 +22,7 @@
 └── src/
 ```
 
-多上下文仓库（根目录存在 `CONTEXT-MAP.md`）：
+多 Context 仓库（根目录存在 `CONTEXT-MAP.md`）：
 
 ```
 /
@@ -31,7 +31,7 @@
 └── src/
     ├── ordering/
     │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← 上下文级决策
+    │   └── docs/adr/                  ← Context 级决策
     └── billing/
         ├── CONTEXT.md
         └── docs/adr/

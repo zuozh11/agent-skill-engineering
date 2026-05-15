@@ -66,10 +66,10 @@ grill-with-docs → to-prd → to-task → impl → retro
 
 **Section C — 领域文档布局。**
 
-> 解释：部分 skill（`grill-with-docs`、`diagnose`、`impl`）会读取 `CONTEXT.md` 了解领域术语，读取 `docs/adr/` 了解架构决策。需要确认是单上下文还是多上下文（monorepo）。
+> 解释：部分 skill（`grill-with-docs`、`diagnose`、`impl`）会读取 `CONTEXT.md` 了解领域术语，读取 `docs/adr/` 了解架构决策。需要确认是单 Context 还是多 Context （monorepo）。
 
-- **单上下文** — 根目录一个 `CONTEXT.md` + `docs/adr/`（大多数仓库）
-- **多上下文** — 根目录 `CONTEXT-MAP.md` 指向多个 `CONTEXT.md`（monorepo）
+- **单 Context** — 根目录一个 `CONTEXT.md` + `docs/adr/`（大多数仓库）
+- **多 Context** — 根目录 `CONTEXT-MAP.md` 指向多个 `CONTEXT.md`（monorepo）
 
 **Section D — 工作流管线。**
 

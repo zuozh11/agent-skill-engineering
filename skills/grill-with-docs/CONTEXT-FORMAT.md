@@ -1,42 +1,42 @@
-# CONTEXT.md 格式
+# CONTEXT.md Format
 
 ## 结构
 
 ```md
-# {上下文名称}
+# {Context Name}
 
-{一两句话描述这个上下文是什么以及为什么存在。}
+{One or two sentence description of what this context is and why it exists.}
 
-## 术语
+## Language
 
-**Order（订单）**:
-{对该术语的简洁定义}
-_避免使用_: Purchase, transaction
+**Order**:
+{A concise description of the term}
+_Avoid_: Purchase, transaction
 
-**Invoice（发票）**:
-交付后发送给客户的付款请求。
-_避免使用_: Bill, payment request
+**Invoice**:
+A request for payment sent to a customer after delivery.
+_Avoid_: Bill, payment request
 
-**Customer（客户）**:
-下订单的个人或组织。
-_避免使用_: Client, buyer, account
+**Customer**:
+A person or organization that places orders.
+_Avoid_: Client, buyer, account
 
-## 关系
+## Relationships
 
-- 一个 **Order** 产生一个或多个 **Invoice**
-- 一个 **Invoice** 恰好属于一个 **Customer**
+- An **Order** produces one or more **Invoices**
+- An **Invoice** belongs to exactly one **Customer**
 
-## 示例对话
+## Example dialogue
 
-> **开发者:** "当 **Customer** 下了一个 **Order** 时，我们是否立即创建 **Invoice**？"
-> **领域专家:** "不——**Invoice** 只在 **Fulfillment** 确认后才生成。"
+> **Dev:** "When a **Customer** places an **Order**, do we create the **Invoice** immediately?"
+> **Domain expert:** "No — an **Invoice** is only generated once a **Fulfillment** is confirmed."
 
-## 标记的歧义
+## Flagged ambiguities
 
-- "account" 曾被用来同时表示 **Customer** 和 **User** ——已解决：这是两个不同的概念。
+- "account" was used to mean both **Customer** and **User** — resolved: these are distinct concepts.
 ```
 
-## 规则
+## Rules
 
 - **要有主见。** 当同一概念存在多个词汇时，选择最好的一个，将其他的列为应避免的别名。
 - **明确标记冲突。** 如果一个术语被歧义使用，在"标记的歧义"中指出并给出明确的解决方案。
@@ -46,22 +46,22 @@ _避免使用_: Client, buyer, account
 - **当自然聚类出现时按子标题分组。** 如果所有术语属于同一个内聚领域，平铺列表即可。
 - **写一段示例对话。** 一段开发者和领域专家之间的对话，展示术语如何自然交互，并澄清相关概念之间的边界。
 
-## 单上下文 vs 多上下文仓库
+## Single vs multi-context repos
 
-**单上下文（大多数仓库）：** 仓库根目录一个 `CONTEXT.md`。
+**Single context (most repos):** 仓库根目录一个 `CONTEXT.md`。
 
-**多上下文：** 仓库根目录的 `CONTEXT-MAP.md` 列出各上下文、它们的位置以及相互关系：
+**多上下文：** 仓库根目录的 `CONTEXT-MAP.md` 列出各 contexts、它们的位置以及相互关系：
 
 ```md
-# 上下文地图
+# Context Map
 
-## 上下文
+## Contexts
 
 - [Ordering](./src/ordering/CONTEXT.md) — 接收和跟踪客户订单
 - [Billing](./src/billing/CONTEXT.md) — 生成发票和处理付款
 - [Fulfillment](./src/fulfillment/CONTEXT.md) — 管理仓库拣货和发货
 
-## 关系
+## Relationships
 
 - **Ordering → Fulfillment**: Ordering 发出 `OrderPlaced` 事件；Fulfillment 消费它们以开始拣货
 - **Fulfillment → Billing**: Fulfillment 发出 `ShipmentDispatched` 事件；Billing 消费它们以生成发票
@@ -70,8 +70,8 @@ _避免使用_: Client, buyer, account
 
 本 skill 推断适用哪种结构：
 
-- 如果 `CONTEXT-MAP.md` 存在，读取它来查找上下文
-- 如果只有根目录的 `CONTEXT.md`，则为单上下文
+- 如果 `CONTEXT-MAP.md` 存在，读取它来查找 contexts
+- 如果只有根目录的 `CONTEXT.md`，则为单 contexts
 - 如果两者都不存在，在第一个术语确定时按需创建根目录的 `CONTEXT.md`
 
-当存在多个上下文时，推断当前话题与哪个相关。如果不确定，询问用户。
+当存在多个 contexts 时，推断当前话题与哪个相关。如果不确定，询问用户。
