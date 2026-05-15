@@ -9,7 +9,7 @@
 1. 安装 skill（以 Claude Code 为例）：
 
 ```bash
-npx skills@latest add zuozhi/agent-skill
+npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill.git
 ```
 
 2. 在目标仓库中运行 `/setup-agent-skills`，它会引导你配置：
@@ -118,19 +118,11 @@ docs/scratch/<feature-slug>/
 
 ## 安装
 
-### 从 GitHub 安装
-
 ```bash
-npx skills@latest add zuozhi/agent-skill
+npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill.git
 ```
 
-### 从内网 GitLab 安装
-
-`skills` CLI 支持任意 Git 仓库地址，只需提供完整 URL（带 `.git` 后缀）：
-
-```bash
-npx skills@latest add https://gitlab.your-company.com/group/agent-skill.git
-```
+`skills` CLI 会 clone 仓库并列出可用 skill，选择需要的即可安装到 Claude Code / Cursor / Windsurf 等 agent。
 
 前提：机器能通过 git 访问该地址（HTTP 凭证或 SSH key 已配置）。
 
