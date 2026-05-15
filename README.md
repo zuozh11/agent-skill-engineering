@@ -23,8 +23,8 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 ## 工作流管线
 
 ```
-grill-with-docs → to-prd → to-task → impl → retro
-   (收敛)         (PRD)    (拆任务)   (实现)   (复盘)
+grill-with-docs → to-prd → to-task → impl → [retro]
+   (收敛)         (PRD)    (拆任务)   (实现)   (复盘，可选)
 ```
 
 辅助 skill（按需调用，不在主管线中）：`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`
@@ -100,6 +100,7 @@ docs/scratch/<feature-slug>/
 | **[to-prd](./to-prd/SKILL.md)** | 将对话上下文合成为 PRD 文档 |
 | **[to-task](./to-task/SKILL.md)** | 将需求拆解为 vertical slice 任务卡 |
 | **[impl](./impl/SKILL.md)** | 按任务卡实现代码变更，一个 task = 一个原子提交 |
+| **[retro](./retro/SKILL.md)** | （可选）复盘 review 修改，提炼偏差和认知盲区，更新领域文档和行为规则 |
 
 ### 辅助 Skill
 
