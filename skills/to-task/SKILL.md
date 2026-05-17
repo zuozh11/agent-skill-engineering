@@ -18,7 +18,7 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 确认输入来源并提取核心需求：
 - 如果是文档（PRD/Issue），直接读取
 - 如果是对话上下文，归纳用户已表达的意图
-- 如果信息不足，用 AskUserQuestion 补齐关键缺失
+- 如果信息不足，用 `提问工具` 补齐关键缺失
 
 ### 2. 并行调研（fork × 2）
 
@@ -40,7 +40,7 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 
 ### 4. 阻塞性决策点收口
 
-调研后识别"不解决就写不动任务"的决策。用 AskUserQuestion 提问，每题给推荐选项。
+调研后识别"不解决就写不动任务"的决策。用 `提问工具` 提问，每题给推荐选项。
 
 ### 5. 拟草 vertical slices
 
@@ -63,7 +63,11 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 
 ### 8. advisor 复审
 
-所有任务落盘后调用 `advisor()` 一次。按反馈修订任务文件。
+所有任务落盘后调用 `advisor` 或者 `review agent` 复审一次。按反馈修订任务文件。
+
+### 9. 自动提交
+
+任务落盘完成后立即提交：
 
 ## 单个 task 文件模板
 

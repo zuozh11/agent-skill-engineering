@@ -37,13 +37,17 @@ task tracker 和 triage label 配置见 `docs/agents/task-tracker.md` 和 `docs/
 
 ### 5. 收敛未决问题
 
-**强制规则：** 只要 Open Questions 或 Assumptions 中有未解决项，必须用 AskUserQuestion 主动追问。不允许只写不问。
+**强制规则：** 只要 Open Questions 或 Assumptions 中有未解决项，必须用 `提问工具` 主动追问。不允许只写不问。
 
 每轮用户回答后立刻更新 PRD，清理已确认的问题。循环直到所有问题解决或明确标记为暂不处理。
 
 ### 6. 发布
 
 将 PRD 写入 `docs/scratch/<feature-slug>/PRD.md`，应用 `ready-for-agent` triage label。
+
+### 7. 自动提交
+
+PRD 发布完成后立即提交：
 
 ## PRD 模板
 
