@@ -1,0 +1,38 @@
+{
+  "name": "agent-skill-engineering",
+  "version": "0.1.0",
+  "description": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、PRD、任务拆解、实现和复盘。",
+  "author": {
+    "name": "zuozhi"
+  },
+  "homepage": "https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering",
+  "repository": "https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git",
+  "license": "UNLICENSED",
+  "keywords": [
+    "agent-skills",
+    "engineering",
+    "prd",
+    "tasks",
+    "implementation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent Skills Engineering",
+    "shortDescription": "工程化 Agent Skill 工作流",
+    "longDescription": "面向开发工程师的 Agent Skill 集合，从需求收敛到 PRD、任务拆解、实现、复盘，使用本地 Markdown 追踪任务。",
+    "developerName": "zuozhi",
+    "category": "Engineering",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering",
+    "defaultPrompt": [
+      "把这个需求整理成 PRD",
+      "把 PRD 拆成 vertical slice 任务",
+      "按任务卡实现下一个切片"
+    ],
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}
