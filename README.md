@@ -125,10 +125,6 @@ docs/scratch/<feature-slug>/
 npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git
 ```
 
-`skills` CLI 会 clone 仓库并列出可用 skill，选择需要的即可安装到 Claude Code / Cursor / Windsurf 等 agent。
-
-前提：机器能通过 git 访问该地址（HTTP 凭证或 SSH key 已配置）。
-
 ## 与原版的差异
 
 | 原版 (mattpocock/skills) | 本仓库 |
