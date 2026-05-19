@@ -6,7 +6,7 @@
 
 ## 快速开始
 
-1. 安装 skill（以 Claude Code 为例）：
+1. 安装/更新 skill（以 Claude Code 为例）：
 
 ```bash
 npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git
@@ -16,6 +16,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
    - 任务追踪目录（默认 `docs/scratch/`）
    - 分诊标签映射
    - 领域文档布局（单上下文 or monorepo）
+   - 编码指南（`docs/guides/` + `CLAUDE.md` / `AGENTS.md` 编码指南表）
    - 工作流管线确认
 
 3. 配置完成后即可使用全部 skill。
@@ -79,6 +80,10 @@ docs/scratch/<feature-slug>/
     └── 03-add-ui.md          ← /impl 逐个实现
 ```
 
+### 编码指南
+
+`/setup-agent-skills` 会初始化 `docs/guides/` 和 `CLAUDE.md` / `AGENTS.md` 中的编码指南表。`/to-task`、`/impl`、`/retro` 会按任务关键词读取相关指南，把编码约束纳入拆解、实现和复盘。
+
 ### 分诊标签
 
 四个状态标签驱动任务流转：
@@ -100,7 +105,7 @@ docs/scratch/<feature-slug>/
 | **[to-prd](./skills/to-prd/SKILL.md)** | 将对话上下文合成为 PRD 文档 |
 | **[to-task](./skills/to-task/SKILL.md)** | 将需求拆解为 vertical slice 任务卡 |
 | **[impl](./skills/impl/SKILL.md)** | 按任务卡实现代码变更，一个 task = 一个原子提交 |
-| **[retro](./skills/retro/SKILL.md)** | （可选）复盘 review 修改，提炼偏差和认知盲区，更新领域文档和行为规则 |
+| **[retro](./skills/retro/SKILL.md)** | （可选）复盘会话和变更纠偏，必要时更新 PRD 或 `docs/guides/` 行为规则 |
 
 ### 辅助 Skill
 
@@ -115,7 +120,7 @@ docs/scratch/<feature-slug>/
 
 | Skill | 用途 |
 |-------|------|
-| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 为新仓库搭建 agent 工作流基础设施，首次使用前运行一次 |
+| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 配置任务追踪、分诊标签、领域文档、编码指南和工作流管线，首次使用前运行一次 |
 
 ## 安装
 
