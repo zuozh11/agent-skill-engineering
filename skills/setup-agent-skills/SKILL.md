@@ -1,6 +1,6 @@
 ---
 name: setup-agent-skills
-description: 为新仓库搭建 Agent 工作流基础设施。配置任务追踪、分诊标签、领域文档、工作流管线，使 grill-with-docs / to-prd / to-task / impl / retro 等 skill 能正常工作。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
+description: 为新仓库搭建 Agent 工作流基础设施。配置任务追踪、分诊标签、领域文档、编码指南、工作流管线，使 grill-with-docs / to-prd / to-task / impl / retro 等 skill 能正常工作。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
 disable-model-invocation: true
 ---
 
@@ -11,6 +11,7 @@ disable-model-invocation: true
 - **任务追踪** — task 文件存放位置和命名约定
 - **分诊标签** — 四个规范角色对应的标签字符串
 - **领域文档** — `CONTEXT.md` 和 ADR 的布局规则
+- **编码指南** — 编码约束参考文件和按需加载表
 - **工作流管线** — skill 之间的调用顺序和职责边界
 
 这是一个 prompt-driven skill。探索、确认、写入。
@@ -37,6 +38,7 @@ grill-with-docs → to-prd → to-task → impl → retro
 - `CONTEXT.md` / `CONTEXT-MAP.md` — 领域文档是否存在
 - `docs/adr/` — 架构决策记录
 - `docs/agents/` — 是否已有 skill 配置输出
+- `docs/guides/` — 是否已有编码指南文件
 - `docs/scratch/` — 本地任务追踪目录
 
 ### 2. 逐项确认
@@ -90,10 +92,12 @@ grill-with-docs → to-prd → to-task → impl → retro
 
 向用户展示草稿：
 
-- 要添加到 `CLAUDE.md` / `AGENTS.md` 的 `## Agent skills` 段落
+- 要添加到 `CLAUDE.md` / `AGENTS.md` 的 `## Agent skills` 段落（含编码指南表）
 - `docs/agents/task-tracker.md` 的内容
 - `docs/agents/triage-labels.md` 的内容
 - `docs/agents/domain.md` 的内容
+
+编码指南部分（`## 编码指南` 段落 + `docs/guides/coding-principles-guide.md`）为固定配置，自动写入，不需要用户逐项确认。
 
 让用户在写入前修改。
 
@@ -132,11 +136,31 @@ grill-with-docs → to-prd → to-task → impl → retro
 [一行摘要]。详见 `docs/agents/domain.md`。
 ```
 
-然后写入 `docs/agents/` 下的三个配置文件，使用本 skill 目录中的种子模板：
+**`## 编码指南` 段落模板（自动写入，不需确认）：**
+
+```markdown
+## 编码指南（任何代码变更必读）
+
+编写 代码/实施计划 时先查看当前模块已有实现，优先沿用同包、同领域的写法。根据任务按需读取对应参考文件，不要一次性全部加载。如果参考文件与当前代码冲突，以当前项目已编译可用的写法为准。
+
+| 任务/关键词 | 读取文件 |
+|------------|---------|
+| 编码四原则、编码前思考、简洁优先、精准修改、目标驱动验证 | `docs/guides/coding-principles-guide.md` |
+```
+
+初始化时表格只包含 `coding-principles-guide.md` 一行。用户后续可自行添加更多行。
+
+然后写入配置文件，使用本 skill 目录中的种子模板：
+
+**`docs/agents/` 下：**
 
 - [task-tracker-local.md](./task-tracker-local.md) — 本地 Markdown 任务追踪
 - [triage-labels.md](./triage-labels.md) — 标签映射
 - [domain.md](./domain.md) — 领域文档消费规则
+
+**`docs/guides/` 下（自动写入，如目录不存在则先创建）：**
+
+- [coding-principles-guide.md](./coding-principles-guide.md) — 编码四原则（种子指南）
 
 ### 5. 完成
 
