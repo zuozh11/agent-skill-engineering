@@ -119,12 +119,6 @@ docs/scratch/<feature-slug>/
 |-------|------|
 | **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 配置任务追踪、分诊标签、领域文档、编码指南和工作流管线，首次使用前运行一次 |
 
-## 安装
-
-```bash
-npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git
-```
-
 ## 与原版的差异
 
 | 原版 (mattpocock/skills) | 本仓库 |
