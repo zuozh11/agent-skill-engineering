@@ -7,7 +7,7 @@ description: 将需求拆解为可独立实现的任务卡，发布到 task trac
 
 将需求拆解为可独立实现的 vertical slice 任务卡，每个任务端到端可验证。
 
-需求来源不限：PRD 文档、当前对话上下文、口头描述、截图、Issue 等均可作为输入。
+需求来源不限：PRD 文档、当前对话上下文、口头描述、截图、task 等均可作为输入。
 
 task tracker 配置见 `docs/agents/task-tracker.md`。
 
@@ -16,7 +16,7 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 ### 1. 明确需求边界
 
 确认输入来源并提取核心需求：
-- 如果是文档（PRD/Issue），直接读取
+- 如果是文档（PRD/task），直接读取
 - 如果是对话上下文，归纳用户已表达的意图
 - 如果信息不足，用 `提问工具` 补齐关键缺失
 
