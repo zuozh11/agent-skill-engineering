@@ -25,7 +25,7 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 不要顺序读文件。一次性发 2 个 fork：
 
 - **Fork A — 现有代码能力**：定位需求涉及的现有模块、文件、方法。每条带文件名:行号证据。
-- **Fork B — 约束与依赖**：项目约定（ADR、`docs/guides/` 编码指南）、跨模块依赖、可复用的已有实现样板。
+- **Fork B — 约束与依赖**：项目约定（ADR、guides、相关skill 等）、跨模块依赖、可复用的已有实现样板。
 
 ### 3. 真实结构核验
 
