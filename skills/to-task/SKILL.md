@@ -132,7 +132,7 @@ Blocked by: None
 
 ## 改动内容正反例
 
-**反例（❌ 同一方法拆成多个小标题，逻辑不连续，需脑补拼接）：**
+**反例 1（❌ 同一方法拆成多个小标题，逻辑不连续，需脑补拼接）：**
 
 ```markdown
 ### handleAwardPass — 回写来源询价包
@@ -155,7 +155,42 @@ buPsInqPkgService.updateById(inqPkgUpdate);
 按 `reqPoolId + operType + operDesc` 查重，存在则跳过。
 ```
 
-**正例（✅ 一个方法一个小标题，功能说明在前，完整方法体在后）：**
+**反例 2（❌ 方法完整但无注释，代码像一堵墙，评审者需逐行阅读）：**
+
+```markdown
+### BuPsAwardAppService.handleAwardPass — 审批通过完整数据流
+
+定标审批通过的业务回写入口。回写定标状态和来源询价包寻源状态为已定标，识别无供应商中标的物料并释放对应需求池。
+
+​```java
+private void handleAwardPass(BuPsAwardVO award) {
+    award.setAwardStatus(DicAwardStatus.AWARDED.fullCode());
+    award.setAwardStatusText(DicAwardStatus.AWARDED.dictName());
+    BuPsInqPkgEntity inqPkgUpdate = new BuPsInqPkgEntity();
+    inqPkgUpdate.setInqPkgId(award.getInqPkgId());
+    inqPkgUpdate.setSourceStatus(DicSourceStatus.AWARDED.fullCode());
+    inqPkgUpdate.setSourceStatusText(DicSourceStatus.AWARDED.dictName());
+    buPsInqPkgService.updateById(inqPkgUpdate);
+    List<BuPsAwardLineVO> lines = buPsAwardLineAppService.queryBuPsAwardLineList(award.getAwardId());
+    Map<String, String> reqPoolIdMap = buPsInqPkgLineAppService
+        .queryBuPsInqPkgLineList(award.getInqPkgId()).stream()
+        .collect(Collectors.toMap(BuPsInqPkgLineVO::getInqPkgLineId, BuPsInqPkgLineVO::getReqPoolId, (a, b) -> a));
+    List<String> releasePoolIds = lines.stream()
+        .filter(line -> line.getBuPsAwardSupList().stream().noneMatch(sup -> "Y".equals(sup.getIsAward())))
+        .map(line -> reqPoolIdMap.get(line.getInqPkgLineId()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    if (CollUtil.isNotEmpty(releasePoolIds)) {
+        buPsReqPoolService.updatePoolStatus(releasePoolIds, DicPoolStatus.PENDING);
+        for (String poolId : releasePoolIds) {
+            saveReleaseOperRecord(poolId, award);
+        }
+    }
+}
+​```
+```
+
+**正例（✅ 一个方法一个小标题，功能说明在前，完整方法体在后，注释标记逻辑段落）：**
 
 ```markdown
 ### BuPsAwardAppService.handleAwardPass — 审批通过完整数据流
