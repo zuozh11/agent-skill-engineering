@@ -89,9 +89,11 @@ Blocked by: None
 
 ### 改动点标题（文件名.方法名 / 文件名 — 片段描述）
 
+<功能说明：这个方法/SQL 做什么，核心逻辑概述（1-2 句）>
+
 <可评审的具体实现：代码片段 / 配置 / SQL / 命令 / key=value>
 
-补充说明（1-2 句，可选）
+<约束或注意事项（可选，1-2 句）>
 
 ### 下一个改动点…
 
@@ -152,10 +154,12 @@ buPsInqPkgService.updateById(inqPkgUpdate);
 按 `reqPoolId + operType + operDesc` 查重，存在则跳过。
 ```
 
-**正例（✅ 一个方法一个小标题，完整方法体，注释分段）：**
+**正例（✅ 一个方法一个小标题，功能说明在前，完整方法体在后）：**
 
 ```markdown
 ### BuPsAwardAppService.handleAwardPass — 审批通过完整数据流
+
+定标审批通过的业务回写入口。回写定标状态和来源询价包寻源状态为已定标，识别无供应商中标的物料并释放对应需求池，同时写操作记录。
 
 ​```java
 private void handleAwardPass(BuPsAwardVO award) {
@@ -186,4 +190,6 @@ private void handleAwardPass(BuPsAwardVO award) {
     }
 }
 ​```
+
+有中标供应商的物料保持需求池已打包，不更新。
 ```
