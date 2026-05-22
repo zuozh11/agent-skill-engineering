@@ -124,4 +124,66 @@ Blocked by: None
 - 涉及未确认的表/字段/枚举时，任务标为阻塞，不写占位实现
 - 不在任务里讨论"为什么这么做"——那是需求文档和 ADR 的职责
 - 改动内容必须按改动点分节（`###` 小标题），每节包含可评审的具体实现（代码片段 / 配置 / SQL / 命令 / key=value），纯散文描述不达标
+- 一个 `###` = 一个完整代码单元（方法体 / SQL statement / 类定义）；方法内部多步逻辑用注释分段，不要把同一个方法拆成多个小标题
 - 使用 CONTEXT.md 中的术语命名任务标题
+
+## 改动内容正反例
+
+**反例（❌ 同一方法拆成多个小标题，逻辑不连续，需脑补拼接）：**
+
+```markdown
+### handleAwardPass — 回写来源询价包
+
+​```java
+BuPsInqPkgEntity inqPkgUpdate = new BuPsInqPkgEntity();
+inqPkgUpdate.setInqPkgId(award.getInqPkgId());
+inqPkgUpdate.setSourceStatus(DicSourceStatus.AWARDED.fullCode());
+buPsInqPkgService.updateById(inqPkgUpdate);
+​```
+
+### handleAwardPass — 释放无中标物料对应需求池
+
+- 每个物料判断其供应商是否存在 `isAward=Y`
+- 无中标供应商的物料：通过 `inqPkgLineId` 找到 `reqPoolId`
+- 批量调用 `buPsReqPoolService.updatePoolStatus`
+
+### handleAwardPass — 幂等保护
+
+按 `reqPoolId + operType + operDesc` 查重，存在则跳过。
+```
+
+**正例（✅ 一个方法一个小标题，完整方法体，注释分段）：**
+
+```markdown
+### BuPsAwardAppService.handleAwardPass — 审批通过完整数据流
+
+​```java
+private void handleAwardPass(BuPsAwardVO award) {
+    // 回写来源询价包寻源状态
+    BuPsInqPkgEntity inqPkgUpdate = new BuPsInqPkgEntity();
+    inqPkgUpdate.setInqPkgId(award.getInqPkgId());
+    inqPkgUpdate.setSourceStatus(DicSourceStatus.AWARDED.fullCode());
+    inqPkgUpdate.setSourceStatusText(DicSourceStatus.AWARDED.dictName());
+    buPsInqPkgService.updateById(inqPkgUpdate);
+
+    // 识别无中标物料，收集需释放的需求池
+    List<BuPsAwardLineVO> lines = buPsAwardLineAppService.queryBuPsAwardLineList(award.getAwardId());
+    Map<String, String> reqPoolIdMap = buPsInqPkgLineAppService
+        .queryBuPsInqPkgLineList(award.getInqPkgId()).stream()
+        .collect(Collectors.toMap(BuPsInqPkgLineVO::getInqPkgLineId, BuPsInqPkgLineVO::getReqPoolId, (a, b) -> a));
+    List<String> releasePoolIds = lines.stream()
+        .filter(line -> line.getBuPsAwardSupList().stream().noneMatch(sup -> "Y".equals(sup.getIsAward())))
+        .map(line -> reqPoolIdMap.get(line.getInqPkgLineId()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+    // 释放需求池并写操作记录（含幂等）
+    if (CollUtil.isNotEmpty(releasePoolIds)) {
+        buPsReqPoolService.updatePoolStatus(releasePoolIds, DicPoolStatus.PENDING);
+        for (String poolId : releasePoolIds) {
+            saveReleaseOperRecord(poolId, award);
+        }
+    }
+}
+​```
+```
