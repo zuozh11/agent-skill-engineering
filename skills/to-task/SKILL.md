@@ -20,14 +20,7 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 - 如果是对话上下文，归纳用户已表达的意图
 - 如果信息不足，用 `提问工具` 补齐关键缺失
 
-### 2. 并行调研（fork × 2）
-
-不要顺序读文件。一次性发 2 个 fork：
-
-- **Fork A — 现有代码能力**：定位需求涉及的现有模块、文件、方法。每条带文件名:行号证据。
-- **Fork B — 约束与依赖**：项目约定（ADR、guides、相关skill 等）、跨模块依赖、可复用的已有实现样板。
-
-### 3. 真实结构核验
+### 2. 调研与核验
 
 起草任务前做共性防错检查：
 
@@ -38,11 +31,11 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 
 发现需求缺规则或自相矛盾时，**先回头补需求**，不在任务里偷偷拍板。
 
-### 4. 阻塞性决策点收口
+### 3. 阻塞性决策点收口
 
 调研后识别"不解决就写不动任务"的决策。用 `提问工具` 提问，每题给推荐选项。
 
-### 5. 拟草 vertical slices
+### 4. 拟草 vertical slices
 
 将需求拆成 **tracer bullet** 任务。每个任务是一个薄的 vertical slice：
 
@@ -50,22 +43,22 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 - 完成后可独立验证
 - 优先多个薄 slice 而非少数厚 slice
 
-### 6. 确认任务分解
+### 5. 确认任务分解
 
 向用户展示任务列表，每个任务显示：
 - Title / Blocked by / AFK or HITL / 共享写集风险
 
 问用户：粒度是否合适？依赖关系是否正确？
 
-### 7. 发布任务到 task tracker
+### 6. 发布任务到 task tracker
 
 按依赖顺序（blocker 先发布）在 `docs/scratch/<feature-slug>/tasks/` 下创建文件。
 
-### 8. advisor 复审
+### 7. advisor 复审
 
 所有任务落盘后调用 `advisor` 或者 `review agent` 复审一次。按反馈修订任务文件。
 
-### 9. 自动提交
+### 8. 自动提交
 
 任务落盘完成后立即提交：
 
