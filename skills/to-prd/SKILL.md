@@ -11,23 +11,30 @@ PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
 
 ## 流程
 
-### 1. 探索代码库
+### 1. 加载领域知识
+
+按需查阅以下资源：
+
+- 仓库根目录的 **`CONTEXT.md`**
+- **`docs/adr/`** — 阅读与当前工作区域相关的架构决策记录（ADR）
+
+### 2. 探索代码库
 
 如果尚未探索，先了解当前代码库状态。使用 `CONTEXT.md` 中的领域术语，尊重 `docs/adr/` 中的架构决策。
 
-### 2. 确定 feature slug 和输出路径
+### 3. 确定 feature slug 和输出路径
 
 - 输出路径：`docs/scratch/<feature-slug>/PRD.md`
 - feature-slug 从需求主题推导（如 `sup-quote-export`、`delivery-plan-change`）
 - 如目录不存在则创建
 
-### 3. 确定书写视角
+### 4. 确定书写视角
 
 根据当前仓库技术栈自动选择主视角：
 - 后端仓库：侧重业务规则（状态流转、持久化、查询隔离、流程回写）
 - 前端仓库：侧重交互行为（页面流转、组件状态、表单校验、接口调用契约）
 
-### 4. 拟草 PRD
+### 5. 拟草 PRD
 
 使用下方模板。重点：
 - User Stories 要覆盖面广（numbered list）
@@ -35,17 +42,17 @@ PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
 - Implementation Decisions 含锁定决策和待补输入
 - 不写代码库能力缺口对比（留给 to-task 调研阶段）
 
-### 5. 收敛未决问题
+### 6. 收敛未决问题
 
 **强制规则：** 只要 Open Questions 或 Assumptions 中有未解决项，必须用 `提问工具` 主动追问。不允许只写不问。
 
 每轮用户回答后立刻更新 PRD，清理已确认的问题。循环直到所有问题解决或明确标记为暂不处理。
 
-### 6. 发布
+### 7. 发布
 
 将 PRD 写入 `docs/scratch/<feature-slug>/PRD.md`。
 
-### 7. 自动提交
+### 8. 自动提交
 
 PRD 发布完成后立即提交：
 
