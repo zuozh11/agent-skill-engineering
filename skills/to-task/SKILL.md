@@ -9,7 +9,7 @@ description: 将需求拆解为可独立实现的任务卡，发布到 task trac
 
 需求来源不限：PRD 文档、当前对话上下文、口头描述、截图、task 等均可作为输入。
 
-task tracker 配置见 `docs/agents/task-tracker.md`。
+任务文件存放在 `docs/scratch/<feature-slug>/tasks/` 下。
 
 ## 流程
 

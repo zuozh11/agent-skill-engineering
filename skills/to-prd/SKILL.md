@@ -1,13 +1,13 @@
 ---
 name: to-prd
-description: 将当前对话上下文转化为 PRD 并发布到 task tracker。适用于用户要求产出 PRD、需求文档、功能方案，或说「写个 PRD」「出需求文档」「to-prd」等场景。
+description: 将当前对话上下文转化为 PRD。适用于用户要求产出 PRD、需求文档、功能方案，或说「写个 PRD」「出需求文档」「to-prd」等场景。
 ---
 
 # To PRD
 
-将当前对话上下文和代码库理解合成为一份 PRD，发布到 task tracker。
+将当前对话上下文和代码库理解合成为一份 PRD。
 
-task tracker 和 triage label 配置见 `docs/agents/task-tracker.md` 和 `docs/agents/triage-labels.md`。
+PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
 
 ## 流程
 
@@ -43,7 +43,7 @@ task tracker 和 triage label 配置见 `docs/agents/task-tracker.md` 和 `docs/
 
 ### 6. 发布
 
-将 PRD 写入 `docs/scratch/<feature-slug>/PRD.md`，应用 `ready-for-agent` triage label。
+将 PRD 写入 `docs/scratch/<feature-slug>/PRD.md`。
 
 ### 7. 自动提交
 
