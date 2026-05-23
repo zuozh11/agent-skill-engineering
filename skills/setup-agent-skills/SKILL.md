@@ -42,9 +42,11 @@ disable-model-invocation: true
 
 默认管线：
 ```
-grill-with-docs → to-prd → to-task → impl → retro
-   (收敛)        (PRD)    (拆任务)   (实现)    (复盘)
+[grill-with-docs] → to-prd → to-task → impl → [retro]
+   (收敛，可选)      (PRD)    (拆任务)   (实现)  (复盘，可选)
 ```
+
+> `grill-with-docs` 可独立调用来主动收敛需求，也可省略——`to-prd` 在上下文不足时会自动触发其追问流程。
 
 辅助 skill（按需调用，不在主管线中）：
 - `diagnose` — 调试 bug
@@ -78,9 +80,11 @@ grill-with-docs → to-prd → to-task → impl → retro
 ### 默认工作流
 
 \```
-grill-with-docs → to-prd → to-task → impl
-   (收敛)        (PRD)    (拆任务)   (实现)
+[grill-with-docs] → to-prd → to-task → impl → [retro]
+   (收敛，可选)      (PRD)    (拆任务)   (实现)  (复盘，可选)
 \```
+
+> `grill-with-docs` 可独立调用来主动收敛需求，也可省略——`to-prd` 在上下文不足时会自动触发其追问流程。
 
 ### 领域文档
 
