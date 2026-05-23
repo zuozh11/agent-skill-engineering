@@ -99,23 +99,25 @@ grill-with-docs → to-prd → to-task → impl → retro
 ```markdown
 ## Agent skills
 
-## 领域知识与编码约束
-
-做任何与项目相关的任务前，按需查阅以下资源：
-
-| 需要了解           | 去哪里看         |
-|----------------|--------------|
-| 业务术语、实体关系、领域概念 | `CONTEXT.md` |
-| 架构决策记录         | `docs/adr/`  |
-
-**ADR 自动提炼**：用户在会话中指出修正时，判断是否揭示了可复现的模式性问题。是则主动提议创建 ADR（给出标题和一句话摘要），经确认后写入 `docs/adr/`。一次性笔误或已有 ADR 覆盖的不重复提。
-
 ### 默认工作流
 
 \```
 grill-with-docs → to-prd → to-task → impl
    (收敛)        (PRD)    (拆任务)   (实现)
 \```
+
+### 领域文档
+
+[一行摘要]。详见 `docs/agents/domain.md`。
+
+做任何与项目相关的任务前，按需查阅以下资源：
+
+- 仓库根目录的 **`CONTEXT.md`**
+- **`docs/adr/`** — 阅读与当前工作区域相关的架构决策记录（ADR）
+
+**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后写入。已有定义覆盖的不重复提。
+
+**ADR 自动提炼**：用户在会话中指出修正时，判断是否揭示了可复现的模式性问题。是则主动提议创建 ADR（给出标题和一句话摘要），经确认后写入 `docs/adr/`。一次性笔误或已有 ADR 覆盖的不重复提。
 
 ### 任务追踪
 
@@ -125,9 +127,6 @@ grill-with-docs → to-prd → to-task → impl
 
 使用默认的四级分诊标签词汇（needs-triage / needs-info / ready-for-agent / ready-for-human）。详见 `docs/agents/triage-labels.md`。
 
-### 领域文档
-
-[一行摘要]。详见 `docs/agents/domain.md`。
 ```
 
 然后写入配置文件，使用本 skill 目录中的种子模板：
