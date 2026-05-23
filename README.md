@@ -86,9 +86,9 @@ docs/scratch/<feature-slug>/
 | Skill | 用途 |
 |-------|------|
 | **[grill-with-docs](./skills/grill-with-docs/SKILL.md)** | （可选）逼问式对话，收敛需求，同步更新 `CONTEXT.md` 和 ADR。`to-prd` 在上下文不足时会自动触发 |
-| **[to-prd](./skills/to-prd/SKILL.md)** | 将对话上下文合成为 PRD 文档 |
-| **[to-task](./skills/to-task/SKILL.md)** | 将需求拆解为 vertical slice 任务卡 |
-| **[impl](./skills/impl/SKILL.md)** | 按任务卡实现代码变更，一个 task = 一个原子提交 |
+| **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 PRD 文档** |
+| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆解为 vertical slice 任务卡** |
+| **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时自动评估开发模式（顺序 / 子 Agent 顺序 / 子 Agent 并行）** |
 | **[retro](./skills/retro/SKILL.md)** | （可选）复盘会话和变更纠偏，必要时更新 PRD 或 ADR |
 
 ### 辅助 Skill
@@ -99,6 +99,7 @@ docs/scratch/<feature-slug>/
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 发现"加深"机会，把浅模块变深模块，提升可测试性 |
+| **[commit](./skills/commit/SKILL.md)** | 基于暂存区变更生成符合约定式提交规范的提交消息 |
 
 ### 配置
 
