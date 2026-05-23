@@ -13,19 +13,6 @@ disable-model-invocation: true
 - **领域文档** — `CONTEXT.md` 和 ADR 的布局规则
 - **工作流管线** — skill 之间的调用顺序和职责边界
 
-这是一个 prompt-driven skill。探索、确认、写入。
-
-## 工作流概览
-
-本 skill 配置的管线：
-
-```
-grill-with-docs → to-prd → to-task → impl → retro
-   (收敛)        (PRD)    (拆任务)   (实现)    (复盘)
-```
-
-辅助 skill：`diagnose`（调试）、`zoom-out`（全局视角）、`prototype`（原型验证）
-
 ## 流程
 
 ### 1. 探索
@@ -112,11 +99,11 @@ grill-with-docs → to-prd → to-task → impl → retro
 ```markdown
 ## Agent skills
 
-### 工作流
+### 默认工作流
 
 \```
-grill-with-docs → to-prd → to-task → impl → retro
-   (收敛)        (PRD)    (拆任务)   (实现)    (复盘)
+grill-with-docs → to-prd → to-task → impl
+   (收敛)        (PRD)    (拆任务)   (实现)
 \```
 
 ### 任务追踪
