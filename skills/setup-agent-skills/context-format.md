@@ -10,7 +10,7 @@
 ## Language
 
 **Order**:
-{A concise description of the term}
+{A one or two sentence description of the term}
 _Avoid_: Purchase, transaction
 
 **Invoice**:
@@ -21,30 +21,15 @@ _Avoid_: Bill, payment request
 A person or organization that places orders.
 _Avoid_: Client, buyer, account
 
-## Relationships
-
-- An **Order** produces one or more **Invoices**
-- An **Invoice** belongs to exactly one **Customer**
-
-## Example dialogue
-
-> **Dev:** "When a **Customer** places an **Order**, do we create the **Invoice** immediately?"
-> **Domain expert:** "No — an **Invoice** is only generated once a **Fulfillment** is confirmed."
-
-## Flagged ambiguities
-
-- "account" was used to mean both **Customer** and **User** — resolved: these are distinct concepts.
 ```
 
 ## Rules
 
 - **要有主见。** 当同一概念存在多个词汇时，选择最好的一个，将其他的列为应避免的别名。
 - **明确标记冲突。** 如果一个术语被歧义使用，在"标记的歧义"中指出并给出明确的解决方案。
-- **定义要精炼。** 最多一句话。定义它*是*什么，而不是它做什么。
-- **展示关系。** 使用加粗的术语名称，在明显时表达基数。
+- **定义要精炼。** 最多一到两句话。定义它*是*什么，而不是它做什么。
 - **只包含本项目上下文特有的术语。** 通用编程概念（超时、错误类型、工具模式）不属于这里，即使项目大量使用它们。添加术语前先问：这是本上下文特有的概念，还是通用编程概念？只有前者才属于这里。
 - **当自然聚类出现时按子标题分组。** 如果所有术语属于同一个内聚领域，平铺列表即可。
-- **写一段示例对话。** 一段开发者和领域专家之间的对话，展示术语如何自然交互，并澄清相关概念之间的边界。
 
 ## Single vs multi-context repos
 
