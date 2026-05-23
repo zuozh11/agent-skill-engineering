@@ -1,6 +1,6 @@
 ---
 name: to-task
-description: 将需求拆解为可独立实现的任务卡，发布到 task tracker。适用于用户要求拆任务、出实施计划、把需求落到代码改动，或说「拆任务」「to-task」「出开发计划」等场景。
+description: 将需求拆解为可独立实现的任务卡。适用于用户要求拆任务、出实施计划、把需求落到代码改动，或说「拆任务」「to-task」「出开发计划」等场景。
 ---
 
 # To Task
@@ -58,9 +58,9 @@ description: 将需求拆解为可独立实现的任务卡，发布到 task trac
 
 问用户：粒度是否合适？依赖关系是否正确？
 
-### 7. 发布任务到 task tracker
+### 7. 写入任务文件
 
-按依赖顺序（blocker 先发布）在 `docs/scratch/<feature-slug>/tasks/` 下创建文件。
+按依赖顺序（blocker 先写入）在 `docs/scratch/<feature-slug>/tasks/` 下创建文件。
 
 ### 8. advisor 复审
 
