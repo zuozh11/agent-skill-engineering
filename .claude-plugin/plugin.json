@@ -10,6 +10,7 @@
     "./skills/setup-agent-skills",
     "./skills/to-prd",
     "./skills/to-task",
-    "./skills/zoom-out"
+    "./skills/zoom-out",
+    "./skills/commit"
   ]
 }
