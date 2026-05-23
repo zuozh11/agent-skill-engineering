@@ -1,15 +1,14 @@
 ---
 name: setup-agent-skills
-description: 为新仓库搭建 Agent 工作流基础设施。配置领域文档、工作流管线，使 grill-with-docs / to-prd / to-task / impl 等 skill 能正常工作。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
+description: 为新仓库搭建 Agent 领域文档基础设施。配置 CONTEXT.md 和 ADR 布局，使工程类 skill 能正确读取领域上下文。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
 disable-model-invocation: true
 ---
 
 # Setup Agent Skills
 
-为目标仓库搭建 Agent 工作流所需的基础配置：
+为目标仓库搭建 Agent 工程 skill 所需的领域文档配置：
 
 - **领域文档** — `CONTEXT.md` 和 ADR 的布局规则
-- **工作流管线** — skill 之间的调用顺序和职责边界
 
 ## 流程
 
@@ -18,47 +17,29 @@ disable-model-invocation: true
 读取目标仓库的现有状态，不要假设：
 
 - `git remote -v` — 远程仓库信息
-- `CLAUDE.md` / `AGENTS.md` — 是否已有 `## Agent skills` 段落
+- `CLAUDE.md` / `AGENTS.md` — 是否已有 `## 领域文档` 段落
 - `CONTEXT.md` / `CONTEXT-MAP.md` — 领域文档是否存在
 - `docs/adr/` — 架构决策记录
 - `docs/agents/` — 是否已有 skill 配置输出
 
-### 2. 逐项确认
+### 2. 确认布局
 
-向用户展示发现，然后**逐项**确认配置。每次只问一个 section，等用户回答后再进入下一个。
+向用户展示发现，然后确认领域文档布局。
 
-假设用户不了解这些概念，每个 section 先用一句话解释用途。
+假设用户不了解这些概念，先用一句话解释用途。
 
-**Section A — 领域文档布局。**
+**领域文档布局：**
 
-> 解释：部分 skill（`grill-with-docs`、`diagnose`、`impl`）会读取 `CONTEXT.md` 了解领域术语，读取 `docs/adr/` 了解架构决策。需要确认是单 Context 还是多 Context （monorepo）。
+> 解释：部分 skill 会读取 `CONTEXT.md` 了解领域术语，读取 `docs/adr/` 了解架构决策。需要确认是单 Context 还是多 Context（monorepo）。
 
 - **单 Context** — 根目录一个 `CONTEXT.md` + `docs/adr/`（大多数仓库）
 - **多 Context** — 根目录 `CONTEXT-MAP.md` 指向多个 `CONTEXT.md`（monorepo）
-
-**Section B — 工作流管线。**
-
-> 解释：确认 skill 之间的调用顺序。默认管线如下，如果你的团队有不同的流程可以调整。
-
-默认管线：
-```
-[grill-with-docs] → to-prd → to-task → impl
-   (收敛，可选)      (PRD)    (拆任务)   (实现)
-```
-
-> `grill-with-docs` 可独立调用来主动收敛需求，也可省略——`to-prd` 在上下文不足时会自动触发其追问流程。
-
-辅助 skill（按需调用，不在主管线中）：
-- `retro` — 复盘纠偏
-- `diagnose` — 调试 bug
-- `zoom-out` — 全局视角
-- `prototype` — 原型验证
 
 ### 3. 确认并编辑
 
 向用户展示草稿：
 
-- 要添加到 `CLAUDE.md` / `AGENTS.md` 的 `## Agent skills` 段落
+- 要添加到 `CLAUDE.md` / `AGENTS.md` 的 `## 领域文档` 段落
 - `docs/agents/domain.md` 的内容
 
 让用户在写入前修改。
@@ -71,23 +52,12 @@ disable-model-invocation: true
 - 否则如果 `AGENTS.md` 存在，编辑它
 - 都不存在则询问用户创建哪个
 
-如果 `## Agent skills` 段落已存在，原地更新而非追加重复。
+如果 `## 领域文档` 段落已存在，原地更新而非追加重复。
 
-**`## Agent skills` 段落模板：**
+**`## 领域文档` 段落模板：**
 
 ```markdown
-## Agent skills
-
-### 默认工作流
-
-\```
-[grill-with-docs] → to-prd → to-task → impl
-   (收敛，可选)      (PRD)    (拆任务)   (实现)
-\```
-
-> `grill-with-docs` 可独立调用来主动收敛需求，也可省略——`to-prd` 在上下文不足时会自动触发其追问流程。
-
-### 领域文档
+## 领域文档
 
 [一行摘要]。详见 `docs/agents/domain.md`。
 
