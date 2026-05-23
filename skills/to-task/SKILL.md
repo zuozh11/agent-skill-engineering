@@ -28,7 +28,6 @@ task tracker 配置见 `docs/agents/task-tracker.md`。
 - **业务口径**：逐项核对需求中的字段、状态、规则是否可落地
 - **项目规则**：读取 `CLAUDE.md` / `AGENTS.md` 中的项目约定
 - **ADR**：读取 `docs/adr/` 中相关决策记录
-- **编码指南与风格**：读取项目中的 coding guide、lint 规则、命名约定等
 - **相关 skill**：读取与需求领域相关的 skill 文件，提取实现约束
 
 发现需求缺规则或自相矛盾时，**先回头补需求**，不在任务里偷偷拍板。
