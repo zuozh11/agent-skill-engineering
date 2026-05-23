@@ -1,6 +1,6 @@
 ---
 name: setup-agent-skills
-description: 为新仓库搭建 Agent 工作流基础设施。配置领域文档、工作流管线，使 grill-with-docs / to-prd / to-task / impl / retro 等 skill 能正常工作。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
+description: 为新仓库搭建 Agent 工作流基础设施。配置领域文档、工作流管线，使 grill-with-docs / to-prd / to-task / impl 等 skill 能正常工作。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
 disable-model-invocation: true
 ---
 
@@ -42,13 +42,14 @@ disable-model-invocation: true
 
 默认管线：
 ```
-[grill-with-docs] → to-prd → to-task → impl → [retro]
-   (收敛，可选)      (PRD)    (拆任务)   (实现)  (复盘，可选)
+[grill-with-docs] → to-prd → to-task → impl
+   (收敛，可选)      (PRD)    (拆任务)   (实现)
 ```
 
 > `grill-with-docs` 可独立调用来主动收敛需求，也可省略——`to-prd` 在上下文不足时会自动触发其追问流程。
 
 辅助 skill（按需调用，不在主管线中）：
+- `retro` — 复盘纠偏
 - `diagnose` — 调试 bug
 - `zoom-out` — 全局视角
 - `prototype` — 原型验证
@@ -80,8 +81,8 @@ disable-model-invocation: true
 ### 默认工作流
 
 \```
-[grill-with-docs] → to-prd → to-task → impl → [retro]
-   (收敛，可选)      (PRD)    (拆任务)   (实现)  (复盘，可选)
+[grill-with-docs] → to-prd → to-task → impl
+   (收敛，可选)      (PRD)    (拆任务)   (实现)
 \```
 
 > `grill-with-docs` 可独立调用来主动收敛需求，也可省略——`to-prd` 在上下文不足时会自动触发其追问流程。

@@ -21,13 +21,13 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 ## 工作流管线
 
 ```
-[grill-with-docs] → to-prd → to-task → impl → [retro]
-   (收敛，可选)       (PRD)    (拆任务)   (实现)   (复盘，可选)
+[grill-with-docs] → to-prd → to-task → impl
+   (收敛，可选)       (PRD)    (拆任务)   (实现)
 ```
 
 > `grill-with-docs` 可独立调用，也可省略——`to-prd` 会在上下文不足时自动触发其追问流程。
 
-辅助 skill（按需调用，不在主管线中）：`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`
+辅助 skill（按需调用，不在主管线中）：`retro`、`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`
 
 ## 为什么要这套流程
 
@@ -89,12 +89,12 @@ docs/scratch/<feature-slug>/
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 PRD 文档** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆解为 vertical slice 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时自动评估开发模式（顺序 / 子 Agent 顺序 / 子 Agent 并行）** |
-| **[retro](./skills/retro/SKILL.md)** | （可选）复盘会话和变更纠偏，必要时更新 PRD 或 ADR |
 
 ### 辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
+| **[retro](./skills/retro/SKILL.md)** | 复盘会话和变更纠偏，必要时更新 PRD 或 ADR |
 | **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
