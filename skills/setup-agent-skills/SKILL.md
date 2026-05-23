@@ -91,7 +91,7 @@ grill-with-docs → to-prd → to-task → impl
 - 仓库根目录的 **`CONTEXT.md`**
 - **`docs/adr/`** — 阅读与当前工作区域相关的架构决策记录（ADR）
 
-**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后写入。已有定义覆盖的不重复提。
+**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入。已有定义覆盖的不重复提。
 
 **ADR 自动提炼**：用户在会话中指出修正时，判断是否揭示了可复现的模式性问题。是则主动提议创建 ADR（给出标题和一句话摘要），经确认后按 `docs/adr/TEMPLATE.md` 格式写入 `docs/adr/`。一次性笔误或已有 ADR 覆盖的不重复提。
 
@@ -102,6 +102,7 @@ grill-with-docs → to-prd → to-task → impl
 **`docs/agents/` 下：**
 
 - [domain.md](./domain.md) — 领域文档消费规则
+- [context-format.md](./context-format.md) → 部署为 `docs/agents/context-format.md` — CONTEXT.md 格式模板
 
 **`docs/adr/` 下：**
 
