@@ -21,13 +21,13 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 ## 工作流管线
 
 ```
-[grill-with-docs] → to-prd → to-task → impl
-   (收敛，可选)       (PRD)    (拆任务)   (实现)
+to-prd → to-task → impl
+ (PRD)   (拆任务)   (实现)
 ```
 
-> `grill-with-docs` 可独立调用，也可省略——`to-prd` 会在上下文不足时自动触发其追问流程。
+> 主管线极简：三步从需求到代码。需要先收敛想法、对齐领域语言时，配合辅助 skill `grill-with-docs`（详见下文）。
 
-辅助 skill（按需调用，不在主管线中）：`retro`、`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`
+其他辅助 skill（按需调用）：`retro`、`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
 
 ## 为什么要这套流程
 
@@ -85,12 +85,25 @@ docs/scratch/<feature-slug>/
 
 | Skill | 用途 |
 |-------|------|
-| **[grill-with-docs](./skills/grill-with-docs/SKILL.md)** | （可选）逼问式对话，收敛需求，同步更新 `CONTEXT.md` 和 ADR。`to-prd` 在上下文不足时会自动触发 |
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 PRD 文档** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆解为 vertical slice 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时自动评估开发模式（顺序 / 子 Agent 顺序 / 子 Agent 并行）** |
 
-### 辅助 Skill
+### 关键辅助：grill-with-docs
+
+[**grill-with-docs**](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过逼问式对话压力测试方案，挑战术语一致性，并即时把确定的概念沉淀到 `CONTEXT.md`、把权衡决策记录为 ADR。
+
+**它不在主管线中，但与主管线深度协作：**
+
+| 配合时机 | 作用 |
+|----------|------|
+| `to-prd` 之前 | 想法还模糊时先 grill 一轮，把术语和边界条件定下来，PRD 才不会写到一半发现概念冲突 |
+| `to-task` 之前 | PRD 写完但任务边界不清晰时，针对实现路径继续 grill，避免拆出来的任务相互打架 |
+| `impl` 进行中 | 实现时发现 PRD 与代码矛盾、或冒出新概念，临时 grill 一次锁定决策再继续 |
+
+> 也可以独立调用，不一定要进入主管线。`to-prd` 在上下文严重不足时会自动触发它的追问流程。
+
+### 其他辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
