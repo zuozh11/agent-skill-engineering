@@ -2,19 +2,17 @@
 
 面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 拆解 → 实现**的完整工程管线。
 
-与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪 + vertical slice 实现模式，更适合个人开发者或小团队的轻量工作流。
+与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪 + vertical slice 实现模式，更适合实际企业项目。
 
 ## 快速开始
 
-1. 安装/更新 skill（以 Claude Code 为例）：
+1. 安装/更新 skill：
 
 ```bash
 npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git
 ```
 
-2. 在目标仓库中运行 `/setup-agent-skills`，它会引导你配置：
-   - 领域文档布局（单上下文 or monorepo）
-   - 工作流管线确认
+2. 在目标仓库中运行 `/setup-agent-skills`。
 
 3. 配置完成后即可使用全部 skill。
 
