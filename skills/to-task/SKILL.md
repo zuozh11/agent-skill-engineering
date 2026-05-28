@@ -99,7 +99,7 @@ Blocked by: None
 
 <功能说明：这个改动点是为了什么，做什么，核心逻辑概述（1-2 句）>
 
-<可评审的具体实现：代码片段 / 配置 / 命令 / key=value>
+<可评审的具体实现：改动片段>
 
 <约束或注意事项（可选，1-2 句）>
 
@@ -152,100 +152,71 @@ Blocked by: None
 
 ## 改动内容正反例
 
-**反例 1（❌ 同一方法拆成多个小标题，逻辑不连续，需脑补拼接）：**
+**反例（❌ 同时踩 4 个坑：用错代码块标识、不省略、拆多标题、功能说明缺失）：**
 
-```markdown
-### handleAwardPass — 回写来源询价包
+````markdown
+### saveOrder — 加订单号生成
 
-​```java
-BuPsInqPkgEntity inqPkgUpdate = new BuPsInqPkgEntity();
-inqPkgUpdate.setInqPkgId(award.getInqPkgId());
-inqPkgUpdate.setSourceStatus(DicSourceStatus.AWARDED.fullCode());
-buPsInqPkgService.updateById(inqPkgUpdate);
-​```
-
-### handleAwardPass — 释放无中标物料对应需求池
-
-- 每个物料判断其供应商是否存在 `isAward=Y`
-- 无中标供应商的物料：通过 `inqPkgLineId` 找到 `reqPoolId`
-- 批量调用 `buPsReqPoolService.updatePoolStatus`
-
-### handleAwardPass — 幂等保护
-
-按 `reqPoolId + operType + operDesc` 查重，存在则跳过。
-```
-
-**反例 2（❌ 方法完整但无注释，代码像一堵墙，评审者需逐行阅读）：**
-
-```markdown
-### BuPsAwardAppService.handleAwardPass — 审批通过完整数据流
-
-定标审批通过的业务回写入口。回写定标状态和来源询价包寻源状态为已定标，识别无供应商中标的物料并释放对应需求池。
-
-​```java
-private void handleAwardPass(BuPsAwardVO award) {
-    award.setAwardStatus(DicAwardStatus.AWARDED.fullCode());
-    award.setAwardStatusText(DicAwardStatus.AWARDED.dictName());
-    BuPsInqPkgEntity inqPkgUpdate = new BuPsInqPkgEntity();
-    inqPkgUpdate.setInqPkgId(award.getInqPkgId());
-    inqPkgUpdate.setSourceStatus(DicSourceStatus.AWARDED.fullCode());
-    inqPkgUpdate.setSourceStatusText(DicSourceStatus.AWARDED.dictName());
-    buPsInqPkgService.updateById(inqPkgUpdate);
-    List<BuPsAwardLineVO> lines = buPsAwardLineAppService.queryBuPsAwardLineList(award.getAwardId());
-    Map<String, String> reqPoolIdMap = buPsInqPkgLineAppService
-        .queryBuPsInqPkgLineList(award.getInqPkgId()).stream()
-        .collect(Collectors.toMap(BuPsInqPkgLineVO::getInqPkgLineId, BuPsInqPkgLineVO::getReqPoolId, (a, b) -> a));
-    List<String> releasePoolIds = lines.stream()
-        .filter(line -> line.getBuPsAwardSupList().stream().noneMatch(sup -> "Y".equals(sup.getIsAward())))
-        .map(line -> reqPoolIdMap.get(line.getInqPkgLineId()))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-    if (CollUtil.isNotEmpty(releasePoolIds)) {
-        buPsReqPoolService.updatePoolStatus(releasePoolIds, DicPoolStatus.PENDING);
-        for (String poolId : releasePoolIds) {
-            saveReleaseOperRecord(poolId, award);
-        }
-    }
+```java
+public OrderVO saveOrder(OrderDTO dto) {
+    OrderEntity order = new OrderEntity();
+    order.setOrderId(IdUtil.getSnowflakeNextIdStr());
+    order.setCustomerId(dto.getCustomerId());
+    order.setAmount(dto.getAmount());
+    order.setRemark(dto.getRemark());
+    order.setCreateTime(LocalDateTime.now());
+    order.setOrderNo(orderNoGenerator.next(dto.getBizType()));
+    order.setStatus(DicOrderStatus.PENDING.fullCode());
+    order.setStatusText(DicOrderStatus.PENDING.dictName());
+    orderMapper.insert(order);
+    eventBus.publish(new OrderCreatedEvent(order.getOrderId()));
+    return OrderConverter.toVO(order);
 }
-​```
 ```
 
-**正例（✅ 一个方法一个小标题，功能说明在前，完整方法体在后，注释标记逻辑段落）：**
+### saveOrder — 改默认状态
 
-```markdown
-### BuPsAwardAppService.handleAwardPass — 审批通过完整数据流
+把 `DRAFT` 改成 `PENDING`。
+````
 
-定标审批通过的业务回写入口。回写定标状态和来源询价包寻源状态为已定标，识别无供应商中标的物料并释放对应需求池，同时写操作记录。
+槽点：
+- 用 ` ```java ` 而不是 ` ```diff ` —— 评审者看不出哪几行是改的
+- 整段方法贴出来，没有 `// ... 省略 ...` —— 评审者怀疑是不是连无关代码也动了
+- 同一个方法拆成两个 `###` —— 违反"一个 ### = 一个完整代码单元"
+- 功能说明在代码下方/缺失 —— 评审者得先读完代码再回头猜意图
 
-​```java
-private void handleAwardPass(BuPsAwardVO award) {
-    // 回写来源询价包寻源状态
-    BuPsInqPkgEntity inqPkgUpdate = new BuPsInqPkgEntity();
-    inqPkgUpdate.setInqPkgId(award.getInqPkgId());
-    inqPkgUpdate.setSourceStatus(DicSourceStatus.AWARDED.fullCode());
-    inqPkgUpdate.setSourceStatusText(DicSourceStatus.AWARDED.dictName());
-    buPsInqPkgService.updateById(inqPkgUpdate);
+**正例（✅ 一个标题、说明前置、`diff` 块、上下文省略、注释分段）：**
 
-    // 识别无中标物料，收集需释放的需求池
-    List<BuPsAwardLineVO> lines = buPsAwardLineAppService.queryBuPsAwardLineList(award.getAwardId());
-    Map<String, String> reqPoolIdMap = buPsInqPkgLineAppService
-        .queryBuPsInqPkgLineList(award.getInqPkgId()).stream()
-        .collect(Collectors.toMap(BuPsInqPkgLineVO::getInqPkgLineId, BuPsInqPkgLineVO::getReqPoolId, (a, b) -> a));
-    List<String> releasePoolIds = lines.stream()
-        .filter(line -> line.getBuPsAwardSupList().stream().noneMatch(sup -> "Y".equals(sup.getIsAward())))
-        .map(line -> reqPoolIdMap.get(line.getInqPkgLineId()))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+````markdown
+### OrderAppService.saveOrder — 保存订单时生成订单号并默认进入待处理
 
-    // 释放需求池并写操作记录（含幂等）
-    if (CollUtil.isNotEmpty(releasePoolIds)) {
-        buPsReqPoolService.updatePoolStatus(releasePoolIds, DicPoolStatus.PENDING);
-        for (String poolId : releasePoolIds) {
-            saveReleaseOperRecord(poolId, award);
-        }
-    }
-}
-​```
+订单保存入口。在落库前按业务类型生成订单号，并把默认状态从 `DRAFT` 调整为 `PENDING`，使新订单直接进入待处理流转。
 
-有中标供应商的物料保持需求池已打包，不更新。
+```diff
+ public OrderVO saveOrder(OrderDTO dto) {
+     OrderEntity order = new OrderEntity();
+     order.setOrderId(IdUtil.getSnowflakeNextIdStr());
+     // ... 基础字段拷贝省略 ...
+
++    // 按业务类型生成订单号
++    order.setOrderNo(orderNoGenerator.next(dto.getBizType()));
++
+     // 设置初始状态
+-    order.setStatus(DicOrderStatus.DRAFT.fullCode());
+-    order.setStatusText(DicOrderStatus.DRAFT.dictName());
++    order.setStatus(DicOrderStatus.PENDING.fullCode());
++    order.setStatusText(DicOrderStatus.PENDING.dictName());
+
+     orderMapper.insert(order);
+     // ... 事件发布与返回省略 ...
+ }
 ```
+
+订单号生成规则由 `OrderNoGenerator` 收口，本任务不改其内部实现。
+````
+
+对应 4 条评审友好原则：
+- **判断点前置**：功能说明在代码块上方，评审者读完就能判断下面对不对
+- **省略显式**：无关行用 `// ... 省略 ...` 截掉，不留疑问
+- **注释分段**：`// 按业务类型生成订单号` / `// 设置初始状态` 标记逻辑转折点
+- **代码块对照**：` ```diff ` + `+`/`-` + 上下文 1-2 行，红绿一眼看清
