@@ -100,8 +100,8 @@ CONTEXT.md                    ← 项目术语和命名约定
 docs/
 ├── agents/                   ← 模板（context-format.md、rules-format.md）
 ├── rules/                    ← 项目规则（RULES）
-│   ├── 数据权限-按部门隔离.md
-│   └── 接口错误码-统一包装.md
+│   ├── 01-数据权限-按部门隔离.md
+│   └── 02-接口错误码-统一包装.md
 └── scratch/
     └── <feature-slug>/
         ├── PRD.md            ← /to-prd 产出
