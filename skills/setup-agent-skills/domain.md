@@ -1,13 +1,12 @@
 # 领域文档
 
-工程类 skill 在探索代码库时应如何使用本仓库的领域文档。
+工程类 skill 在探索代码库时应如何使用本仓库的领域文档。**本文件是领域文档「读取」与「落盘」的唯一权威说明**，覆盖单 Context 与多 Context 两种布局——各 skill 只需指向本文件，不再各自重复布局逻辑。
 
-## 探索前先阅读
+## 布局判定
 
-- 仓库根目录的 **`CONTEXT.md`**
-- **`docs/rules/`** — 项目规则（RULES）。先列出该目录，依据文件名（自描述，说明每条规则管什么）判断哪些与当前任务相关，读取相关规则；拿不准就读。
-
-如果这些文件不存在，**静默继续**。
+- 根目录有 `CONTEXT.md` → **单 Context**（大多数仓库）。
+- 根目录有 `CONTEXT-MAP.md` → **多 Context**（monorepo）。`CONTEXT-MAP.md` 列出各 Context 的位置与相互关系。
+- 两者都没有 → 领域文档尚未建立，**静默继续**。
 
 ## 文件结构
 
@@ -36,6 +35,38 @@
         ├── CONTEXT.md
         └── docs/rules/
 ```
+
+## 探索前先读（读取解析）
+
+**单 Context：**
+
+- 根目录的 `CONTEXT.md`
+- 根目录的 `docs/rules/`——先列目录，依据文件名（自描述，说明每条规则管什么）判断哪些与当前任务相关，读取相关规则；拿不准就读。
+
+**多 Context：**
+
+1. 读根目录 `CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。
+2. 读相关 Context 的 `src/<ctx>/CONTEXT.md`。
+3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`src/<ctx>/docs/rules/`）。两层都按文件名挑相关的读；拿不准就读。
+
+任一文件不存在则**静默继续**。
+
+## 自动提炼往哪写（落盘解析）
+
+会话中提炼出新术语或新规则、经确认后写入时，**落点取决于布局**：
+
+**单 Context：**
+
+- 新术语 → 根 `CONTEXT.md`
+- 新规则 → 根 `docs/rules/`
+
+**多 Context：**
+
+- 新术语 → 它所属 Context 的 `src/<ctx>/CONTEXT.md`；跨 Context 的关系写进根 `CONTEXT-MAP.md` 的 Relationships。
+- 新规则 → 按**作用域**落层：全系统通用的落系统级（根 `docs/rules/`），仅某 Context 内有效的落该 Context 级（`src/<ctx>/docs/rules/`）。
+- 拿不准术语属于哪个 Context、或规则该落哪一层，在提议时一并问用户。
+
+格式见 `docs/agents/context-format.md`（CONTEXT.md）与 `docs/agents/rules-format.md`（RULES）。
 
 ## 使用术语表中的词汇
 
