@@ -54,7 +54,7 @@ disable-model-invocation: true
 
 如果 `## 领域文档` 段落已存在，原地更新而非追加重复。
 
-**按第 2 步确认的布局选择模板**：单 Context 用「单 Context 模板」，多 Context（monorepo）用「多 Context 模板」。两者的读取/落盘细节都指向 `docs/agents/domain.md`（唯一权威），段落本身只写清本仓库属于哪种布局。
+**按第 2 步确认的布局选择模板**：单 Context 用「单 Context 模板」，多 Context（monorepo）用「多 Context 模板」。模板只写清本仓库属于哪种布局、有哪些文件，加上多 Context 必备的「两层、别只读根目录」提示；定位、挑读、落点等解析细节都指向 `docs/agents/domain.md`（唯一权威），不在模板里复述。
 
 **单 Context 模板：**
 
@@ -65,8 +65,7 @@ disable-model-invocation: true
 
 做任何与项目相关的任务前，按需查阅以下资源：
 
-- 仓库根目录的 **`CONTEXT.md`**
-- **`docs/rules/`** — 项目规则（RULES）。先列出该目录，依据文件名（自描述，说明每条规则管什么）判断哪些与当前任务相关，读取相关规则；拿不准就读。
+- 仓库根目录的 **`CONTEXT.md`** 与 **`docs/rules/`**——按文件名挑与任务相关的读，拿不准就读。
 
 **CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入根目录 `CONTEXT.md`。已有定义覆盖的不重复提。
 
@@ -88,8 +87,8 @@ disable-model-invocation: true
 
 做任何与项目相关的任务前，按需查阅以下资源：
 
-- 根目录 **`CONTEXT-MAP.md`** — 据此定位当前任务相关的 Context，并从地图链接拿到其目录位置，读取该 Context 的 `CONTEXT.md`
-- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读，别只读根目录就停手**——Context 级规则往往与任务更相关。各层先列目录，依据文件名判断与当前任务相关的规则读取；拿不准就读。
+- 根目录 **`CONTEXT-MAP.md`**——据它定位相关 Context、读其 `CONTEXT.md`。
+- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读、别只读根目录**——Context 级规则往往与任务更相关。定位与挑读细节见 `docs/agents/domain.md`。
 
 **CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到对应 Context 的 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入；写哪个 Context 的 `CONTEXT.md`（及跨 Context 关系写入 `CONTEXT-MAP.md`）见 `docs/agents/domain.md`。已有定义覆盖的不重复提。
 
@@ -120,7 +119,7 @@ disable-model-invocation: true
 
 如果扫描结果不足以提炼出可信术语（如代码量太少、领域不清晰），**保持空骨架**——宁可留空，也不写入低质量术语。告知用户「初始扫描未发现明确的领域术语，CONTEXT.md 将随后续对话按需自动提炼」。
 
-多 Context 布局下，首次种子术语按 Context 归属落到各自 Context 目录下的 `CONTEXT.md`（目录位置由 `CONTEXT-MAP.md` 声明、不限于 `src/`，落点解析见 `docs/agents/domain.md`）；跨 Context 关系写入根 `CONTEXT-MAP.md`。
+多 Context 布局下，首次种子术语的 Context 归属与落点解析见 `docs/agents/domain.md`；跨 Context 关系写入根 `CONTEXT-MAP.md`。
 
 ### 6. 完成
 

@@ -55,10 +55,4 @@ _Avoid_: Client, buyer, account
 - **Ordering ↔ Billing**: 共享 `CustomerId` 和 `Money` 类型
 ```
 
-本 skill 推断适用哪种结构：
-
-- 如果 `CONTEXT-MAP.md` 存在，读取它来查找 contexts
-- 如果只有根目录的 `CONTEXT.md`，则为单 contexts
-- 如果两者都不存在，在第一个术语确定时按需创建根目录的 `CONTEXT.md`
-
-当存在多个 contexts 时，推断当前话题与哪个相关。如果不确定，询问用户。
+本 skill 如何判定单/多 Context、以及多 Context 下当前话题归属哪个 Context（不确定就问用户），见 `docs/agents/domain.md`（唯一权威）。本文件只定义 `CONTEXT.md` 与 `CONTEXT-MAP.md` 的格式。
