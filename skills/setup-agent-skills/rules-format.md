@@ -1,32 +1,41 @@
-# ADR Format
+# RULES Format
 
-ADR 存放在 `docs/adr/` 目录下，使用顺序编号：`0001-slug.md`、`0002-slug.md`，以此类推。
+RULES 是项目通用规则——把难逆转的关键决策固化为长期约束，agent 在相关任务中查阅并遵守。它和 `CONTEXT.md` 不同：CONTEXT.md 记录业务术语，RULES 记录项目级规则，两者基本不重叠。
 
-`docs/adr/` 目录按需创建——只在需要第一个 ADR 时才建。
+RULES 存放在 `docs/rules/` 目录下，每条规则一个文件。`docs/rules/` 目录按需创建——只在需要第一条规则时才建。
+
+## 命名
+
+文件名 = 规则主题的中文短语，自描述，一眼知道这条规则管什么。不使用顺序编号。
+
+- 直接描述规则管的事，不必套用 `CONTEXT.md` 的业务术语——RULES 是项目通用规则，与业务术语表基本不重叠。
+- 模式：`<规则主题>-<要点>.md`，简短到一行能看懂。
+- 示例：
+  - `数据权限-按部门隔离.md`
+  - `用户信息-从登录态获取.md`
+  - `接口错误码-统一包装.md`
+  - `模块通信-领域事件优先.md`
+- 规则之间相互引用时用《文件名》，不用编号。
 
 ## 模板
 
 ```md
-# {Short title of the decision}
+# {规则主题的简短标题}
 
-{1-3 sentences: what's the context, what did we decide, and why.}
+{1-3 句：背景是什么、定了什么规则、为什么。}
 ```
 
-就这些。一个 ADR 可以只是一段话。价值在于记录*做了*什么决策以及*为什么*——而不是填满各种章节。
+就这些。一条规则可以只是一段话。价值在于记录*定了什么*以及*为什么*——而不是填满各种章节。
 
 ## 可选章节
 
-只在确实有价值时才包含这些。大多数 ADR 不需要它们。
+只在确实有价值时才包含这些。大多数规则不需要它们。
 
-- **Status** 前置元数据（`proposed | accepted | deprecated | superseded by ADR-NNNN`）——在决策被重新审视时有用
+- **Status** 前置元数据（`proposed | accepted | deprecated | superseded by 《其他规则》`）——在规则被重新审视时有用
 - **Considered Options** ——只在被否决的替代方案值得记住时才写
 - **Consequences** ——只在非显而易见的下游影响需要指出时才写
 
-## 编号
-
-扫描 `docs/adr/` 找到最大的现有编号，加一。
-
-## 何时提议 ADR
+## 何时提议一条 RULES
 
 以下三个条件必须同时满足：
 
