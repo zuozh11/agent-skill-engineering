@@ -36,6 +36,8 @@
         └── docs/rules/
 ```
 
+> 上面的 `src/ordering`、`src/billing` **只是示例**。各 Context 的实际目录位置由 `CONTEXT-MAP.md` 的 Contexts 列表声明（链接里带路径），可能在 `src/`、`packages/`、`apps/`、`modules/`、`services/` 等任意路径下，不要假设一定在 `src/`。下文用 `<ctx-dir>/` 指代某个 Context 的目录——它的真实路径来自 `CONTEXT-MAP.md`。
+
 ## 探索前先读（读取解析）
 
 **单 Context：**
@@ -45,9 +47,9 @@
 
 **多 Context：**
 
-1. 读根目录 `CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。
-2. 读相关 Context 的 `src/<ctx>/CONTEXT.md`。
-3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`src/<ctx>/docs/rules/`）。两层都按文件名挑相关的读；拿不准就读。
+1. 读根目录 `CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。从 Contexts 列表的链接拿到该 Context 的目录 `<ctx-dir>/`（路径以地图为准，别假设在 `src/`）。
+2. 读相关 Context 的 `<ctx-dir>/CONTEXT.md`。
+3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`<ctx-dir>/docs/rules/`）。两层都按文件名挑相关的读；拿不准就读。
 
 任一文件不存在则**静默继续**。
 
@@ -62,8 +64,8 @@
 
 **多 Context：**
 
-- 新术语 → 它所属 Context 的 `src/<ctx>/CONTEXT.md`；跨 Context 的关系写进根 `CONTEXT-MAP.md` 的 Relationships。
-- 新规则 → 按**作用域**落层：全系统通用的落系统级（根 `docs/rules/`），仅某 Context 内有效的落该 Context 级（`src/<ctx>/docs/rules/`）。
+- 新术语 → 它所属 Context 的 `<ctx-dir>/CONTEXT.md`（`<ctx-dir>` 路径见 `CONTEXT-MAP.md`）；跨 Context 的关系写进根 `CONTEXT-MAP.md` 的 Relationships。
+- 新规则 → 按**作用域**落层：全系统通用的落系统级（根 `docs/rules/`），仅某 Context 内有效的落该 Context 级（`<ctx-dir>/docs/rules/`）。
 - 拿不准术语属于哪个 Context、或规则该落哪一层，在提议时一并问用户。
 
 格式见 `docs/agents/context-format.md`（CONTEXT.md）与 `docs/agents/rules-format.md`（RULES）。
