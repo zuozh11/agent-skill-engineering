@@ -25,7 +25,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
             (PRD)   (拆任务)   (实现)
       
 辅助:  grill-with-docs
-     （追问对齐，上下文不足时自动触发）
+     （追问对齐，自动触发）
 ```
 
 其他辅助 skill（按需调用）：`retro`、`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
@@ -129,7 +129,7 @@ docs/
 
 [grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过逼问式对话压力测试方案，挑战术语一致性，并把确定的概念沉淀到 `CONTEXT.md`、把权衡决策记录为 `RULES`。
 
-> `to-prd`、`to-task`、`impl` 在上下文不足时会自动触发它的追问流程。
+> `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 
 ### 其他辅助 Skill
 
