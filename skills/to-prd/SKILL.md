@@ -15,8 +15,7 @@ PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
 
 按需查阅以下资源：
 
-- 仓库根目录的 **`CONTEXT.md`**
-- **`docs/rules/`** — 项目规则（RULES）。先列出该目录，依据文件名（自描述，说明每条规则管什么）判断哪些与当前任务相关，读取相关规则；拿不准就读。
+- **领域文档**（`CONTEXT.md` + `docs/rules/`）：按 `docs/agents/domain.md` 的领域文档布局读取——单 Context 读根目录，多 Context（根有 `CONTEXT-MAP.md`）先定位相关 Context 再读其 `CONTEXT.md` 与系统级/Context 级 `docs/rules/`。依文件名按相关性挑读，拿不准就读；不存在则静默继续。
 
 ### 2. 探索代码库
 
