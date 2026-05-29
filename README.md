@@ -21,11 +21,11 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 ## 工作流管线
 
 ```
-主线:  to-prd → to-task → impl 
-      (PRD)   (拆任务)   (实现)
+完整工作流:  to-prd → to-task → impl 
+            (PRD)   (拆任务)   (实现)
       
 辅助:  grill-with-docs
-     （追问对齐，任一阶段上下文不足时触发）
+     （追问对齐，上下文不足时自动触发）
 ```
 
 其他辅助 skill（按需调用）：`retro`、`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
