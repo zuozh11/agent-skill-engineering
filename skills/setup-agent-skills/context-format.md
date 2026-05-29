@@ -42,9 +42,11 @@ _Avoid_: Client, buyer, account
 
 ## Contexts
 
-- [Ordering](./src/ordering/CONTEXT.md) — 接收和跟踪客户订单
-- [Billing](./src/billing/CONTEXT.md) — 生成发票和处理付款
-- [Fulfillment](./src/fulfillment/CONTEXT.md) — 管理仓库拣货和发货
+每个 Context 声明一个**大写英文缩写前缀**，供 RULES 短号跨层引用消歧（系统级固定用 `SYS`）。
+
+- **ORD** · [Ordering](./src/ordering/CONTEXT.md) — 接收和跟踪客户订单
+- **BIL** · [Billing](./src/billing/CONTEXT.md) — 生成发票和处理付款
+- **FUL** · [Fulfillment](./src/fulfillment/CONTEXT.md) — 管理仓库拣货和发货
 
 ## Relationships
 

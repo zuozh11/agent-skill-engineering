@@ -15,11 +15,13 @@ RULES 存放在 `docs/rules/` 目录下，每条规则一个文件。`docs/rules
   - `02-用户信息-从登录态获取.md`
   - `03-接口错误码-统一包装.md`
   - `04-模块通信-领域事件优先.md`
-- 相互引用时用短号 `RULE-NN`（如 RULE-03）或《主题》；commit / PR 里推荐用短号。
+- 相互引用时用短号或《主题》；commit / PR 里推荐用短号。
+  - **单 Context**：短号 `RULE-NN`（如 RULE-03）。
+  - **多 Context**：系统级与各 Context 各自独立编号，`NN` 跨层会撞号，故短号加**大写英文缩写前缀**消歧——系统级固定用 `SYS-NN`（如 SYS-03），Context 级用该 Context 的缩写 `<CTX>-NN`（如 ORD-03、BIL-02）。前缀在 `CONTEXT-MAP.md` 为每个 Context 声明。同目录内引用可省略前缀，跨层 / 跨 Context 必须带。
 
 ## 编号
 
-扫描 `docs/rules/` 找到最大的现有编号，加一。两位零填充（`01`、`02`……）。
+在**目标 `docs/rules/` 目录内**扫描最大的现有编号，加一。两位零填充（`01`、`02`……）。多 Context 下系统级与各 Context 级的 `docs/rules/` 各自从 `01` 起独立编号，因此跨层引用按上面的前缀规则消歧。
 
 ## 模板
 
