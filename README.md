@@ -76,7 +76,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 
 > _数据权限怎么做、用户信息怎么取，这类长期决策不能只留在对话里，否则后续实现很容易绕开它。_
 
-**解法**：`ADR` 记录通用的、难逆转的决策：为什么这样做、放弃什么、何时重审。所有主线 skill 都会读取 `ADR`，避免重复争论已经定下来的约束。
+**解法**：`RULES` 记录通用的、难逆转的决策：为什么这样做、放弃什么、何时重审。所有主线 skill 都会按需查阅相关 `RULES`，避免重复争论已经定下来的约束。
 
 ---
 
@@ -87,9 +87,9 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 工作流会读取三类项目知识：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
-- **`ADR`** — 架构决策记录。记录"为什么这么做"的 hard-to-reverse 决策，防止 agent 重新发明轮子。
+- **`RULES`** — 项目规则。记录"为什么这么做"的 hard-to-reverse 决策，防止 agent 重新发明轮子。
 
-> `CONTEXT.md` 和 `ADR` 在对话中按需创建和更新。
+> `CONTEXT.md` 和 `RULES` 在对话中按需创建和更新。
 
 ### 项目文档布局
 
@@ -98,9 +98,10 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 ```
 CONTEXT.md                    ← 项目术语和命名约定
 docs/
-├── adr/                      ← 架构决策记录
-│   ├── 0001-record-architecture-decision.md
-│   └── 0002-choose-module-boundary.md
+├── agents/                   ← 模板（context-format.md、rules-format.md）
+├── rules/                    ← 项目规则（RULES）
+│   ├── 数据权限-按部门隔离.md
+│   └── 接口错误码-统一包装.md
 └── scratch/
     └── <feature-slug>/
         ├── PRD.md            ← /to-prd 产出
@@ -124,7 +125,7 @@ docs/
 
 ### 关键辅助
 
-[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过逼问式对话压力测试方案，挑战术语一致性，并把确定的概念沉淀到 `CONTEXT.md`、把权衡决策记录为 `ADR`。
+[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过逼问式对话压力测试方案，挑战术语一致性，并把确定的概念沉淀到 `CONTEXT.md`、把权衡决策记录为 `RULES`。
 
 > `to-prd`、`to-task`、`impl` 在上下文不足时会自动触发它的追问流程。
 
@@ -132,7 +133,7 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **[retro](./skills/retro/SKILL.md)** | 复盘会话，必要时更新 `PRD` 或 `ADR` |
+| **[retro](./skills/retro/SKILL.md)** | 复盘会话，必要时更新 `PRD` 或 `RULES` |
 | **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
@@ -151,7 +152,7 @@ docs/
 
 | 原版 (mattpocock/skills) | 本仓库                                              |
 |--------------------------|--------------------------------------------------|
-| 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `ADR`                |
+| 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
 | `/to-prd` 发布 PRD 到 Issue Tracker | `/to-prd` 写入本地PRD文件，并按前端/后端视角组织需求                |
 | `/to-issues` 发布 vertical slice issues | `/to-task` 生成便于人工评审的本地任务卡，包含改动文件、代码片段、依赖和验收项     |
 | `/tdd` 红绿重构循环 | `/impl` 按任务或口头描述执行实现，加载项目约束，必要时编排子 Agent，验证后原子提交 |
