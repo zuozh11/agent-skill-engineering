@@ -123,7 +123,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆解为便于人工评审的 vertical slice 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时自动评估开发模式（顺序 / 子 Agent 顺序 / 子 Agent 并行）** |
+| **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时自主决定执行方式（当前上下文内联，或串行编排子 Agent——Workflow 可用则用 Workflow，否则 fork）** |
 
 ### 关键辅助
 
