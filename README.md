@@ -84,10 +84,10 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 
 ### 领域文档
 
-工作流会读取三类项目知识：
+工作流会读取两类项目知识：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
-- **`RULES`** — 项目规则。记录"为什么这么做"的 hard-to-reverse 决策，防止 agent 重新发明轮子。
+- **`RULES`** — 项目规则。把项目长期有效的关键决策与约定（架构、选型、错误码、单位、命名等）显式写下来供 agent 遵守，防止实现跑偏。
 
 > `CONTEXT.md` 和 `RULES` 在对话中按需创建和更新。
 
@@ -98,7 +98,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 ```
 CONTEXT.md                    ← 项目术语和命名约定
 docs/
-├── agents/                   ← 模板（context-format.md、rules-format.md）
+├── agents/                   ← 消费规则 domain.md + 格式模板 context-format.md / rules-format.md
 ├── rules/                    ← 项目规则（RULES）
 │   ├── 01-数据权限-按部门隔离.md
 │   └── 02-接口错误码-统一包装.md
@@ -110,6 +110,8 @@ docs/
             ├── 02-add-api.md
             └── 03-add-ui.md          ← /impl 逐个实现
 ```
+
+> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用根目录 `CONTEXT-MAP.md` 指向各 `src/<ctx>/CONTEXT.md`，规则分系统级（根 `docs/rules/`）与 Context 级（`src/<ctx>/docs/rules/`）。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
 
 ---
 
