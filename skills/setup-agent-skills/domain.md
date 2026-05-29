@@ -48,7 +48,7 @@
 **多 Context：**
 
 1. 读根目录 `CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。从 Contexts 列表的链接拿到该 Context 的目录 `<ctx-dir>/`（路径以地图为准，别假设在 `src/`）。
-2. 读相关 Context 的 `<ctx-dir>/CONTEXT.md`。
+2. 读相关 Context 的 `<ctx-dir>/CONTEXT.md`。`CONTEXT-MAP.md` 的「共享概念」区是被全部 Context 同等使用的平台级术语，对任何 Context 的任务都适用，一并读。
 3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`<ctx-dir>/docs/rules/`）。**两层都要读，别只读根目录就停手**——根目录只有系统级规则，Context 级规则在该 Context 目录下，往往与当前任务更相关。两层都按文件名挑相关的读；拿不准就读。
 
 任一文件不存在则**静默继续**。
@@ -64,9 +64,9 @@
 
 **多 Context：**
 
-- 新术语 → 它所属 Context 的 `<ctx-dir>/CONTEXT.md`（`<ctx-dir>` 路径见 `CONTEXT-MAP.md`）；跨 Context 的关系写进根 `CONTEXT-MAP.md` 的 Relationships。
+- 新术语 → 它所属 Context 的 `<ctx-dir>/CONTEXT.md`（`<ctx-dir>` 路径见 `CONTEXT-MAP.md`）。**被全部 Context 同等使用的平台级术语**（如业务单号、审批状态等跨域通用概念）→ 根 `CONTEXT-MAP.md` 的「共享概念」区，只定义一次、各 Context 引用而不重复；Context 之间的**依赖关系**（谁下达谁、谁引用谁的 ID）→ `CONTEXT-MAP.md` 的 Relationships。术语定义、共享术语、依赖关系是三类内容，别混。
 - 新规则 → 按**作用域**落层：全系统通用的落系统级（根 `docs/rules/`），仅某 Context 内有效的落该 Context 级（`<ctx-dir>/docs/rules/`）。
-- 拿不准术语属于哪个 Context、或规则该落哪一层，在提议时一并问用户。
+- 拿不准术语属于哪个 Context（还是平台级共享）、或规则该落哪一层，在提议时一并问用户。
 - 各层 `docs/rules/` 各自从 `01` 起独立编号；规则短号跨层引用要加大写前缀消歧（系统级 `SYS-NN`、Context 级 `<CTX>-NN`，前缀见 `CONTEXT-MAP.md`，详见 `rules-format.md`）。
 
 格式见 `docs/agents/context-format.md`（CONTEXT.md）与 `docs/agents/rules-format.md`（RULES）。

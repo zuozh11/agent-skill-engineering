@@ -35,7 +35,7 @@ _Avoid_: Client, buyer, account
 
 **Single context (most repos):** 仓库根目录一个 `CONTEXT.md`。
 
-**多上下文：** 仓库根目录的 `CONTEXT-MAP.md` 列出各 contexts、它们的位置以及相互关系：
+**多上下文：** 仓库根目录的 `CONTEXT-MAP.md` 列出各 contexts、它们的位置、跨 Context 共享的平台术语以及相互关系：
 
 ```md
 # Context Map
@@ -47,6 +47,14 @@ _Avoid_: Client, buyer, account
 - **ORD** · [Ordering](./src/ordering/CONTEXT.md) — 接收和跟踪客户订单
 - **BIL** · [Billing](./src/billing/CONTEXT.md) — 生成发票和处理付款
 - **FUL** · [Fulfillment](./src/fulfillment/CONTEXT.md) — 管理仓库拣货和发货
+
+## 共享概念
+
+被全部 Context 同等使用的平台级术语，在此只定义一次、各 Context 引用而不重复（用与 `CONTEXT.md` 相同的 **术语 / 定义 / _Avoid_** 三段式）。新增此类术语写本区，不要塞进某个 Context；它与 Relationships 不同——这里放术语定义，Relationships 放 Context 间的依赖关系。
+
+**CustomerId**:
+跨 Ordering 与 Billing 引用同一客户的稳定标识。
+_Avoid_: ClientKey
 
 ## Relationships
 
