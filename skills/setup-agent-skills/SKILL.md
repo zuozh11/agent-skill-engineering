@@ -89,7 +89,7 @@ disable-model-invocation: true
 做任何与项目相关的任务前，按需查阅以下资源：
 
 - 根目录 **`CONTEXT-MAP.md`** — 据此定位当前任务相关的 Context，并从地图链接拿到其目录位置，读取该 Context 的 `CONTEXT.md`
-- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。各层先列目录，依据文件名判断与当前任务相关的规则读取；拿不准就读。
+- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读，别只读根目录就停手**——Context 级规则往往与任务更相关。各层先列目录，依据文件名判断与当前任务相关的规则读取；拿不准就读。
 
 **CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到对应 Context 的 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入；写哪个 Context 的 `CONTEXT.md`（及跨 Context 关系写入 `CONTEXT-MAP.md`）见 `docs/agents/domain.md`。已有定义覆盖的不重复提。
 

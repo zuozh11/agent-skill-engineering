@@ -49,7 +49,7 @@
 
 1. 读根目录 `CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。从 Contexts 列表的链接拿到该 Context 的目录 `<ctx-dir>/`（路径以地图为准，别假设在 `src/`）。
 2. 读相关 Context 的 `<ctx-dir>/CONTEXT.md`。
-3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`<ctx-dir>/docs/rules/`）。两层都按文件名挑相关的读；拿不准就读。
+3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`<ctx-dir>/docs/rules/`）。**两层都要读，别只读根目录就停手**——根目录只有系统级规则，Context 级规则在该 Context 目录下，往往与当前任务更相关。两层都按文件名挑相关的读；拿不准就读。
 
 任一文件不存在则**静默继续**。
 

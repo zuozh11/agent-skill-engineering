@@ -4,4 +4,4 @@ description: 让 agent 跳出当前代码，给出更高层次的全局视角。
 disable-model-invocation: true
 ---
 
-我对这块代码不熟悉。请上升一层抽象。给我一张所有相关模块和调用者的地图，使用项目领域术语表（`CONTEXT.md`）中的词汇；如果 `docs/rules/` 中有涉及模块边界、集成模式或架构形态的规则，在地图中体现并遵循这些约束，不要给出与之冲突的结构描述。领域文档按 `docs/agents/domain.md` 的布局定位（多 Context 先据 `CONTEXT-MAP.md` 定位相关 Context，再读其 `CONTEXT.md` 与系统级/Context 级 `docs/rules/`）。
+我对这块代码不熟悉。请上升一层抽象。给我一张所有相关模块和调用者的地图，使用项目领域术语表（`CONTEXT.md`）中的词汇；如果 `docs/rules/` 中有涉及模块边界、集成模式或架构形态的规则，在地图中体现并遵循这些约束，不要给出与之冲突的结构描述。领域文档按 `docs/agents/domain.md` 的布局定位（多 Context 先据 `CONTEXT-MAP.md` 定位相关 Context，再读其 `CONTEXT.md` 与系统级/Context 级**两层** `docs/rules/`，两层都要读、别只读根目录）。
