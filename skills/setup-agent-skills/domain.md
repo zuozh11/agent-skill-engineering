@@ -27,11 +27,11 @@
 ```
 /
 ├── CONTEXT-MAP.md
-├── docs/rules/                        ← 系统级决策
+├── docs/rules/                        ← 系统级规则
 └── src/
     ├── ordering/
     │   ├── CONTEXT.md
-    │   └── docs/rules/                ← Context 级决策
+    │   └── docs/rules/                ← Context 级规则
     └── billing/
         ├── CONTEXT.md
         └── docs/rules/
@@ -43,6 +43,6 @@
 
 ## 标记 RULES 冲突
 
-如果你的输出与现有 RULES 矛盾，明确指出而不是静默覆盖：
+默认遵守现有 RULES。如果当前任务确有正当理由偏离某条规则，不要静默违反——显式标出冲突并说明理由，交用户裁决：
 
-> _与 RULES《数据权限-按部门隔离》矛盾——但值得重新讨论，因为……_
+> _本实现与 RULES《数据权限-按部门隔离》冲突，因为……。是按规则约束改实现，还是更新这条规则？_
