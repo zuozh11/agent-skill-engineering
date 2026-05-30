@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 - `git remote -v` — 远程仓库信息
 - `CLAUDE.md` / `AGENTS.md` — 是否已有 `## 领域文档` 段落
-- `CONTEXT.md` / `CONTEXT-MAP.md` — 领域文档是否存在
+- `docs/CONTEXT.md` / `docs/CONTEXT-MAP.md` — 领域文档是否存在
 - `docs/rules/` — 探索是否已有规则
 - `docs/agents/` — 是否已有 skill 配置输出
 
@@ -32,8 +32,8 @@ disable-model-invocation: true
 
 > 解释：部分 skill 会读取 `CONTEXT.md` 了解领域术语，读取 `docs/rules/` 了解项目规则（RULES）。需要确认是单 Context 还是多 Context（monorepo）。
 
-- **单 Context** — 根目录一个 `CONTEXT.md` + `docs/rules/`（大多数仓库）
-- **多 Context** — 根目录 `CONTEXT-MAP.md` 指向多个 `CONTEXT.md`（monorepo）
+- **单 Context** — `docs/CONTEXT.md` + `docs/rules/`（大多数仓库）
+- **多 Context** — `docs/CONTEXT-MAP.md` 指向多个 `docs/CONTEXT.md`（monorepo）
 
 ### 3. 确认并编辑
 
@@ -61,13 +61,13 @@ disable-model-invocation: true
 ```markdown
 ## 领域文档
 
-单 Context 布局：根目录 `CONTEXT.md` + `docs/rules/`。读取与落盘解析详见 `docs/agents/domain.md`。
+单 Context 布局：`docs/CONTEXT.md` + `docs/rules/`。读取与落盘解析详见 `docs/agents/domain.md`。
 
 做任何与项目相关的任务前，按需查阅以下资源：
 
-- 仓库根目录的 **`CONTEXT.md`** 与 **`docs/rules/`**——按文件名挑与任务相关的读，拿不准就读。
+- 仓库的 **`docs/CONTEXT.md`** 与 **`docs/rules/`**——按文件名挑与任务相关的读，拿不准就读。
 
-**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入根目录 `CONTEXT.md`。已有定义覆盖的不重复提。
+**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入 `docs/CONTEXT.md`。已有定义覆盖的不重复提。
 
 **RULES 自动提炼**：两类触发出现时，判断是否应沉淀为一条规则/约定/约束。是则主动提议（给出标题和一句话摘要），经确认后按 `docs/agents/rules-format.md` 格式写入 `docs/rules/`。
 
@@ -83,11 +83,11 @@ disable-model-invocation: true
 ```markdown
 ## 领域文档
 
-多 Context 布局（monorepo）：根目录 `CONTEXT-MAP.md` + 各 Context 的 `CONTEXT.md`（目录位置由 `CONTEXT-MAP.md` 声明，不限于 `src/`）；规则分系统级（根 `docs/rules/`）与 Context 级（各 Context 目录下的 `docs/rules/`）。完整的读取/落盘解析详见 `docs/agents/domain.md`。
+多 Context 布局（monorepo）：`docs/CONTEXT-MAP.md` + 各 Context 的 `docs/CONTEXT.md`（目录位置由 `CONTEXT-MAP.md` 声明，不限于 `src/`）；规则分系统级（根 `docs/rules/`）与 Context 级（各 Context 目录下的 `docs/rules/`）。完整的读取/落盘解析详见 `docs/agents/domain.md`。
 
 做任何与项目相关的任务前，按需查阅以下资源：
 
-- 根目录 **`CONTEXT-MAP.md`**——据它定位相关 Context、读其 `CONTEXT.md`。
+- **`docs/CONTEXT-MAP.md`**——据它定位相关 Context、读其 `docs/CONTEXT.md`。
 - **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读、别只读根目录**——Context 级规则往往与任务更相关。定位与挑读细节见 `docs/agents/domain.md`。
 
 **CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到对应 Context 的 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入；写哪个 Context 的 `CONTEXT.md`（及跨 Context 关系写入 `CONTEXT-MAP.md`）见 `docs/agents/domain.md`。已有定义覆盖的不重复提。
@@ -119,7 +119,7 @@ disable-model-invocation: true
 
 如果扫描结果不足以提炼出可信术语（如代码量太少、领域不清晰），**保持空骨架**——宁可留空，也不写入低质量术语。告知用户「初始扫描未发现明确的领域术语，CONTEXT.md 将随后续对话按需自动提炼」。
 
-多 Context 布局下，首次种子术语的 Context 归属与落点解析见 `docs/agents/domain.md`；跨 Context 关系写入根 `CONTEXT-MAP.md`。
+多 Context 布局下，首次种子术语的 Context 归属与落点解析见 `docs/agents/domain.md`；跨 Context 关系写入 `docs/CONTEXT-MAP.md`。
 
 ### 6. 完成
 

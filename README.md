@@ -96,8 +96,8 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 领域知识和任务都以 Markdown 文件形式存放在仓库内，不依赖外部服务：
 
 ```
-CONTEXT.md                    ← 项目术语和命名约定
 docs/
+├── CONTEXT.md                ← 项目术语和命名约定
 ├── agents/                   ← 消费规则 domain.md + 格式模板 context-format.md / rules-format.md
 ├── rules/                    ← 项目规则（RULES）
 │   ├── 01-数据权限-按部门隔离.md
@@ -111,7 +111,7 @@ docs/
             └── 03-add-ui.md          ← /impl 逐个实现
 ```
 
-> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用根目录 `CONTEXT-MAP.md` 指向各 Context 的 `CONTEXT.md`（目录位置由地图声明，不限于 `src/`），规则分系统级（根 `docs/rules/`）与 Context 级（各 Context 目录下的 `docs/rules/`）。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
+> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 的 `docs/CONTEXT.md`（目录位置由地图声明，不限于 `src/`），规则分系统级（根 `docs/rules/`）与 Context 级（各 Context 目录下的 `docs/rules/`）。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
 
 ---
 

@@ -62,7 +62,7 @@ BREAKING CHANGE: JWT token 格式变更，所有客户端必须重新认证
    不要默认执行完整 `git diff` / `git diff --cached`；只在需要判断具体语义、
    排除混杂改动或生成提交正文时再读取相关文件的精确 diff。
 2. 提交前加载目标仓库的 `CONTEXT.md`：
-   - 默认读根目录 `CONTEXT.md`。若根目录是 `CONTEXT-MAP.md`（多 Context monorepo），据本次改动涉及的路径定位相关 Context、读其 `CONTEXT.md`（可能多个），定位细节见 `docs/agents/domain.md`。
+   - 默认读 `docs/CONTEXT.md`。若存在 `docs/CONTEXT-MAP.md`（多 Context monorepo），据本次改动涉及的路径定位相关 Context、读其 `docs/CONTEXT.md`（可能多个），定位细节见 `docs/agents/domain.md`。
    - 生成提交范围和提交消息时必须使用 `CONTEXT.md` 中的领域术语、模块名和业务对象名。
    - 如果找不到 `CONTEXT.md`，继续提交流程，但不要臆造业务术语；使用代码路径、
      包名、文件名或用户原话中的命名，并在结果中提示缺少术语来源。

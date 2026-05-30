@@ -4,8 +4,8 @@
 
 ## 布局判定
 
-- 根目录有 `CONTEXT.md` → **单 Context**（大多数仓库）。
-- 根目录有 `CONTEXT-MAP.md` → **多 Context**（monorepo）。`CONTEXT-MAP.md` 列出各 Context 的位置与相互关系。
+- 存在 `docs/CONTEXT.md` → **单 Context**（大多数仓库）。
+- 存在 `docs/CONTEXT-MAP.md` → **多 Context**（monorepo）。`CONTEXT-MAP.md` 列出各 Context 的位置与相互关系。
 - 两者都没有 → 领域文档尚未建立，**静默继续**。
 
 ## 文件结构
@@ -14,29 +14,33 @@
 
 ```
 /
-├── CONTEXT.md
-├── docs/rules/
-│   ├── 01-数据权限-按部门隔离.md
-│   └── 02-用户信息-从登录态获取.md
+├── docs/
+│   ├── CONTEXT.md
+│   └── rules/
+│       ├── 01-数据权限-按部门隔离.md
+│       └── 02-用户信息-从登录态获取.md
 └── src/
 ```
 
-多 Context 仓库（根目录存在 `CONTEXT-MAP.md`）：
+多 Context 仓库（存在 `docs/CONTEXT-MAP.md`）：
 
 ```
 /
-├── CONTEXT-MAP.md
-├── docs/rules/                        ← 系统级规则（文件名不带前缀）
-│   └── 01-日志必须带traceId.md
+├── docs/
+│   ├── CONTEXT-MAP.md
+│   └── rules/                          ← 系统级规则（文件名不带前缀）
+│       └── 01-日志必须带traceId.md
 └── src/
     ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/rules/                ← Context 级规则（文件名带 ORD- 前缀）
-    │       └── ORD-01-接口错误码-统一包装.md
+    │   └── docs/
+    │       ├── CONTEXT.md
+    │       └── rules/                  ← Context 级规则（文件名带 ORD- 前缀）
+    │           └── ORD-01-接口错误码-统一包装.md
     └── billing/
-        ├── CONTEXT.md
-        └── docs/rules/
-            └── BIL-01-金额以分为单位.md
+        └── docs/
+            ├── CONTEXT.md
+            └── rules/
+                └── BIL-01-金额以分为单位.md
 ```
 
 > 上面的 `src/ordering`、`src/billing` **只是示例**。各 Context 的实际目录位置由 `CONTEXT-MAP.md` 的 Contexts 列表声明（链接里带路径），可能在 `src/`、`packages/`、`apps/`、`modules/`、`services/` 等任意路径下，不要假设一定在 `src/`。下文用 `<ctx-dir>/` 指代某个 Context 的目录——它的真实路径来自 `CONTEXT-MAP.md`。
@@ -45,13 +49,13 @@
 
 **单 Context：**
 
-- 根目录的 `CONTEXT.md`
-- 根目录的 `docs/rules/`——先列目录，依据文件名（自描述，说明每条规则管什么）判断哪些与当前任务相关，读取相关规则；拿不准就读。
+- `docs/CONTEXT.md`
+- `docs/rules/`——先列目录，依据文件名（自描述，说明每条规则管什么）判断哪些与当前任务相关，读取相关规则；拿不准就读。
 
 **多 Context：**
 
-1. 读根目录 `CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。从 Contexts 列表的链接拿到该 Context 的目录 `<ctx-dir>/`（路径以地图为准，别假设在 `src/`）。
-2. 读相关 Context 的 `<ctx-dir>/CONTEXT.md`。`CONTEXT-MAP.md` 的「共享概念」区是被全部 Context 同等使用的平台级术语，对任何 Context 的任务都适用，一并读。
+1. 读 `docs/CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。从 Contexts 列表的链接拿到该 Context 的目录 `<ctx-dir>/`（路径以地图为准，别假设在 `src/`）。
+2. 读相关 Context 的 `<ctx-dir>/docs/CONTEXT.md`。`CONTEXT-MAP.md` 的「共享概念」区是被全部 Context 同等使用的平台级术语，对任何 Context 的任务都适用，一并读。
 3. 读**两层规则**：系统级（根 `docs/rules/`）+ 相关 Context 级（`<ctx-dir>/docs/rules/`）。**两层都要读，别只读根目录就停手**——根目录只有系统级规则，Context 级规则在该 Context 目录下，往往与当前任务更相关。两层都按文件名挑相关的读；拿不准就读。
 
 任一文件不存在则**静默继续**。
@@ -62,12 +66,12 @@
 
 **单 Context：**
 
-- 新术语 → 根 `CONTEXT.md`
-- 新规则 → 根 `docs/rules/`
+- 新术语 → `docs/CONTEXT.md`
+- 新规则 → `docs/rules/`
 
 **多 Context：**
 
-- 新术语 → 它所属 Context 的 `<ctx-dir>/CONTEXT.md`（`<ctx-dir>` 路径见 `CONTEXT-MAP.md`）。**被全部 Context 同等使用的平台级术语**（如业务单号、审批状态等跨域通用概念）→ 根 `CONTEXT-MAP.md` 的「共享概念」区，只定义一次、各 Context 引用而不重复；Context 之间的**依赖关系**（谁下达谁、谁引用谁的 ID）→ `CONTEXT-MAP.md` 的 Relationships。术语定义、共享术语、依赖关系是三类内容，别混。
+- 新术语 → 它所属 Context 的 `<ctx-dir>/docs/CONTEXT.md`（`<ctx-dir>` 路径见 `CONTEXT-MAP.md`）。**被全部 Context 同等使用的平台级术语**（如业务单号、审批状态等跨域通用概念）→ `docs/CONTEXT-MAP.md` 的「共享概念」区，只定义一次、各 Context 引用而不重复；Context 之间的**依赖关系**（谁下达谁、谁引用谁的 ID）→ `CONTEXT-MAP.md` 的 Relationships。术语定义、共享术语、依赖关系是三类内容，别混。
 - 新规则 → 按**作用域**落层：全系统通用的落系统级（根 `docs/rules/`），仅某 Context 内有效的落该 Context 级（`<ctx-dir>/docs/rules/`）。
 - 拿不准术语属于哪个 Context（还是平台级共享）、或规则该落哪一层，在提议时一并问用户。
 - 各层 `docs/rules/` 各自从 `01` 起独立编号。**子 Context 级规则文件名带该 Context 的大写缩写前缀**（`<CTX>-NN-<主题>.md`，如 `ORD-03-...`）；系统级与单 Context 不带前缀（`NN-<主题>.md`）。规则短号跨层引用同样加前缀消歧（系统级 `SYS-NN`、Context 级 `<CTX>-NN`，前缀见 `CONTEXT-MAP.md`，详见 `rules-format.md`）。

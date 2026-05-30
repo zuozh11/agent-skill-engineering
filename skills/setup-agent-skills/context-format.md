@@ -33,9 +33,9 @@ _Avoid_: Client, buyer, account
 
 ## Single vs multi-context repos
 
-**Single context (most repos):** 仓库根目录一个 `CONTEXT.md`。
+**Single context (most repos):** `docs/CONTEXT.md`。
 
-**多上下文：** 仓库根目录的 `CONTEXT-MAP.md` 列出各 contexts、它们的位置、跨 Context 共享的平台术语以及相互关系：
+**多上下文：** `docs/CONTEXT-MAP.md` 列出各 contexts、它们的位置、跨 Context 共享的平台术语以及相互关系：
 
 ```md
 # Context Map
@@ -44,9 +44,9 @@ _Avoid_: Client, buyer, account
 
 每个 Context 声明一个**大写英文缩写前缀**，用于该 Context 级 RULES 的文件名前缀（`<CTX>-NN-<主题>.md`）和跨层引用短号消歧（系统级短号固定用 `SYS`；系统级规则文件名不带前缀）。
 
-- **ORD** · [Ordering](./src/ordering/CONTEXT.md) — 接收和跟踪客户订单
-- **BIL** · [Billing](./src/billing/CONTEXT.md) — 生成发票和处理付款
-- **FUL** · [Fulfillment](./src/fulfillment/CONTEXT.md) — 管理仓库拣货和发货
+- **ORD** · [Ordering](../src/ordering/docs/CONTEXT.md) — 接收和跟踪客户订单
+- **BIL** · [Billing](../src/billing/docs/CONTEXT.md) — 生成发票和处理付款
+- **FUL** · [Fulfillment](../src/fulfillment/docs/CONTEXT.md) — 管理仓库拣货和发货
 
 ## 共享概念
 
