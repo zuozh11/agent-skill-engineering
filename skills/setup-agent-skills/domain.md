@@ -26,14 +26,17 @@
 ```
 /
 ├── CONTEXT-MAP.md
-├── docs/rules/                        ← 系统级规则
+├── docs/rules/                        ← 系统级规则（文件名不带前缀）
+│   └── 01-日志必须带traceId.md
 └── src/
     ├── ordering/
     │   ├── CONTEXT.md
-    │   └── docs/rules/                ← Context 级规则
+    │   └── docs/rules/                ← Context 级规则（文件名带 ORD- 前缀）
+    │       └── ORD-01-接口错误码-统一包装.md
     └── billing/
         ├── CONTEXT.md
         └── docs/rules/
+            └── BIL-01-金额以分为单位.md
 ```
 
 > 上面的 `src/ordering`、`src/billing` **只是示例**。各 Context 的实际目录位置由 `CONTEXT-MAP.md` 的 Contexts 列表声明（链接里带路径），可能在 `src/`、`packages/`、`apps/`、`modules/`、`services/` 等任意路径下，不要假设一定在 `src/`。下文用 `<ctx-dir>/` 指代某个 Context 的目录——它的真实路径来自 `CONTEXT-MAP.md`。
@@ -67,7 +70,7 @@
 - 新术语 → 它所属 Context 的 `<ctx-dir>/CONTEXT.md`（`<ctx-dir>` 路径见 `CONTEXT-MAP.md`）。**被全部 Context 同等使用的平台级术语**（如业务单号、审批状态等跨域通用概念）→ 根 `CONTEXT-MAP.md` 的「共享概念」区，只定义一次、各 Context 引用而不重复；Context 之间的**依赖关系**（谁下达谁、谁引用谁的 ID）→ `CONTEXT-MAP.md` 的 Relationships。术语定义、共享术语、依赖关系是三类内容，别混。
 - 新规则 → 按**作用域**落层：全系统通用的落系统级（根 `docs/rules/`），仅某 Context 内有效的落该 Context 级（`<ctx-dir>/docs/rules/`）。
 - 拿不准术语属于哪个 Context（还是平台级共享）、或规则该落哪一层，在提议时一并问用户。
-- 各层 `docs/rules/` 各自从 `01` 起独立编号；规则短号跨层引用要加大写前缀消歧（系统级 `SYS-NN`、Context 级 `<CTX>-NN`，前缀见 `CONTEXT-MAP.md`，详见 `rules-format.md`）。
+- 各层 `docs/rules/` 各自从 `01` 起独立编号。**子 Context 级规则文件名带该 Context 的大写缩写前缀**（`<CTX>-NN-<主题>.md`，如 `ORD-03-...`）；系统级与单 Context 不带前缀（`NN-<主题>.md`）。规则短号跨层引用同样加前缀消歧（系统级 `SYS-NN`、Context 级 `<CTX>-NN`，前缀见 `CONTEXT-MAP.md`，详见 `rules-format.md`）。
 
 格式见 `docs/agents/context-format.md`（CONTEXT.md）与 `docs/agents/rules-format.md`（RULES）。
 
