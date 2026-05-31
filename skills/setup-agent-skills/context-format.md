@@ -42,7 +42,7 @@ _Avoid_: Client, buyer, account
 
 ## Contexts
 
-每个 Context 声明一个**大写英文缩写前缀**，用于该 Context 级 RULES 的文件名前缀（`<CTX>-NN-<主题>.md`）和跨层引用短号消歧（系统级短号固定用 `SYS`；系统级规则文件名不带前缀）。
+每个 Context 声明一个**大写英文缩写前缀**，用于该 Context 级 RULES 的文件名前缀（`<CTX>-NN-<主题>.md`）和跨层引用短号消歧（系统级规则文件名不带前缀）。
 
 - **ORD** · [Ordering](../src/ordering/docs/CONTEXT.md) — 接收和跟踪客户订单
 - **BIL** · [Billing](../src/billing/docs/CONTEXT.md) — 生成发票和处理付款
