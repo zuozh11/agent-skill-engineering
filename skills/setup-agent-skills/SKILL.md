@@ -65,7 +65,7 @@ disable-model-invocation: true
 
 做任何与项目相关的任务前，按需查阅以下资源：
 
-- 仓库的 **`docs/CONTEXT.md`** 与 **`docs/rules/`**——按文件名挑与任务相关的读，拿不准就读。
+- 仓库的 **`docs/CONTEXT.md`** 与 **`docs/rules/`**——按 `docs/agents/domain.md` 的保守触发条件读取 RULES：只要某条规则有哪怕约 1% 的可能影响当前任务，就必须读取；只有能明确说明完全无关时才可跳过。
 
 **CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入 `docs/CONTEXT.md`。已有定义覆盖的不重复提。
 
@@ -88,7 +88,7 @@ disable-model-invocation: true
 做任何与项目相关的任务前，按需查阅以下资源：
 
 - **`docs/CONTEXT-MAP.md`**——据它定位相关 Context、读其 `docs/CONTEXT.md`。
-- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读、别只读根目录**——Context 级规则往往与任务更相关。定位与挑读细节见 `docs/agents/domain.md`。
+- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读、别只读根目录**——Context 级规则往往与任务更相关。按 `docs/agents/domain.md` 的保守触发条件读取：只要某条规则有哪怕约 1% 的可能影响当前任务，就必须读取；只有能明确说明完全无关时才可跳过。
 
 **CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到对应 Context 的 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入；写哪个 Context 的 `CONTEXT.md`（及跨 Context 关系写入 `CONTEXT-MAP.md`）见 `docs/agents/domain.md`。已有定义覆盖的不重复提。
 
