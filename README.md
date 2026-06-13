@@ -137,6 +137,7 @@ docs/
 |-------|------|
 | **[retro](./skills/retro/SKILL.md)** | 复盘会话，必要时更新 `PRD` 或 `RULES` |
 | **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
+| **[load-rules](./skills/load-rules/SKILL.md)** | 强制枚举并读取仓库内所有 RULES，并在当前会话中自动遵守相关规则 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 找出职责分散、重复、难测试的代码，并给出重构建议 |
