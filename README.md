@@ -60,7 +60,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 把实现变成受控流程：多任务时编排子 Agent 隔离上下文；验证通过后按完成单元原子提交。
+**解法**：`/impl` 把实现变成受控流程：多任务时先确认在主会话串行实现，还是编排子 Agent 隔离上下文；任务数大于 3 个时默认推荐子 Agent。验证通过后按完成单元原子提交。
 
 ---
 
@@ -123,7 +123,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆解为便于人工评审的 vertical slice 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时自主决定执行方式（当前上下文内联，或串行编排子 Agent——Workflow 可用则用 Workflow，否则 fork）** |
+| **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时让用户确认在主会话串行实现，还是编排子 Agent 实现；任务数大于 3 个时默认推荐子 Agent** |
 
 ### 关键辅助
 
