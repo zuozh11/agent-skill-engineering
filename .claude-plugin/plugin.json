@@ -5,6 +5,7 @@
     "./skills/grill-with-docs",
     "./skills/impl",
     "./skills/improve-codebase-architecture",
+    "./skills/load-rules",
     "./skills/prototype",
     "./skills/retro",
     "./skills/setup-agent-skills",
