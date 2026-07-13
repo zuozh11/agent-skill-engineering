@@ -1,126 +1,103 @@
 ---
 name: setup-agent-skills
-description: 为新仓库搭建 Agent 领域文档基础设施。配置 CONTEXT.md 和 RULES 布局，使工程类 skill 能正确读取领域上下文。首次使用工程 skill 前运行，或当 skill 缺少上下文时重新运行。
+description: 为仓库初始化 Agent 领域文档基础设施。创建 CONTEXT.md、RULES 的读取与格式配置，并在 AGENTS.md 或 CLAUDE.md 中写入最小入口。首次使用工程 Skill 前运行，或在配置缺失时重新运行。
 disable-model-invocation: true
 ---
 
 # Setup Agent Skills
 
-为目标仓库搭建 Agent 工程 skill 所需的领域文档配置：
+为目标仓库初始化工程 Skill 所需的领域文档基础设施。
 
-- **领域文档** — `CONTEXT.md` 和 RULES（项目规则）的布局规则
+**本 Skill 只负责创建入口和基础文件。** 领域文档的读取与落盘规则由 `docs/agents/domain.md` 负责，格式分别由 `docs/agents/context-format.md` 和 `docs/agents/rules-format.md` 负责，不在 Agent 指令文件中重复展开。
 
 ## 流程
 
-### 1. 探索
+### 1. 探索仓库
 
-读取目标仓库的现有状态，不要假设：
+读取目标仓库的真实状态：
 
-- `git remote -v` — 远程仓库信息
-- `CLAUDE.md` / `AGENTS.md` — 是否已有 `## 领域文档` 段落
-- `docs/CONTEXT.md` / `docs/CONTEXT-MAP.md` — 领域文档是否存在
-- `docs/rules/` — 探索是否已有规则
-- `docs/agents/` — 是否已有 skill 配置输出
+- `AGENTS.md`、`CLAUDE.md` 及其中已有的 `## 领域文档` 段落；
+- 仓库的目录、模块与业务边界；
+- `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`；
+- `docs/agents/` 下已有的配置文件。
 
-### 2. 确认布局
+首次初始化时领域文件通常不存在，应主要依据代码库结构和业务边界判断布局。已有领域文件只用于识别重复运行和保护现有内容。
 
-向用户展示发现，然后确认领域文档布局。
+如果 `docs/CONTEXT.md` 与 `docs/CONTEXT-MAP.md` 同时存在，停止写入并使用提问工具让用户确认保留哪种布局。
 
-假设用户不了解这些概念，先用一句话解释用途。
+### 2. 确定布局
 
-**领域文档布局：**
+- **单 Context**：仓库围绕一个主要业务领域组织。普通仓库和无法确认存在独立业务边界的多模块仓库，默认使用此布局。入口为 `docs/CONTEXT.md`。
+- **多 Context**：仓库存在多个边界清晰、可独立描述的业务 Context。入口为 `docs/CONTEXT-MAP.md`，由它声明各 Context 的位置和关系。
 
-> 解释：部分 skill 会读取 `CONTEXT.md` 了解领域术语，读取 `docs/rules/` 了解项目规则（RULES）。需要确认是单 Context 还是多 Context（monorepo）。
+不要因为目录多或使用 monorepo 就自动选择多 Context。只有布局确实无法判断时，才使用提问工具让用户确认。
 
-- **单 Context** — `docs/CONTEXT.md` + `docs/rules/`（大多数仓库）
-- **多 Context** — `docs/CONTEXT-MAP.md` 指向多个 `docs/CONTEXT.md`（monorepo）
+### 3. 写入 Agent 指令入口
 
-### 3. 确认并编辑
+使用下方最小模板更新 Agent 指令文件中的 `## 领域文档` 段落：
 
-向用户展示草稿：
+- `AGENTS.md` 和 `CLAUDE.md` 都存在：两者都更新；
+- 只有一个存在：更新现有文件；
+- 都不存在：创建当前宿主使用的标准指令文件；无法判断当前宿主时再询问用户。
 
-- 要添加到 `CLAUDE.md` / `AGENTS.md` 的 `## 领域文档` 段落
-- `docs/agents/domain.md` 的内容
-
-让用户在写入前修改。
-
-### 4. 写入
-
-**选择编辑的文件：**
-
-- 如果 `CLAUDE.md` 存在，编辑它
-- 否则如果 `AGENTS.md` 存在，编辑它
-- 都不存在则询问用户创建哪个
-
-如果 `## 领域文档` 段落已存在，原地更新而非追加重复。
-
-**按第 2 步确认的布局选择模板**：单 Context 用「单 Context 模板」，多 Context（monorepo）用「多 Context 模板」。模板只写清本仓库属于哪种布局、有哪些文件，加上多 Context 必备的「两层、别只读根目录」提示；定位、挑读、落点等解析细节都指向 `docs/agents/domain.md`（唯一权威），不在模板里复述。
-
-**单 Context 模板：**
+已有 `## 领域文档` 段落时原地替换，不重复追加。只替换该段落，不改动文件中的其他内容。
 
 ```markdown
 ## 领域文档
 
-单 Context 布局：`docs/CONTEXT.md` + `docs/rules/`。读取与落盘解析详见 `docs/agents/domain.md`。
+<布局说明>。
 
-做任何与项目相关的任务前，按需查阅以下资源：
+执行项目任务时，按 `docs/agents/domain.md` 定位并读取相关 `CONTEXT.md` 与 RULES。
 
-- 仓库的 **`docs/CONTEXT.md`** 与 **`docs/rules/`**——按 `docs/agents/domain.md` 的保守触发条件读取 RULES：只要某条规则有哪怕约 1% 的可能影响当前任务，就必须读取；只有能明确说明完全无关时才可跳过。
-
-**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入 `docs/CONTEXT.md`。已有定义覆盖的不重复提。
-
-**RULES 自动提炼**：两类触发出现时，判断是否应沉淀为一条规则/约定/约束。是则主动提议（给出标题和一句话摘要），经确认后按 `docs/agents/rules-format.md` 格式写入 `docs/rules/`。
-
-- **修正暴露模式性问题**：用户在会话中指出修正，且揭示了可复现的模式性问题。一次性笔误或已有规则覆盖的不重复提。
-- **用户陈述全项目约定/约束**：用户主动陈述一条全项目应遵守的约定或约束（如金额单位、错误码包装、日志规范）。只要满足「项目长期有效 + agent 必须遵守 + 违反就跑偏」即可提议，无需难逆转或权衡。已有规则覆盖的不重复提。
-
-**PRD 自动更新**：用户在会话中指出修正时，判断是否改变了现有 PRD 的范围、验收标准或优先级。是则主动提议更新（给出变更点和理由），无需确认直接写入对应 PRD。
-
+对话中发现新的领域术语或项目规则时，主动提议记录；经用户确认后，按 `docs/agents/domain.md` 确定落点，并分别遵循 `docs/agents/context-format.md` 和 `docs/agents/rules-format.md`。
 ```
 
-**多 Context 模板（monorepo）：**
+写入时将 `<布局说明>` 替换为：
 
-```markdown
-## 领域文档
+- 单 Context：本仓库采用单 Context 布局，入口为 `docs/CONTEXT.md`
+- 多 Context：本仓库采用多 Context 布局，入口为 `docs/CONTEXT-MAP.md`
 
-多 Context 布局（monorepo）：`docs/CONTEXT-MAP.md` + 各 Context 的 `docs/CONTEXT.md`（目录位置由 `CONTEXT-MAP.md` 声明，不限于 `src/`）；规则分系统级（根 `docs/rules/`）与 Context 级（各 Context 目录下的 `docs/rules/`）。完整的读取/落盘解析详见 `docs/agents/domain.md`。
+### 4. 写入领域文档基础文件
 
-做任何与项目相关的任务前，按需查阅以下资源：
+将本 Skill 目录中的种子文件部署到目标仓库：
 
-- **`docs/CONTEXT-MAP.md`**——据它定位相关 Context、读其 `docs/CONTEXT.md`。
-- **`docs/rules/`（两层）** — 系统级（根 `docs/rules/`）+ 相关 Context 级（该 Context 目录下的 `docs/rules/`）。**两层都要读、别只读根目录**——Context 级规则往往与任务更相关。按 `docs/agents/domain.md` 的保守触发条件读取：只要某条规则有哪怕约 1% 的可能影响当前任务，就必须读取；只有能明确说明完全无关时才可跳过。
+- [domain.md](./domain.md) → `docs/agents/domain.md`
+- [context-format.md](./context-format.md) → `docs/agents/context-format.md`
+- [rules-format.md](./rules-format.md) → `docs/agents/rules-format.md`
 
-**CONTEXT 自动提炼**：对话中出现新的业务术语、实体关系或领域概念时，判断是否应补充到对应 Context 的 `CONTEXT.md`。是则主动提议追加条目（给出术语和一句话定义），经确认后按 `docs/agents/context-format.md` 格式写入；写哪个 Context 的 `CONTEXT.md`（及跨 Context 关系写入 `CONTEXT-MAP.md`）见 `docs/agents/domain.md`。已有定义覆盖的不重复提。
+缺失的文件直接创建。已有文件默认保留，不覆盖用户修改；只有用户明确要求刷新模板时，才对比并更新。
 
-**RULES 自动提炼**：两类触发出现时，判断是否应沉淀为一条规则/约定/约束。是则主动提议（给出标题和一句话摘要），经确认后按 `docs/agents/rules-format.md` 格式写入；按作用域落系统级或 Context 级 `docs/rules/`（落点见 `docs/agents/domain.md`）。
+根据布局创建缺失的入口文件：
 
-- **修正暴露模式性问题**：用户在会话中指出修正，且揭示了可复现的模式性问题。一次性笔误或已有规则覆盖的不重复提。
-- **用户陈述全项目约定/约束**：用户主动陈述一条全项目应遵守的约定或约束（如金额单位、错误码包装、日志规范）。只要满足「项目长期有效 + agent 必须遵守 + 违反就跑偏」即可提议，无需难逆转或权衡。已有规则覆盖的不重复提。
+- 单 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT.md` 骨架；
+- 多 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT-MAP.md`，并为已识别的各 Context 创建对应的 `docs/CONTEXT.md` 骨架。
 
-**PRD 自动更新**：用户在会话中指出修正时，判断是否改变了现有 PRD 的范围、验收标准或优先级。是则主动提议更新（给出变更点和理由），无需确认直接写入对应 PRD。
+已存在的 `CONTEXT.md`、`CONTEXT-MAP.md` 不改写。
 
-```
+### 5. 初始化领域术语
 
-然后写入配置文件，使用本 skill 目录中的种子模板：
+仅对本次新建的 `CONTEXT.md` 执行轻量代码扫描，提炼高置信度的项目特有术语：
 
-**`docs/agents/` 下：**
+- 排除依赖、生成物、第三方代码和通用编程概念；
+- 定义遵循 `docs/agents/context-format.md`；
+- 多 Context 下按 `docs/agents/domain.md` 确定术语归属；
+- 无法提炼出可信术语时保留空骨架，不为填充文件而制造术语。
 
-- [domain.md](./domain.md) — 领域文档消费规则
-- [context-format.md](./context-format.md) → 部署为 `docs/agents/context-format.md` — CONTEXT.md 格式模板
-- [rules-format.md](./rules-format.md) → 部署为 `docs/agents/rules-format.md` — RULES 格式模板
+### 6. 验证并完成
 
-### 5. 首次初始化 CONTEXT.md（仅当本次新建时）
+写入后检查：
 
-仅当第 1 步探索发现 `CONTEXT.md` / `CONTEXT-MAP.md` 之前不存在、本次由本 skill 新建时执行。已存在的 CONTEXT.md **不要**改写。
+- 每个目标 Agent 指令文件中只有一个 `## 领域文档` 段落；
+- `docs/agents/domain.md`、`context-format.md`、`rules-format.md` 均存在；
+- 当前布局的入口文件存在；
+- 多 Context 下 `CONTEXT-MAP.md` 指向的 Context 文件真实存在；
+- 已有领域文档和用户修改没有被意外覆盖。
 
-目的：避免给用户一个空骨架文件，让首次使用就有可用的初始术语表。
+最后向用户说明采用的布局、创建或更新的文件，以及初始术语提炼结果。
 
-**扫描代码库提炼候选术语**——读取仓库源码。识别本项目**特有**的领域概念，**排除**通用编程词汇（参见 `context-format.md` 的规则）。
+## 重复运行
 
-如果扫描结果不足以提炼出可信术语（如代码量太少、领域不清晰），**保持空骨架**——宁可留空，也不写入低质量术语。告知用户「初始扫描未发现明确的领域术语，CONTEXT.md 将随后续对话按需自动提炼」。
-
-多 Context 布局下，首次种子术语的 Context 归属与落点解析见 `docs/agents/domain.md`；跨 Context 关系写入 `docs/CONTEXT-MAP.md`。
-
-### 6. 完成
-
-告知用户配置完成，列出哪些 skill 会读取这些文件。提醒用户可以直接编辑 `docs/agents/*.md`——只有从头重来时才需要重新运行本 skill。
+- 缺失文件直接补齐；
+- Agent 指令中的 `## 领域文档` 段落更新为当前最小模板；
+- 已有领域文档和 `docs/agents/*.md` 默认保留；
+- 布局冲突或需要刷新已有模板时，先交由用户确认。

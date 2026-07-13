@@ -147,7 +147,7 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 配置领域文档和工作流管线，首次使用前运行一次 |
+| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 初始化领域文档基础设施，并写入最小 Agent 配置入口 |
 
 ---
 
