@@ -52,7 +52,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 
 > _把一整个模块完整的需求直接交给 agent，它都会试图一次性搞定所有事情，任务边界、提交边界和验证路径都会变模糊。_
 
-**解法**：`/to-task` 把需求拆成 vertical slice 任务卡。每张卡都有清晰边界、依赖和验收项，方便人工先评审，再交给 agent 实现。
+**解法**：`/to-task` 把需求拆成 vertical slice 任务卡。每张卡前置完成必要调研、主要入口定位和方案选择，明确边界、依赖与验收，使执行者拿到即可直接动手，同时不在任务卡里提前编写实现代码。
 
 ---
 
@@ -60,7 +60,7 @@ npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 把实现变成受控流程：多任务时先确认在主会话串行实现，还是编排子 Agent 隔离上下文；任务数大于 3 个时默认推荐子 Agent。验证通过后按完成单元原子提交。
+**解法**：`/impl` 直接从任务卡或当前对话开始实现，根据任务数量、依赖和写集冲突自主选择直接实现或编排子 Agent；验证通过后按完成单元原子提交。
 
 ---
 
@@ -122,8 +122,8 @@ docs/
 | Skill | 用途 |
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
-| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆解为便于人工评审的 vertical slice 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按任务卡实现代码变更，一个 task = 一个原子提交。多任务时让用户确认在主会话串行实现，还是编排子 Agent 实现；任务数大于 3 个时默认推荐子 Agent** |
+| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成拿到即可直接动手的 vertical slice 方案任务卡，不提前编写实现代码** |
+| **[impl](./skills/impl/SKILL.md)** | **根据任务卡或当前对话实现代码变更，按独立实现单元原子提交** |
 
 ### 关键辅助
 
@@ -157,7 +157,7 @@ docs/
 |--------------------------|--------------------------------------------------|
 | 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
 | `/to-prd` 发布 PRD 到 Issue Tracker | `/to-prd` 写入本地PRD文件，并按前端/后端视角组织需求                |
-| `/to-issues` 发布 vertical slice issues | `/to-task` 生成便于人工评审的本地任务卡，包含改动文件、代码片段、依赖和验收项     |
+| `/to-issues` 发布 vertical slice issues | `/to-task` 生成详细方案任务卡，收口主要入口、实现方案、依赖和验收，但不提前编写代码 |
 | `/tdd` 红绿重构循环 | `/impl` 按任务或口头描述执行实现，加载项目约束，必要时编排子 Agent，验证后原子提交 |
 | `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
 | 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
