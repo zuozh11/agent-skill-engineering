@@ -141,7 +141,7 @@ docs/
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 找出职责分散、重复、难测试的代码，并给出重构建议 |
-| **[commit](./skills/commit/SKILL.md)** | 加载并按需补充 `CONTEXT.md` 术语，生成约定式提交 |
+| **[commit](./skills/commit/SKILL.md)** | 快速提交当前会话改动，仅在范围或术语不清时升级审查 |
 
 ### 配置
 
