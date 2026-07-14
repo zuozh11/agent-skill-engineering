@@ -111,7 +111,7 @@ docs/
             └── 03-add-ui.md          ← /impl 逐个实现
 ```
 
-> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 的 `docs/CONTEXT.md`（目录位置由地图声明，不限于 `src/`），规则分系统级（根 `docs/rules/`）与 Context 级（各 Context 目录下的 `docs/rules/`）。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
+> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 的 `docs/CONTEXT.md`（目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在仓库根 `docs/rules/`。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
 
 ---
 

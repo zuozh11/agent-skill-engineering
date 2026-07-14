@@ -95,7 +95,7 @@ Blocked by: None
 
 ## 适用 RULES
 
-- <RULE-NN / SYS-NN / <CTX>-NN：规则标题——本任务必须遵守的执行约束>
+- <RULE-NN：规则标题——本任务必须遵守的执行约束>
 - <如无适用规则：None，已扫描并排除 docs/rules/ 中明确完全无关的规则>
 
 ## 现状

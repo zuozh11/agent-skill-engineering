@@ -51,7 +51,7 @@ PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
 - User Stories 要覆盖面广（numbered list）
 - Requirements 按能力项组织，规则优先
 - Implementation Decisions 含锁定决策和待补输入
-- 凡 Requirements 中受 `docs/rules/` 约束的口径，在锁定决策「来源」列标注依据规则的短号（短号格式见 `docs/agents/rules-format.md`：单 Context 用 `RULE-NN`，多 Context 用 `SYS-NN` / `<CTX>-NN`）；若某需求与既有 RULES 冲突，不擅自覆盖，写入 Open Questions 用提问工具向用户确认。
+- 凡 Requirements 中受 `docs/rules/` 约束的口径，在锁定决策「来源」列标注依据规则的 `RULE-NN` 短号（格式见 `docs/agents/rules-format.md`）；若某需求与既有 RULES 冲突，不擅自覆盖，写入 Open Questions 用提问工具向用户确认。
 - 不写代码库能力缺口对比（留给 to-task 调研阶段）
 
 ### 7. 收敛未决问题

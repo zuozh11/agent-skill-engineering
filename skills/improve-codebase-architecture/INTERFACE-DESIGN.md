@@ -11,7 +11,7 @@
 在生成子 agent 之前，为选定的候选编写面向用户的问题空间说明：
 
 - 任何新接口需要满足的约束
-- 与该模块相关的 docs/rules/ 规则约束（按 docs/agents/domain.md 布局定位：多 Context 下取相关 Context 的系统级与 Context 级两层规则，两层都要取、别只取根目录。接口必须落在这些约定之内；默认遵守，确需偏离则显式标出冲突 + 说明理由 + 交用户裁决）
+- 与该模块相关的根 `docs/rules/` 规则约束（按 `docs/agents/domain.md` 定位。接口必须落在这些约定之内；默认遵守，确需偏离则显式标出冲突 + 说明理由 + 交用户裁决）
 - 它将依赖的依赖项，以及它们属于哪个分类（见 [DEEPENING.md](DEEPENING.md)）
 - 一个粗略的示意性代码草图来具象化约束——不是提案，只是让约束变得具体的方式
 
@@ -28,7 +28,7 @@
 - Agent 3："为最常见的调用者优化——让默认场景变得极简。"
 - Agent 4（如适用）："围绕端口与适配器设计跨接缝依赖。"
 
-在简报中同时包含 [LANGUAGE.md](LANGUAGE.md) 词汇、CONTEXT.md 词汇，以及与该模块相关的 docs/rules/ 规则，使每个子 agent 的命名既与架构语言一致、也与项目的领域语言一致，并使接口落在项目规则约束之内。子 agent 在隔离上下文中工作、只能依据这份简报——务必先按 `docs/agents/domain.md` 的布局解析出正确来源（多 Context 下取相关 Context 的 `CONTEXT.md` 与系统级/Context 级两层规则，两层都要取、别只取根目录），把解析后的词汇与规则内容直接写进简报，而非留路径让子 agent 自行查找。
+在简报中同时包含 [LANGUAGE.md](LANGUAGE.md) 词汇、CONTEXT.md 词汇，以及与该模块相关的根 `docs/rules/` 规则，使每个子 agent 的命名既与架构语言一致、也与项目的领域语言一致，并使接口落在项目规则约束之内。子 agent 在隔离上下文中工作、只能依据这份简报——务必先按 `docs/agents/domain.md` 解析出相关 Context 的 `CONTEXT.md` 和根 `docs/rules/`，把解析后的词汇与规则内容直接写进简报，而非留路径让子 agent 自行查找。
 
 每个子 agent 输出：
 
