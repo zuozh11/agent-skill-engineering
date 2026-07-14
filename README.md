@@ -103,13 +103,15 @@ docs/
 │   ├── 01-数据权限-按部门隔离.md
 │   └── 02-接口错误码-统一包装.md
 └── scratch/
-    └── <feature-slug>/
+    └── <NN>-<feature-slug>/     ← NN 按需求进入仓库的顺序递增
         ├── PRD.md            ← /to-prd 产出
         └── tasks/
             ├── 01-create-schema.md   ← /to-task 产出
             ├── 02-add-api.md
             └── 03-add-ui.md          ← /impl 逐个实现
 ```
+
+`<NN>-<feature-slug>` 的编号表示需求工作目录在 `docs/scratch/` 下的创建顺序；目录内的任务卡使用独立编号。
 
 > 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 的 `docs/CONTEXT.md`（目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在仓库根 `docs/rules/`。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
 

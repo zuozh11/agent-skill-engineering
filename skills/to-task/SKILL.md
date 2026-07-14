@@ -15,7 +15,7 @@ description: 将需求拆解为拿到即可直接动手的 vertical slice 任务
 
 需求来源不限：PRD 文档、当前对话上下文、口头描述、截图、task 等均可作为输入。
 
-任务文件存放在 `docs/scratch/<feature-slug>/tasks/` 下。
+任务文件存放在 `docs/scratch/<NN>-<feature-slug>/tasks/` 下。
 
 ## 流程
 
@@ -69,7 +69,10 @@ description: 将需求拆解为拿到即可直接动手的 vertical slice 任务
 
 ### 5. 写入任务文件
 
-按依赖顺序（blocker 先写入）在 `docs/scratch/<feature-slug>/tasks/` 下创建文件。
+按依赖顺序（blocker 先写入）在 `docs/scratch/<NN>-<feature-slug>/tasks/` 下创建文件。
+
+- 有 PRD 时，必须从 PRD 的父目录派生 `tasks/` 路径，不重新根据 slug 猜测目录。
+- 没有 PRD 时，用户指定了已有需求目录则沿用；否则扫描 `docs/scratch/` 直属目录中匹配“开头连续数字 + 连字符”的前缀，取最大值加一作为 `NN`，从 `01` 开始，至少两位零填充。历史无编号目录不迁移、不参与计数；创建目录前重新扫描，发生目录碰撞时取下一个编号重试。
 
 文件名使用 `NN-<英文短slug>.md`，两位零填充并按依赖顺序编号，例如 `01-create-schema.md`、`02-add-api.md`，与下游 `impl` 的读取路径及按编号引用保持一致。
 

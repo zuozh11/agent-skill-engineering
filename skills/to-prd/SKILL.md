@@ -7,32 +7,33 @@ description: 将当前对话上下文转化为 PRD。适用于用户要求产出
 
 将当前对话上下文和代码库理解合成为一份 PRD。
 
-PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
+PRD 存放在 `docs/scratch/<NN>-<feature-slug>/PRD.md`，其中 `NN` 记录需求进入仓库的先后顺序。
 
-**书写视角是本 Skill 的核心：PRD 必须根据实际交付侧选择前端或后端主视角，并用该视角组织需求，而不是只在措辞上有所侧重。**
+PRD 必须根据实际交付侧选择并贯彻前端、后端或双端书写视角，而不是只在措辞上有所侧重。
 
 ## 流程
 
-### 1. 加载领域知识
+### 1. 加载项目上下文
 
-按需查阅以下资源：
+按 `docs/agents/domain.md` 加载当前需求相关的 `CONTEXT.md` 与 RULES，并遵循其中的布局判定和保守读取规则。相关文档不存在则静默继续。
 
-- **领域文档**：按 `docs/agents/domain.md` 定位并读取相关 `CONTEXT.md` 与 RULES。只要某条 RULES 有哪怕约 1% 的可能影响当前任务，就必须读取；只有明确完全无关时才可跳过。相关文档不存在则静默继续。
+### 2. 自行查证可确认的问题
 
-### 2. 探索代码库
-
-如果尚未探索，先了解当前代码库状态。使用 `CONTEXT.md` 中的领域术语，遵守并对齐 `docs/rules/` 中的规则（RULES），让 PRD 的 Requirements 与既有规则约束一致。
+对能够通过代码、配置、现有文档或其他仓库事实确认的问题，必须先自行查证，不得把调查转交给用户；只有仓库无法确认的业务选择或外部事实才进入追问。查证过程中使用 `CONTEXT.md` 中的领域术语，并让 PRD 的 Requirements 与既有 RULES 对齐。
 
 ### 3. 追问对齐上下文
 
-完成领域知识加载和代码库探索后，先用 `grill-with-docs` 的追问流程把上下文对齐到足以产出高质量 PRD——这一步默认必跑，不预设当前上下文已经充分。
+完成项目上下文加载和必要的代码确认后，先用 `grill-with-docs` 的追问流程把上下文对齐到足以产出高质量 PRD——这一步默认必跑，不预设当前上下文已经充分。
 
 只要当前上下文尚未加载/执行过 `grill-with-docs`，就直接执行其追问流程，将确认的结论作为 PRD 输入继续后续步骤；若已执行过则跳过本步。
 
-### 4. 确定 feature slug 和输出路径
+### 4. 确定需求编号、feature slug 和输出路径
 
-- 输出路径：`docs/scratch/<feature-slug>/PRD.md`
+- 输出路径：`docs/scratch/<NN>-<feature-slug>/PRD.md`
+- `NN` 扫描 `docs/scratch/` 直属目录中匹配“开头连续数字 + 连字符”的前缀，取最大值加一，从 `01` 开始，至少两位零填充；历史无编号目录不迁移、不参与计数
 - feature-slug 从需求主题推导（如 `sup-quote-export`、`delivery-plan-change`）
+- 只有明确更新既有 PRD 时才沿用原目录和编号；新需求即使 slug 相同也必须分配新编号
+- 创建目录前重新扫描编号；如果目标目录已存在，取下一个编号重试
 - 如目录不存在则创建
 
 ### 5. 选择并贯彻书写视角
@@ -62,7 +63,7 @@ PRD 存放在 `docs/scratch/<feature-slug>/PRD.md`。
 
 ### 8. 发布
 
-将 PRD 写入 `docs/scratch/<feature-slug>/PRD.md`。
+将 PRD 写入 `docs/scratch/<NN>-<feature-slug>/PRD.md`。
 
 ### 9. 自动提交
 
