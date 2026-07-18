@@ -2,6 +2,19 @@
 
 工程类 skill 在探索代码库时应如何使用本仓库的领域文档。**本文件是领域文档「读取」与「落盘」的唯一权威说明**，覆盖单 Context 与多 Context 两种布局——各 skill 只需指向本文件，不再各自重复布局逻辑。
 
+## 领域文档根目录
+
+本文中的“根”指**领域文档根目录**，不等同于当前工作目录、当前 Context 目录或最近的 Git 仓库根目录。
+
+从当前工作目录向上查找 `docs/CONTEXT-MAP.md` 与 `docs/CONTEXT.md`：
+
+1. 如果祖先目录存在 `docs/CONTEXT-MAP.md`，且地图中的某个 Context 链接解析后指向当前目录或其祖先中的 `docs/CONTEXT.md`，该地图所在目录就是领域文档根目录。即使当前 Context 自身是独立 Git 仓库，也不得在此处停止向上查找。
+2. 否则，选择最近的、包含 `docs/CONTEXT.md` 或 `docs/CONTEXT-MAP.md` 的祖先目录。
+3. 如果找到多个候选地图却无法根据链接确定归属，使用提问工具让用户确认；不得根据 Context 名称或 Git 边界猜测。
+4. 如果都不存在，领域文档尚未建立，静默继续。
+
+确定根目录后，下文所有 `docs/...` 路径都相对于该目录解析。多 Context 下，当前 Context 的 `<ctx-dir>/docs/CONTEXT.md` 只承载术语，不会把 `<ctx-dir>` 变成新的领域文档根目录。
+
 ## 布局判定
 
 - 存在 `docs/CONTEXT.md` → **单 Context**（大多数仓库）。

@@ -1,6 +1,6 @@
 ---
 name: setup-agent-skills
-description: 为仓库初始化 Agent 领域文档基础设施。创建 CONTEXT.md、RULES 的读取与格式配置，并在 AGENTS.md 或 CLAUDE.md 中写入最小入口。首次使用工程 Skill 前运行，或在配置缺失时重新运行。
+description: 为仓库初始化或校验 Agent 领域文档基础设施。创建 CONTEXT.md、RULES 的读取与格式配置，并在 AGENTS.md 或 CLAUDE.md 中写入最小入口。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查文档漂移时重新运行。
 disable-model-invocation: true
 ---
 
@@ -20,6 +20,8 @@ disable-model-invocation: true
 - 仓库的目录、模块与业务边界；
 - `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`；
 - `docs/agents/` 下已有的配置文件。
+
+从子目录或独立子仓库启动时，先按 [domain.md](./domain.md) 的「领域文档根目录」规则向上定位，不得直接把当前 Git 仓库根目录当成领域文档根目录。多 Context 地图已经声明当前 Context 时，以该地图所在目录为根。
 
 首次初始化时领域文件通常不存在，应主要依据代码库结构和业务边界判断布局。已有领域文件只用于识别重复运行和保护现有内容。
 
@@ -67,6 +69,13 @@ disable-model-invocation: true
 
 缺失的文件直接创建。已有文件默认保留，不覆盖用户修改；只有用户明确要求刷新模板时，才对比并更新。
 
+已有文件不得只因存在就跳过检查。逐项对照本 Skill 的当前种子文件，区分：
+
+- **内容定制**：项目术语、Context 列表、共享概念和关系等项目事实，必须保留；
+- **规则漂移**：与当前 `domain.md`、`context-format.md`、`rules-format.md` 冲突的旧版布局或命名规则，必须报告。
+
+多 Context 仓库至少搜索以下旧版痕迹：Context 级 `docs/rules/`、`Context 级 RULES`、`SYS-NN`、`<CTX>-NN`、规则文件名前缀、各层独立编号。发现规则漂移时停止自动写入，使用提问工具列出冲突文件和推荐的最小迁移；只有用户明确同意刷新或迁移后才修改，且不得覆盖项目事实。
+
 根据布局创建缺失的入口文件：
 
 - 单 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT.md` 骨架；
@@ -91,6 +100,8 @@ disable-model-invocation: true
 - `docs/agents/domain.md`、`context-format.md`、`rules-format.md` 均存在；
 - 当前布局的入口文件存在；
 - 多 Context 下 `CONTEXT-MAP.md` 指向的 Context 文件真实存在；
+- 从任一已声明 Context 目录启动时，都能回溯到同一个领域文档根目录；
+- `CONTEXT-MAP.md`、`docs/agents/*.md` 与实际 `docs/rules/` 布局不存在互相矛盾的旧版规则；
 - 已有领域文档和用户修改没有被意外覆盖。
 
 最后向用户说明采用的布局、创建或更新的文件，以及初始术语提炼结果。
@@ -99,5 +110,5 @@ disable-model-invocation: true
 
 - 缺失文件直接补齐；
 - Agent 指令中的 `## 领域文档` 段落更新为当前最小模板；
-- 已有领域文档和 `docs/agents/*.md` 默认保留；
-- 布局冲突或需要刷新已有模板时，先交由用户确认。
+- 已有领域文档和 `docs/agents/*.md` 默认保留，但必须执行规则漂移检查；
+- 布局冲突、规则漂移或需要刷新已有模板时，先交由用户确认，再做最小迁移。

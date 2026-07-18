@@ -113,7 +113,7 @@ docs/
 
 `<NN>-<中文需求名称>` 的编号表示需求工作目录在 `docs/scratch/` 下的创建顺序；中文需求名称和任务卡名称使用 `CONTEXT.md` 中的统一术语，目录内的任务卡使用独立编号。
 
-> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 的 `docs/CONTEXT.md`（目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在仓库根 `docs/rules/`。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
+> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 的 `docs/CONTEXT.md`（目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在领域文档根目录的 `docs/rules/`。即使从独立子仓库启动，也要沿地图回溯到该根目录；重复运行 `/setup-agent-skills` 会检查旧版布局与当前规则是否漂移。两种布局的读取与落盘解析统一见 `docs/agents/domain.md`。
 
 ---
 
