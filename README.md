@@ -9,7 +9,7 @@
 1. 安装/更新 skill：
 
 ```bash
-npx skills@latest add https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git
+npx skills@latest add zuozh11/agent-skill-engineering
 ```
 
 2. 在目标仓库中运行 `/setup-agent-skills`。
@@ -184,3 +184,7 @@ npx skills@latest add mattpocock/skills -s caveman,grill-me,handoff,write-a-skil
 ## 致谢
 
 基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造。核心理念——共享语言、vertical slice、深模块——来自 Eric Evans 的 DDD、John Ousterhout 的 A Philosophy of Software Design、以及 The Pragmatic Programmer。
+
+## 许可证
+
+本项目基于 [MIT License](./LICENSE) 发布。

@@ -5,9 +5,9 @@
   "author": {
     "name": "zuozhi"
   },
-  "homepage": "https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering",
-  "repository": "https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering.git",
-  "license": "UNLICENSED",
+  "homepage": "https://github.com/zuozh11/agent-skill-engineering",
+  "repository": "https://github.com/zuozh11/agent-skill-engineering.git",
+  "license": "MIT",
   "keywords": [
     "agent-skills",
     "engineering",
@@ -26,7 +26,7 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://devcloud.szlanyou.com/gitlab/ly-zuozhi/agent-skill-engineering",
+    "websiteURL": "https://github.com/zuozh11/agent-skill-engineering",
     "defaultPrompt": [
       "把这个需求整理成 PRD",
       "把 PRD 拆成 vertical slice 任务",
