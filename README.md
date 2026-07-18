@@ -1,8 +1,8 @@
 # Agent Skills — Engineering
 
-面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 拆解 → 实现**的完整工程管线。
+面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 拆解 → 实现 → 评审**的完整工程管线。
 
-与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪 + vertical slice 实现模式，更适合实际企业项目。
+与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪，并按需求类型使用 vertical slice 或 expand-contract，更适合实际企业项目。
 
 ## 快速开始
 
@@ -21,14 +21,14 @@ npx skills@latest add zuozh11/agent-skill-engineering
 ## 工作流管线
 
 ```
-完整工作流:  to-prd → to-task → impl 
-            (PRD)   (拆任务)   (实现)
-      
+完整工作流:  to-prd → to-task → impl → code-review
+            (PRD)   (拆任务)   (实现)   (评审)
+
 辅助:  grill-with-docs
      （追问对齐，自动触发）
 ```
 
-其他辅助 skill（按需调用）：`retro`、`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
+其他辅助 skill（按需调用）：`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
 
 ## 为什么要这套流程
 
@@ -52,7 +52,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _把一整个模块完整的需求直接交给 agent，它都会试图一次性搞定所有事情，任务边界、提交边界和验证路径都会变模糊。_
 
-**解法**：`/to-task` 把需求拆成 vertical slice 任务卡。每张卡前置完成必要调研、主要入口定位和方案选择，明确边界、依赖与验收，使执行者拿到即可直接动手，同时不在任务卡里提前编写实现代码。
+**解法**：`/to-task` 把普通需求拆成 vertical slice，把宽范围重构拆成 expand-contract。每张卡前置完成必要调研、主要入口定位和方案选择，明确边界、依赖与验收，使执行者拿到即可直接动手，同时不在任务卡里提前编写实现代码。
 
 ---
 
@@ -124,8 +124,9 @@ docs/
 | Skill | 用途 |
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
-| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成拿到即可直接动手的 vertical slice 方案任务卡，不提前编写实现代码** |
+| **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **根据任务卡或当前对话实现代码变更，按独立实现单元原子提交** |
+| **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个独立维度评审代码变更** |
 
 ### 关键辅助
 
@@ -137,9 +138,7 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **[retro](./skills/retro/SKILL.md)** | 复盘会话，必要时更新 `PRD` 或 `RULES` |
 | **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
-| **[load-rules](./skills/load-rules/SKILL.md)** | 强制枚举并读取仓库内所有 RULES，并在当前会话中自动遵守相关规则 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 找出职责分散、重复、难测试的代码，并给出重构建议 |
@@ -158,9 +157,9 @@ docs/
 | 原版 (mattpocock/skills) | 本仓库                                              |
 |--------------------------|--------------------------------------------------|
 | 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
-| `/to-prd` 发布 PRD 到 Issue Tracker | `/to-prd` 写入本地PRD文件，并按前端/后端视角组织需求                |
-| `/to-issues` 发布 vertical slice issues | `/to-task` 生成详细方案任务卡，收口主要入口、实现方案、依赖和验收，但不提前编写代码 |
-| `/tdd` 红绿重构循环 | `/impl` 按任务或口头描述执行实现，加载项目约束，必要时编排子 Agent，验证后原子提交 |
+| `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按前端/后端视角组织需求 |
+| `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 独立实现并原子提交，`/code-review` 按需单独评审 |
 | `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
 | 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
 
@@ -170,15 +169,17 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **caveman** | 超压缩沟通模式，去除填充词同时保持技术准确性，可减少约 75% 的 token 使用量 |
 | **grill-me** | 针对计划或设计进行严苛的面试，直到决策树的每一个分支都得到解决 |
 | **handoff** | 将当前对话压缩为一份交接文档，以便其他 agent 可以继续后续工作 |
-| **write-a-skill** | 创建具有适当结构、渐进式披露和捆绑资源的新 skill |
+| **writing-great-skills** | 创建和改进可预测、边界清晰的 Skill |
 
 安装命令：
 
 ```bash
-npx skills@latest add mattpocock/skills -s caveman,grill-me,handoff,write-a-skill
+npx skills@latest add mattpocock/skills \
+  -s grill-me \
+  -s handoff \
+  -s writing-great-skills
 ```
 
 ## 致谢

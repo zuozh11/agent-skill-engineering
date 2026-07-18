@@ -1,0 +1,3 @@
+interface:
+  display_name: "Prototype"
+  short_description: "用一次性原型验证逻辑、状态或界面设计"

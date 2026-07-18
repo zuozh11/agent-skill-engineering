@@ -1,0 +1,3 @@
+interface:
+  display_name: "Impl"
+  short_description: "根据任务卡或对话实现并验证独立变更"

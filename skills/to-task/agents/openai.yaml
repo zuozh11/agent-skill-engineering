@@ -1,0 +1,3 @@
+interface:
+  display_name: "To Task"
+  short_description: "将需求拆解为可直接实施的中文任务卡"
