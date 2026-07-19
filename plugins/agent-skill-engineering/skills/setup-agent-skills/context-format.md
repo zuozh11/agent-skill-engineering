@@ -42,9 +42,9 @@ _Avoid_: Client, buyer, account
 
 ## Contexts
 
-- **[Ordering](../src/ordering/docs/CONTEXT.md)** — 接收和跟踪客户订单
-- **[Billing](../src/billing/docs/CONTEXT.md)** — 生成发票和处理付款
-- **[Fulfillment](../src/fulfillment/docs/CONTEXT.md)** — 管理仓库拣货和发货
+- **[Ordering](../src/ordering/CONTEXT.md)** — 接收和跟踪客户订单
+- **[Billing](../src/billing/CONTEXT.md)** — 生成发票和处理付款
+- **[Fulfillment](../src/fulfillment/CONTEXT.md)** — 管理仓库拣货和发货
 
 ## 共享概念
 
@@ -60,5 +60,7 @@ _Avoid_: ClientKey
 - **Fulfillment → Billing**: Fulfillment 发出 `ShipmentDispatched` 事件；Billing 消费它们以生成发票
 - **Ordering ↔ Billing**: 共享 `CustomerId` 和 `Money` 类型
 ```
+
+每个子 Context 的 `CONTEXT.md` 必须直接放在该 Context 根目录；只有领域文档根目录的入口和共享配置使用 `docs/`。
 
 本 skill 如何判定单/多 Context、以及多 Context 下当前话题归属哪个 Context（不确定就问用户），见 `docs/agents/domain.md`（唯一权威）。本文件只定义 `CONTEXT.md` 与 `CONTEXT-MAP.md` 的格式。

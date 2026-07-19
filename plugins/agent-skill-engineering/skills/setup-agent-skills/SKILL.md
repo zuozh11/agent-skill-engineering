@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 - `AGENTS.md`、`CLAUDE.md` 及其中已有的 `## 领域文档` 段落；
 - 仓库的目录、模块与业务边界；
-- `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`；
+- `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`，以及多 Context 布局下各 Context 根目录的 `CONTEXT.md`；
 - `docs/agents/` 下已有的配置文件。
 
 从子目录或独立子仓库启动时，先按 [domain.md](./domain.md) 的「领域文档根目录」规则向上定位，不得直接把当前 Git 仓库根目录当成领域文档根目录。多 Context 地图已经声明当前 Context 时，以该地图所在目录为根。
@@ -30,7 +30,7 @@ disable-model-invocation: true
 ### 2. 确定布局
 
 - **单 Context**：仓库围绕一个主要业务领域组织。普通仓库和无法确认存在独立业务边界的多模块仓库，默认使用此布局。入口为 `docs/CONTEXT.md`。
-- **多 Context**：仓库存在多个边界清晰、可独立描述的业务 Context。入口为 `docs/CONTEXT-MAP.md`，由它声明各 Context 的位置和关系。
+- **多 Context**：仓库存在多个边界清晰、可独立描述的业务 Context。入口为 `docs/CONTEXT-MAP.md`，由它声明各 Context 的位置和关系；每个 Context 的术语文件直接放在其根目录，即 `<ctx-dir>/CONTEXT.md`，不额外放入 `<ctx-dir>/docs/`。
 
 不要因为目录多或使用 monorepo 就自动选择多 Context。只有布局确实无法判断时，才使用提问工具让用户确认。
 
@@ -79,14 +79,14 @@ disable-model-invocation: true
 - **内容定制**：项目术语、Context 列表、共享概念和关系等项目事实，必须保留；
 - **规则漂移**：与当前 `domain.md`、`context-format.md`、`rules-format.md` 冲突的旧版布局或命名规则，以及缺失的当前必备流程，必须报告。
 
-多 Context 仓库至少搜索以下旧版痕迹：Context 级 `docs/rules/`、`Context 级 RULES`、`SYS-NN`、`<CTX>-NN`、规则文件名前缀、各层独立编号。发现规则漂移时停止自动写入，使用提问工具列出冲突文件和推荐的最小迁移；只有用户明确同意刷新或迁移后才修改，且不得覆盖项目事实。
+多 Context 仓库至少搜索以下旧版痕迹：Context 级 `docs/rules/`、Context 根目录下旧版 `docs/CONTEXT.md`、`Context 级 RULES`、`SYS-NN`、`<CTX>-NN`、规则文件名前缀、各层独立编号。发现规则漂移时停止自动写入，使用提问工具列出冲突文件和推荐的最小迁移；只有用户明确同意刷新或迁移后才修改，且不得覆盖项目事实。
 
 同时检查已部署的 `docs/agents/domain.md` 是否包含「维护判断与落盘」流程。如果缺失，将其视为规则漂移，避免 Agent 指令已引用维护流程、目标文件却没有对应规则。
 
 根据布局创建缺失的入口文件：
 
 - 单 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT.md` 骨架；
-- 多 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT-MAP.md`，并为已识别的各 Context 创建对应的 `docs/CONTEXT.md` 骨架。
+- 多 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT-MAP.md`，并在每个已识别的 Context 根目录创建 `CONTEXT.md` 骨架。
 
 已存在的 `CONTEXT.md`、`CONTEXT-MAP.md` 不改写。
 
