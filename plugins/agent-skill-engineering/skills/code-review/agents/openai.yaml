@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Review"
+  short_description: "从项目规范与需求符合度两个维度评审代码"
+  default_prompt: "从 Standards 和 Spec 两个独立维度评审当前代码变更。"

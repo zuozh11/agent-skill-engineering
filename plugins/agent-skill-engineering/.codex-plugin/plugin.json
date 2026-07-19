@@ -1,6 +1,6 @@
 {
   "name": "agent-skill-engineering",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、PRD、任务拆解、实现和代码评审。",
   "author": {
     "name": "zuozhi"

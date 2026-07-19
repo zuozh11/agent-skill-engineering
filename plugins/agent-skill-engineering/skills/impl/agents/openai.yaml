@@ -1,0 +1,3 @@
+interface:
+  display_name: "Impl"
+  short_description: "按任务依赖隔离实现并集成原子提交"

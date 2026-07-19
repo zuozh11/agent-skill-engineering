@@ -1,0 +1,3 @@
+interface:
+  display_name: "Diagnose"
+  short_description: "用结构化循环诊断缺陷与性能回退"

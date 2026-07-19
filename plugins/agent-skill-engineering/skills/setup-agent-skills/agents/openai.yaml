@@ -1,0 +1,5 @@
+interface:
+  display_name: "Setup Agent Skills"
+  short_description: "初始化 Agent 领域文档与规则基础设施"
+policy:
+  allow_implicit_invocation: false

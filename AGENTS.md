@@ -22,7 +22,7 @@
 - `skills/setup-agent-skills/domain.md`：领域文档布局、读取、维护判断和落盘解析的唯一权威说明；其他 Skill 应引用它，不复制另一套完整规则。
 - `.claude-plugin/plugin.json`：Claude 插件的 Skill 安装清单。
 - `plugins/agent-skill-engineering/.codex-plugin/plugin.json`：Codex 插件元数据。
-- `plugins/agent-skill-engineering/skills`：指向根目录 `skills/` 的符号链接，不得替换为复制目录。
+- `plugins/agent-skill-engineering/skills`：Codex 插件的可独立打包 Skill 镜像。根目录 `skills/` 仍是唯一权威实现；不得手工编辑插件镜像，修改 Skill 后运行 `scripts/sync-codex-plugin-skills.sh` 同步。
 - `.agents/plugins/marketplace.json`：个人插件市场入口。
 - `README.md`：面向使用者的能力说明、安装方式和工作流总览。
 
@@ -76,7 +76,7 @@
 3. 确保 frontmatter 的 `name` 与目录名一致。
 4. 只在确有渐进式披露或确定性执行需要时添加引用文档、`scripts/`、模板或其他资源。
 5. 将 Skill 路径加入 `.claude-plugin/plugin.json` 的 `skills` 数组；保持现有排序风格且不得重复。
-6. Codex 插件当前通过整个 `skills/` 目录自动发现 Skill，通常无需逐项登记；若清单结构发生变化，必须同步插件元数据。
+6. 运行 `scripts/sync-codex-plugin-skills.sh`，把根目录 `skills/` 同步到 Codex 插件的真实目录；若清单结构发生变化，必须同步插件元数据。
 7. 在 `README.md` 的对应分类中补充用途；若工作流、安装方式或目录布局有变化，同步更新相关章节。
 
 修改已有 Skill 时：
@@ -96,7 +96,7 @@
 - 检查所有一级 Skill 目录都包含 `SKILL.md`。
 - 检查 YAML frontmatter 存在、字段合法，且 `name` 与目录名一致。
 - 检查新增或修改的相对链接、脚本路径、输出路径真实可达。
-- 检查 `plugins/agent-skill-engineering/skills` 仍是指向 `../../skills` 的符号链接。
+- 检查 `plugins/agent-skill-engineering/skills` 是真实目录，且与根目录 `skills/` 内容一致。
 - 对照 `skills/`、`.claude-plugin/plugin.json` 与 `README.md`，确认 Skill 清单没有遗漏、重复或失效项。
 - 使用 `rg` 搜索被重命名或删除的术语、路径和 Skill 名称，确认无残留引用。
 - 审阅 `git diff --check` 和最终 diff，确保没有尾随空格、意外生成物、私密信息或无关修改。
@@ -109,7 +109,8 @@ python3 -m json.tool .claude-plugin/plugin.json >/dev/null
 python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 python3 -m json.tool plugins/agent-skill-engineering/.codex-plugin/plugin.json >/dev/null
 find skills -mindepth 2 -maxdepth 2 -name SKILL.md -print | sort
-test "$(readlink plugins/agent-skill-engineering/skills)" = "../../skills"
+test -d plugins/agent-skill-engineering/skills && test ! -L plugins/agent-skill-engineering/skills
+diff -qr --exclude=.DS_Store skills plugins/agent-skill-engineering/skills
 git status --short
 ```
 
