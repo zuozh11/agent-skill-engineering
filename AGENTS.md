@@ -19,7 +19,7 @@
 
 - `skills/<skill-name>/SKILL.md`：Skill 的唯一权威实现。
 - `skills/<skill-name>/` 下的其他 Markdown、脚本和资源：仅用于承载该 Skill 按需读取的细节。
-- `skills/setup-agent-skills/domain.md`：领域文档布局、读取和落盘解析的唯一权威说明；其他 Skill 应引用它，不复制另一套完整规则。
+- `skills/setup-agent-skills/domain.md`：领域文档布局、读取、维护判断和落盘解析的唯一权威说明；其他 Skill 应引用它，不复制另一套完整规则。
 - `.claude-plugin/plugin.json`：Claude 插件的 Skill 安装清单。
 - `plugins/agent-skill-engineering/.codex-plugin/plugin.json`：Codex 插件元数据。
 - `plugins/agent-skill-engineering/skills`：指向根目录 `skills/` 的符号链接，不得替换为复制目录。
