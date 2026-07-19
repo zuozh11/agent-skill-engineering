@@ -1,5 +1,3 @@
 interface:
   display_name: "Zoom Out"
   short_description: "从更高层次解释代码与系统的整体位置"
-policy:
-  allow_implicit_invocation: false
