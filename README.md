@@ -60,7 +60,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 直接从任务卡或当前对话开始实现，根据任务数量、依赖和写集冲突自主选择直接实现或编排子 Agent；实现完成后按独立实现单元原子提交。
+**解法**：`/impl` 按任务依赖分批调度独立 worktree 中的子 Agent，由子 Agent形成原子提交、主 Agent按序集成并维护任务状态。
 
 ---
 
@@ -108,7 +108,7 @@ docs/
         └── tasks/
             ├── 01-创建数据表.md       ← /to-task 产出
             ├── 02-新增查询接口.md
-            └── 03-新增查询页面.md     ← /impl 逐个实现
+            └── 03-新增查询页面.md     ← /impl 按依赖实现
 ```
 
 `<NN>-<中文需求名称>` 的编号表示需求工作目录在 `docs/scratch/` 下的创建顺序；中文需求名称和任务卡名称使用 `CONTEXT.md` 中的统一术语，目录内的任务卡使用独立编号。
@@ -125,7 +125,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **根据任务卡或当前对话实现代码变更，按独立实现单元原子提交** |
+| **[impl](./skills/impl/SKILL.md)** | **按任务依赖隔离实现，由主 Agent集成原子提交并维护状态** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个独立维度评审代码变更** |
 
 ### 关键辅助
@@ -159,7 +159,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按前端/后端视角组织需求 |
 | `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 独立实现并原子提交，`/code-review` 按需单独评审 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 隔离实现并原子集成，`/code-review` 按需单独评审 |
 | `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
 | 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
 
