@@ -25,7 +25,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
             (PRD)   (拆任务)   (实现)   (评审)
 
 辅助:  grill-with-docs
-     （追问对齐，自动触发）
+     （分轮批量追问，自动触发）
 ```
 
 其他辅助 skill（按需调用）：`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
@@ -36,7 +36,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _不知道怎么和 agent 讲需求，很难一次性把所有逻辑讲清楚。目标、限制、边界和取舍没说完，agent 就会用自己的假设补空白。_
 
-**解法**：`/grill-with-docs` 通过逼问强迫你补齐上下文，把模糊想法、边界条件和关键取舍都定义清楚。
+**解法**：`/grill-with-docs` 把决策组织成设计树，按依赖分轮批量逼问，把模糊想法、边界条件和关键取舍都定义清楚。
 
 ---
 
@@ -130,7 +130,7 @@ docs/
 
 ### 关键辅助
 
-[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过逼问式对话压力测试方案，挑战术语一致性，并把确定的概念沉淀到 `CONTEXT.md`、把权衡决策记录为 `RULES`。
+[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过“设计树 → 当前前沿 → 批量提问”的对话压力测试方案，挑战术语一致性，并把确定的概念沉淀到 `CONTEXT.md`、把权衡决策记录为 `RULES`。
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 

@@ -1,3 +1,3 @@
 interface:
   display_name: "Grill with Docs"
-  short_description: "压力测试方案并同步领域术语与项目规则"
+  short_description: "分轮批量压力测试方案并同步领域文档"
