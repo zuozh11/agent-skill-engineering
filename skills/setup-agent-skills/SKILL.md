@@ -52,7 +52,10 @@ disable-model-invocation: true
 
 <布局说明>。
 
-执行项目任务时，按 `docs/agents/domain.md` 定位并使用相关 `CONTEXT.md`；所有项目规则均必须遵守。
+执行项目任务时，按以下顺序加载知识；不得只向子 Agent 转述“遵守全部规则”而不传递实际内容或可访问路径：
+
+1. 读取 `docs/agents/domain.md`、<布局入口> 和目标 Context 的 `CONTEXT.md`。
+2. 枚举并遵守 `docs/rules/` 下的项目规则。
 
 任务中自然出现新的项目特有术语、实体或 Context 关系、规范命名或长期项目规则时，按 `docs/agents/domain.md` 的维护流程自行判断是否值得记录；不要为了维护文档而强行扩展每个任务。
 
@@ -63,6 +66,11 @@ disable-model-invocation: true
 
 - 单 Context：本仓库采用单 Context 布局，入口为 `docs/CONTEXT.md`
 - 多 Context：本仓库采用多 Context 布局，入口为 `docs/CONTEXT-MAP.md`
+
+将 `<布局入口>` 替换为：
+
+- 单 Context：`docs/CONTEXT.md`
+- 多 Context：`docs/CONTEXT-MAP.md`
 
 ### 4. 写入领域文档基础文件
 
