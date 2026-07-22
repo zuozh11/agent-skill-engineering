@@ -60,7 +60,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 先识别任务依赖，再由用户选择主线程直接实现，或调度独立 worktree 中的子 Agent 隔离实现；两种方式都保持原子提交和任务状态流转。
+**解法**：`/impl` 根据实现单元的依赖、写集冲突和并行收益，自动选择主线程直接实现，或调度独立 worktree 中的子 Agent 隔离实现；两种方式都保持原子提交和任务状态流转。
 
 ---
 
@@ -125,7 +125,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **由用户选择主线程直接实现或 worktree 隔离实现，并保持原子提交与状态流转** |
+| **[impl](./skills/impl/SKILL.md)** | **根据依赖、写集和并行收益自动选择主线程或 worktree 隔离实现** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个独立维度评审代码变更** |
 
 ### 关键辅助
@@ -159,7 +159,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按前端/后端视角组织需求 |
 | `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 可选主线程直接实现或 worktree 隔离实现，`/code-review` 按需单独评审 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择主线程直接实现或 worktree 隔离实现，`/code-review` 按需单独评审 |
 | `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
 | 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
 

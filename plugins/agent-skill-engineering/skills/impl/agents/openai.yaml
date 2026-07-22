@@ -1,3 +1,3 @@
 interface:
   display_name: "Impl"
-  short_description: "选择主线程直改或 worktree 隔离实现"
+  short_description: "按任务复杂度自动选择执行方式"
