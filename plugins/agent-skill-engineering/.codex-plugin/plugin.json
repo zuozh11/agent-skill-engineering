@@ -1,7 +1,7 @@
 {
   "name": "agent-skill-engineering",
-  "version": "0.2.1",
-  "description": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、PRD、任务拆解、实现和代码评审。",
+  "version": "0.3.0",
+  "description": "面向开发工程师的 Agent Skill 集合，覆盖调研、需求收敛、PRD、任务拆解、实现和代码评审。",
   "author": {
     "name": "zuozhi"
   },
@@ -11,6 +11,7 @@
   "keywords": [
     "agent-skills",
     "engineering",
+    "research",
     "prd",
     "tasks",
     "implementation",
@@ -20,7 +21,7 @@
   "interface": {
     "displayName": "Agent Skills Engineering",
     "shortDescription": "工程化 Agent Skill 工作流",
-    "longDescription": "面向开发工程师的 Agent Skill 集合，从需求收敛到 PRD、任务拆解、实现和代码评审，使用本地 Markdown 追踪任务。",
+    "longDescription": "面向开发工程师的 Agent Skill 集合，覆盖一手来源调研、需求收敛、PRD、任务拆解、实现和代码评审，使用本地 Markdown 沉淀调研与追踪任务。",
     "developerName": "zuozhi",
     "category": "Engineering",
     "capabilities": [
@@ -30,6 +31,7 @@
     "websiteURL": "https://github.com/zuozh11/agent-skill-engineering",
     "defaultPrompt": [
       "把这个需求整理成 PRD",
+      "调研这个工程问题并把带来源的结论写入仓库",
       "把 PRD 拆成 vertical slice 任务",
       "按任务卡实现下一个切片",
       "从项目规范和需求符合度两个维度评审这次改动"

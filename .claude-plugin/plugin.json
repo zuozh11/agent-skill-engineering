@@ -3,6 +3,7 @@
   "skills": [
     "./skills/diagnose",
     "./skills/grill-with-docs",
+    "./skills/research",
     "./skills/impl",
     "./skills/code-review",
     "./skills/setup-agent-skills",
