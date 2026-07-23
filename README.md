@@ -28,7 +28,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
      （分轮批量追问，自动触发）
 ```
 
-其他辅助 skill（按需调用）：`diagnose`、`zoom-out`、`prototype`、`improve-codebase-architecture`、`commit`。
+其他辅助 skill（按需调用）：`diagnose`、`zoom-out`、`commit`。
 
 ## 为什么要这套流程
 
@@ -140,8 +140,6 @@ docs/
 |-------|------|
 | **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
-| **[prototype](./skills/prototype/SKILL.md)** | 构建一次性原型验证设计——终端交互验逻辑，或多 UI 变体验视觉 |
-| **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 找出职责分散、重复、难测试的代码，并给出重构建议 |
 | **[commit](./skills/commit/SKILL.md)** | 生成高质量的约定式提交消息，并按需完成本地提交 |
 
 ### 配置

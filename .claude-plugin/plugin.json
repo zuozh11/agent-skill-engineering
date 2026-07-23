@@ -5,8 +5,6 @@
     "./skills/grill-with-docs",
     "./skills/impl",
     "./skills/code-review",
-    "./skills/improve-codebase-architecture",
-    "./skills/prototype",
     "./skills/setup-agent-skills",
     "./skills/to-prd",
     "./skills/to-task",
