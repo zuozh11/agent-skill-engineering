@@ -52,9 +52,10 @@ PRD 默认采用前后端同时交付视角。只有用户明确要求单端交�
 ### 6. 拟草 PRD
 
 使用下方模板。重点：
+- Solution 用一个段落从用户视角概括整体解决方案，为后续前后端范围和能力细节建立总览
 - User Stories 要覆盖面广（numbered list）
 - Requirements 按能力项组织，规则优先
-- Implementation Decisions 只记录已经锁定的决策
+- Implementation Decisions 只记录已经锁定的模块边界、接口契约、Schema 变化和关键交互，不写具体文件路径或实现代码
 - 凡 Requirements 中受 `docs/rules/` 约束的口径，在锁定决策「来源」列标注依据规则的 `RULE-NN` 短号（格式见 `docs/agents/rules-format.md`）；若某需求与既有 RULES 冲突，不擅自覆盖，使用提问工具向用户确认。
 - 不写代码库能力缺口对比（留给 to-task 调研阶段）
 
@@ -72,6 +73,9 @@ PRD 默认采用前后端同时交付视角。只有用户明确要求单端交�
 
 ```markdown
 # <功能名称> PRD
+
+## Solution
+<用一个段落从用户视角概括整体解决方案，不展开前后端实现细节>
 
 ## Scope
 
