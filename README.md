@@ -28,7 +28,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
      （分轮批量追问）       （一手来源调研）
 ```
 
-其他辅助 skill（按需调用）：`diagnose`、`zoom-out`、`commit`。
+其他辅助 skill（按需调用）：`diagnose`、`zoom-out`、`resolving-merge-conflicts`、`commit`。
 
 ## 为什么要这套流程
 
@@ -141,6 +141,7 @@ docs/
 | **[research](./skills/research/SKILL.md)** | 调度后台 Agent 查阅一手来源，并把带引用的结论写入单一 Markdown 文件 |
 | **[diagnose](./skills/diagnose/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
+| **[resolving-merge-conflicts](./skills/resolving-merge-conflicts/SKILL.md)** | 查明双方改动意图，解决并完成正在进行的 merge/rebase 冲突 |
 | **[commit](./skills/commit/SKILL.md)** | 生成高质量的约定式提交消息，并按需完成本地提交 |
 
 ### 配置

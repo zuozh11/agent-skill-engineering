@@ -10,6 +10,7 @@
     "./skills/to-prd",
     "./skills/to-task",
     "./skills/zoom-out",
+    "./skills/resolving-merge-conflicts",
     "./skills/commit"
   ]
 }
