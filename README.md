@@ -60,7 +60,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 根据实现范围、工作区状态和隔离收益，自动选择当前工作区或独立 worktree 实现；需要直接指定隔离模式时使用 `/impl -w`。两种方式都保持原子提交和任务状态流转。
+**解法**：`/impl` 一次接收多张任务卡时，让每张卡在独立的全新执行上下文中实施；同时根据实现范围、工作区状态和隔离收益，自动选择当前工作区或独立 worktree，需要直接指定 worktree 隔离时使用 `/impl -w`。上下文隔离与 worktree、执行者和串并行方式彼此独立，两种工作区方式都保持原子提交和任务状态流转。
 
 ---
 
@@ -125,7 +125,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **根据实现范围、工作区状态和隔离收益自动选择执行方式，支持用 `-w` 强制 worktree 隔离实现** |
+| **[impl](./skills/impl/SKILL.md)** | **多任务卡使用独立的全新执行上下文，并根据隔离收益自动选择当前工作区或 worktree，支持用 `-w` 强制 worktree 隔离** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个独立维度评审代码变更** |
 
 ### 关键辅助
