@@ -1,9 +1,9 @@
 ---
-name: diagnose
+name: diagnosing-bugs
 description: 结构化诊断循环，用于难以定位的 bug 和性能回退。复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试。当用户说"诊断这个"/"调试这个"、报告 bug、说某个东西坏了/报错/失败、或描述性能回退时使用。
 ---
 
-# Diagnose
+# Diagnosing Bugs
 
 一套针对疑难 bug 的纪律。只有在明确说明理由时才能跳过阶段。
 

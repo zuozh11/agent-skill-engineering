@@ -1,7 +1,7 @@
 {
   "name": "agent-skill-engineering",
   "skills": [
-    "./skills/diagnose",
+    "./skills/diagnosing-bugs",
     "./skills/grill-with-docs",
     "./skills/research",
     "./skills/impl",
