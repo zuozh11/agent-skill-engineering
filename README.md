@@ -26,6 +26,8 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 辅助:  grill-with-docs        research
      （分轮批量追问）       （一手来源调研）
+
+共享参考: codebase-design（模块职责、接口、接缝与测试面的设计语言）
 ```
 
 其他辅助 skill（按需调用）：`diagnosing-bugs`、`zoom-out`、`resolving-merge-conflicts`、`commit`。
@@ -126,13 +128,15 @@ docs/
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，完成实现后评审并修复真实问题，再原子提交** |
-| **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个独立维度评审代码变更** |
+| **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
 
 ### 关键辅助
 
 [grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过“设计树 → 当前前沿 → 批量提问”的对话压力测试方案，挑战术语一致性，主动挖掘和确认领域文档候选知识。
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
+
+[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 每次默认加载，`grill-with-docs`、`impl` 与流程内 `code-review` 按需加载，用户手动发起 `code-review` 时默认加载。
 
 ### 其他辅助 Skill
 

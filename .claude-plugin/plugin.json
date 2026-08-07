@@ -3,6 +3,7 @@
   "skills": [
     "./skills/diagnosing-bugs",
     "./skills/grill-with-docs",
+    "./skills/codebase-design",
     "./skills/research",
     "./skills/impl",
     "./skills/code-review",
