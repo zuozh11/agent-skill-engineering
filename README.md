@@ -21,8 +21,10 @@ npx skills@latest add zuozh11/agent-skill-engineering
 ## 工作流管线
 
 ```
-完整工作流:  to-prd → to-task → impl → code-review
-            (PRD)   (拆任务)   (实现)   (评审)
+主工作流:  to-prd → to-task → impl
+          (PRD)   (拆任务)   (实现)
+
+按需评审:  code-review
 
 辅助:  grill-with-docs        research
      （分轮批量追问）       （一手来源调研）
@@ -62,7 +64,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 按依赖和写集拆分多张任务卡，在隔离收益明确时使用独立的全新执行上下文，并根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要直接指定 worktree 时使用 `/impl -w`。实现完成后调用 `/code-review`，核实并修复真实问题，再原子提交。
+**解法**：`/impl` 按依赖和写集拆分多张任务卡，在隔离收益明确时使用独立的全新执行上下文，并根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要直接指定 worktree 时使用 `/impl -w`。完成验证并检查 staged diff 后原子提交；需要代码评审时单独调用 `/code-review`。
 
 ---
 
@@ -127,7 +129,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，完成实现后评审并修复真实问题，再原子提交** |
+| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，完成验证并检查 staged diff 后原子提交** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
 
 ### 关键辅助
@@ -136,7 +138,7 @@ docs/
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 每次默认加载，`grill-with-docs`、`impl` 与流程内 `code-review` 按需加载，用户手动发起 `code-review` 时默认加载。
+[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 每次默认加载，`grill-with-docs` 与 `impl` 按需加载，用户发起 `code-review` 时默认加载。
 
 ### 其他辅助 Skill
 
@@ -163,7 +165,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按前端/后端视角组织需求 |
 | `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择当前工作区或 worktree，评审并修复真实问题后原子提交 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择当前工作区或 worktree，完成验证后原子提交；代码评审按需独立调用 |
 | `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
 | 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
 
