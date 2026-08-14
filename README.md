@@ -102,7 +102,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 ```
 docs/
 ├── CONTEXT.md                ← 项目术语和命名约定
-├── agents/                   ← 消费规则 domain.md + 格式模板 context-format.md / rules-format.md
+├── agents/                   ← domain.md + 格式模板 + 一次性加载全部规则的 read-rules.py
 ├── rules/                    ← 项目规则（RULES）
 │   ├── 01-数据权限-按部门隔离.md
 │   └── 02-接口错误码-统一包装.md
@@ -117,7 +117,7 @@ docs/
 
 `<NN>-<中文需求名称>` 的编号表示需求工作目录在 `docs/scratch/` 下的创建顺序；中文需求名称和任务卡名称使用 `CONTEXT.md` 中的统一术语，目录内的任务卡使用独立编号。
 
-> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 根目录的 `CONTEXT.md`（Context 目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在领域文档根目录的 `docs/rules/`。即使从独立子仓库启动，也要沿地图回溯到该根目录；重复运行 `/setup-agent-skills` 会检查旧版布局与当前规则是否漂移。两种布局、术语使用、规则遵守、维护判断与落盘解析统一见 `docs/agents/domain.md`。
+> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 根目录的 `CONTEXT.md`（Context 目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在领域文档根目录的 `docs/rules/`，并由 `docs/agents/read-rules.py` 按文件名顺序一次性加载。即使从独立子仓库启动，也要沿地图回溯到该根目录；重复运行 `/setup-agent-skills` 会检查旧版布局与当前规则是否漂移。两种布局、术语使用、规则遵守、维护判断与落盘解析统一见 `docs/agents/domain.md`。
 
 ---
 

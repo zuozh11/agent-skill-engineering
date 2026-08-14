@@ -57,15 +57,17 @@
 **单 Context：**
 
 - `docs/CONTEXT.md`
-- `docs/rules/`——所有项目规则均必须遵守；任务中的分析、方案、实现、测试与验收不得违反任何 RULES。
+- 使用当前环境可用的 Python 3 入口运行 `<领域文档根目录>/docs/agents/read-rules.py`，一次性加载 `docs/rules/` 下的全部规则。所有项目规则均必须遵守；任务中的分析、方案、实现、测试与验收不得违反任何 RULES。
 
 **多 Context：**
 
 1. 读 `docs/CONTEXT-MAP.md`，依据当前任务判断涉及哪个（或哪几个）Context；不确定就问用户。从 Contexts 列表的链接拿到该 Context 的目录 `<ctx-dir>/`（路径以地图为准，别假设在 `src/`）。
 2. 读相关 Context 根目录的 `<ctx-dir>/CONTEXT.md`。`CONTEXT-MAP.md` 的「共享概念」区是被全部 Context 同等使用的平台级术语，对任何 Context 的任务都适用，一并读。
-3. 根 `docs/rules/` 中的 RULES 不按 Context 拆分；所有项目规则均必须遵守，任务中的分析、方案、实现、测试与验收不得违反任何 RULES。
+3. 使用当前环境可用的 Python 3 入口运行 `<领域文档根目录>/docs/agents/read-rules.py`，一次性加载根 `docs/rules/` 下的全部规则。RULES 不按 Context 拆分；所有项目规则均必须遵守，任务中的分析、方案、实现、测试与验收不得违反任何 RULES。
 
-任一文件不存在则**静默继续**。
+`read-rules.py` 根据自身位置解析领域文档根目录，不依赖当前工作目录；从根目录或独立子仓库启动时均运行同一个脚本。脚本按文件名顺序输出每个 Markdown 规则及其文件名边界，不生成合并副本。脚本或任一规则读取失败时，不得使用不完整输出继续任务。
+
+`CONTEXT.md` 或 `CONTEXT-MAP.md` 不存在则**静默继续**；`docs/rules/` 不存在时脚本无输出并成功结束。`read-rules.py` 缺失或执行失败属于配置漂移，不得跳过规则继续任务。
 
 ## 维护判断与落盘
 

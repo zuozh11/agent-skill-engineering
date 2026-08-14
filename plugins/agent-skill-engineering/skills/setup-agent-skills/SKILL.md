@@ -55,7 +55,7 @@ disable-model-invocation: true
 执行项目任务时，按以下顺序加载知识；不得只向子 Agent 转述“遵守全部规则”而不传递实际内容或可访问路径：
 
 1. 读取 `docs/agents/domain.md`、<布局入口> 和目标 Context 的 `CONTEXT.md`。
-2. 枚举并遵守 `docs/rules/` 下的项目规则。
+2. 使用当前环境可用的 Python 3 入口运行 `<领域文档根目录>/docs/agents/read-rules.py`，一次性加载并遵守全部项目规则。
 
 任务中自然出现新的项目特有术语、实体或 Context 关系、规范命名或长期项目规则时，按 `docs/agents/domain.md` 的维护流程自行判断是否值得记录；不要为了维护文档而强行扩展每个任务。
 
@@ -79,6 +79,7 @@ disable-model-invocation: true
 - [domain.md](./domain.md) → `docs/agents/domain.md`
 - [context-format.md](./context-format.md) → `docs/agents/context-format.md`
 - [rules-format.md](./rules-format.md) → `docs/agents/rules-format.md`
+- [read-rules.py](./scripts/read-rules.py) → `docs/agents/read-rules.py`
 
 缺失的文件直接创建。已有文件默认保留，不覆盖用户修改；只有用户明确要求刷新模板时，才对比并更新。
 
@@ -89,7 +90,7 @@ disable-model-invocation: true
 
 多 Context 仓库至少搜索以下旧版痕迹：Context 级 `docs/rules/`、Context 根目录下旧版 `docs/CONTEXT.md`、`Context 级 RULES`、`SYS-NN`、`<CTX>-NN`、规则文件名前缀、各层独立编号。发现规则漂移时停止自动写入，使用提问工具列出冲突文件和推荐的最小迁移；只有用户明确同意刷新或迁移后才修改，且不得覆盖项目事实。
 
-同时检查已部署的 `docs/agents/domain.md` 是否明确规定所有项目规则均必须遵守，并包含「维护判断与落盘」流程。任一要求缺失，或将 RULES 的适用范围缩小为当前任务相关规则时，都将其视为规则漂移。
+同时检查已部署的 `docs/agents/domain.md` 是否明确规定所有项目规则均必须遵守、通过 `docs/agents/read-rules.py` 一次性加载规则，并包含「维护判断与落盘」流程。任一要求缺失，或将 RULES 的适用范围缩小为当前任务相关规则时，都将其视为规则漂移。
 
 根据布局创建缺失的入口文件：
 
@@ -112,8 +113,9 @@ disable-model-invocation: true
 写入后检查：
 
 - 每个目标 Agent 指令文件中只有一个 `## 领域文档` 段落；
-- `docs/agents/domain.md`、`context-format.md`、`rules-format.md` 均存在；
-- `docs/agents/domain.md` 明确规定所有项目规则均必须遵守，并包含「维护判断与落盘」流程，Agent 指令中对应入口可解析；
+- `docs/agents/domain.md`、`context-format.md`、`rules-format.md`、`read-rules.py` 均存在；
+- `docs/agents/domain.md` 明确规定所有项目规则均必须遵守、通过 `docs/agents/read-rules.py` 一次性加载规则，并包含「维护判断与落盘」流程，Agent 指令中对应入口可解析；
+- 从领域文档根目录和任一已声明 Context 目录启动时，`docs/agents/read-rules.py` 都能按文件名顺序完整输出 `docs/rules/` 下的全部 Markdown 规则，并保留文件边界；
 - 当前布局的入口文件存在；
 - 多 Context 下 `CONTEXT-MAP.md` 指向的 Context 文件真实存在；
 - 从任一已声明 Context 目录启动时，都能回溯到同一个领域文档根目录；
