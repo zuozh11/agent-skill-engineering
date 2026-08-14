@@ -64,7 +64,7 @@ npx skills@latest add zuozh11/agent-skill-engineering
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁任务卡必须在彼此隔离的执行上下文中实施；可以使用独立 Agent、fork Agent、独立任务或宿主提供的等效机制，不要求从空白上下文启动。上下文隔离不决定 worktree、执行者或串并行策略。执行时根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要直接指定 worktree 时使用 `/impl -w`。完成验证并检查 staged diff 后原子提交；需要代码评审时单独调用 `/code-review`。
+**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁任务卡必须在彼此隔离的执行上下文中实施；可以使用独立 Agent、fork Agent、独立任务或宿主提供的等效机制，不要求从空白上下文启动。上下文隔离不决定 worktree、执行者或串并行策略。执行时根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要强制使用 worktree 时调用 `/impl -w`，需要强制使用子 Agent 编排时调用 `/impl -a`，两者可以组合为 `/impl -a -w`。完成验证并检查 staged diff 后原子提交；需要代码评审时单独调用 `/code-review`。
 
 ---
 
@@ -129,7 +129,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，完成验证并检查 staged diff 后原子提交** |
+| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，可强制使用子 Agent 编排，完成验证并检查 staged diff 后原子提交** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
 
 ### 关键辅助
