@@ -6,15 +6,122 @@
 
 ## 快速开始
 
-1. 安装/更新 skill：
+1. 选择下方任一方式安装。Codex、Claude Code 用户优先使用对应插件；需要跨宿主或只安装 Skill 时使用独立 Skill 安装。
+
+2. 在目标仓库中运行 `/setup-agent-skills`。
+
+3. 配置完成后即可使用全部 Skill。
+
+## 安装与更新
+
+### Codex 插件
+
+#### 全局安装
+
+注册仓库 marketplace，并安装插件：
+
+```bash
+codex plugin marketplace add zuozh11/agent-skill-engineering
+codex plugin add agent-skill-engineering@agent-skill-engineering
+```
+
+更新 marketplace 后，重新打开 Codex 或新建任务以加载最新版：
+
+```bash
+codex plugin marketplace upgrade agent-skill-engineering
+```
+
+#### 项目级安装
+
+Codex 支持仓库级 marketplace：在目标仓库提交 `.agents/plugins/marketplace.json`，该插件只会在此项目的 marketplace 中出现。示例：
+
+```json
+{
+  "name": "agent-skill-engineering-project",
+  "interface": {
+    "displayName": "Agent Skills Engineering"
+  },
+  "plugins": [
+    {
+      "name": "agent-skill-engineering",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/zuozh11/agent-skill-engineering.git",
+        "path": "./plugins/agent-skill-engineering",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Engineering"
+    }
+  ]
+}
+```
+
+重启 Codex 后，在目标仓库中安装：
+
+```bash
+codex plugin add agent-skill-engineering@agent-skill-engineering-project
+```
+
+> Codex 当前没有 `--scope project` 参数。项目级范围由仓库内的 `.agents/plugins/marketplace.json` 决定；插件缓存和启用状态仍保存在用户目录。
+
+### Claude Code 插件
+
+#### 全局安装
+
+```bash
+claude plugin marketplace add zuozh11/agent-skill-engineering --scope user
+claude plugin install agent-skill-engineering@agent-skill-engineering --scope user
+```
+
+更新：
+
+```bash
+claude plugin marketplace update agent-skill-engineering
+claude plugin update agent-skill-engineering@agent-skill-engineering --scope user
+```
+
+#### 项目级安装
+
+项目级配置会写入目标仓库的 `.claude/settings.json`，可随项目提交并共享给团队：
+
+```bash
+claude plugin marketplace add zuozh11/agent-skill-engineering --scope project
+claude plugin install agent-skill-engineering@agent-skill-engineering --scope project
+```
+
+更新：
+
+```bash
+claude plugin marketplace update agent-skill-engineering
+claude plugin update agent-skill-engineering@agent-skill-engineering --scope project
+```
+
+### 独立 Skill
+
+项目级安装（默认）：
 
 ```bash
 npx skills@latest add zuozh11/agent-skill-engineering
 ```
 
-2. 在目标仓库中运行 `/setup-agent-skills`。
+全局安装：
 
-3. 配置完成后即可使用全部 skill。
+```bash
+npx skills@latest add zuozh11/agent-skill-engineering --global
+```
+
+更新项目级或全局 Skill：
+
+```bash
+npx skills@latest update --project
+npx skills@latest update --global
+```
+
+参考：[Codex 插件文档](https://developers.openai.com/codex/plugins/build)、[Claude Code 插件 marketplace 文档](https://docs.anthropic.com/en/docs/claude-code/plugin-marketplaces)。
 
 ---
 
