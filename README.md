@@ -33,11 +33,11 @@ codex plugin marketplace upgrade agent-skill-engineering
 
 #### 项目级安装
 
-Codex 支持仓库级 marketplace：在目标仓库提交 `.agents/plugins/marketplace.json`，该插件只会在此项目的 marketplace 中出现。示例：
+Codex 支持仓库级 marketplace 和项目配置层。先在目标仓库提交 `.agents/plugins/marketplace.json`：
 
 ```json
 {
-  "name": "agent-skill-engineering-project",
+  "name": "agent-skill-engineering",
   "interface": {
     "displayName": "Agent Skills Engineering"
   },
@@ -60,13 +60,19 @@ Codex 支持仓库级 marketplace：在目标仓库提交 `.agents/plugins/marke
 }
 ```
 
-重启 Codex 后，在目标仓库中安装：
+再提交 `.codex/config.toml`，在项目配置层注册 marketplace 并启用插件：
 
-```bash
-codex plugin add agent-skill-engineering@agent-skill-engineering-project
+```toml
+[marketplaces.agent-skill-engineering]
+source_type = "git"
+source = "https://github.com/zuozh11/agent-skill-engineering.git"
+ref = "main"
+
+[plugins."agent-skill-engineering@agent-skill-engineering"]
+enabled = true
 ```
 
-> Codex 当前没有 `--scope project` 参数。项目级范围由仓库内的 `.agents/plugins/marketplace.json` 决定；插件缓存和启用状态仍保存在用户目录。
+重新打开该项目或新建任务后生效。插件缓存仍在用户目录，但启用项来自项目配置，因此其他项目不会加载该插件。
 
 ### Claude Code 插件
 
