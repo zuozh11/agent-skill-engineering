@@ -668,9 +668,9 @@ function renderHelp() {
 选择：
   scope              输出 Context path/显示名与 RULE 场景 code/name/count。
   scope --compact    与 scope 相同，保留为兼容入口。
-  scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行。
+  scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行；仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
   scope --rules      按场景下钻原子 RULE；--rules 可重复，多场景与重复值去重，结果按 RULE ID 排序。
-                     可与 --pretty 组合；默认仍输出单行 JSON。
+                     人类手动查看时可与 --pretty 组合；Agent 默认使用单行 JSON。
 
 加载：
   load               输出带文件边界的完整原文，用于诊断与兼容。
@@ -699,8 +699,8 @@ function eventInstruction(eventName, script) {
   }
   return `${lead}
 直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令：
-1. node ${script} scope
-2. 对所有可能相关场景执行 node ${script} scope --rules <code>（可重复；整场景可跳过下钻）
+1. 第 1 条命令必须原样直接执行，Agent 不得添加 --pretty/--compact，不得先执行其他命令：node ${script} scope
+2. scope --rules 默认紧凑；对所有可能相关场景执行 node ${script} scope --rules <code>（可重复）。若直接加载整个场景，可跳过此步
 3. 宁可多选，不得漏选；汇总后只执行一次 node ${script} load --compact [--context <path>]... [--rule <ID|code>]...
 完整返回正文必须遵守。疑问或报错只允许先执行 node ${script} --help；不要读取脚本源码。`;
 }

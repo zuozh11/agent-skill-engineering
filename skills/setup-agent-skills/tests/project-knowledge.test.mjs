@@ -428,6 +428,7 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.equal(short.stdout, long.stdout);
   assert.match(short.stdout, /scope --compact/);
   assert.match(short.stdout, /scope --pretty/);
+  assert.match(short.stdout, /仅供人类在终端手动查看，Agent 项目知识加载禁止使用/);
   assert.match(short.stdout, /scope --rules <场景码> \[--rules <场景码> \.\.\.\]/);
   assert.match(short.stdout, /load \[--compact\]/);
   assert.match(short.stdout, /场景码加载整个场景，RULE ID 只加载该 RULE/);
@@ -462,14 +463,19 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     assert.match(codexContext, expectations.get(event));
     const script = `'${fs.realpathSync(target.script)}'`;
     assert.match(codexContext, /直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令/);
+    assert.match(codexContext, /第 1 条命令必须原样直接执行/);
+    assert.match(codexContext, /Agent 不得添加 --pretty\/--compact，不得先执行其他命令/);
     assert.ok(codexContext.includes(`node ${script} scope`));
     assert.ok(codexContext.includes(`node ${script} scope --rules <code>`));
     assert.ok(codexContext.includes(`node ${script} load --compact`));
     assert.ok(codexContext.includes(`node ${script} --help`));
     assert.match(codexContext, /宁可多选，不得漏选/);
+    assert.match(codexContext, /若直接加载整个场景，可跳过此步/);
+    assert.match(codexContext, /scope --rules 默认紧凑/);
     assert.match(codexContext, /疑问或报错只允许先执行/);
     assert.match(codexContext, /不要读取脚本源码/);
     assert.doesNotMatch(codexContext, /scope --compact/);
+    assert.doesNotMatch(codexContext, /node .* scope --(?:pretty|compact)/);
     assert.match(codexContext, /完整返回正文必须遵守/);
     assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\//);
     assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);

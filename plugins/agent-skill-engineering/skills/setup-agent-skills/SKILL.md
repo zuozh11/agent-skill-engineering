@@ -66,9 +66,7 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs validate-rules
    node docs/agents/project-knowledge.mjs scope
    node docs/agents/project-knowledge.mjs scope --compact
-   node docs/agents/project-knowledge.mjs scope --pretty
    node docs/agents/project-knowledge.mjs scope --rules <代表性场景码>
-   node docs/agents/project-knowledge.mjs scope --pretty --rules <代表性场景码>
    ```
 
 4. 从 `scope` 选择一个代表性 Context，并从 `scope --rules` 选择原子 RULE，执行一次 `load --compact`；另执行一次完整 `load` 验证兼容输出。项目没有 RULE 时只验证固定 Context 文档。
@@ -131,7 +129,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - `SessionStart(compact)`：根据压缩后保留的任务重新发现和下钻范围，最终只运行一次 `load --compact`。
 - `SubagentStart`：根据当前子任务独立发现和下钻范围，最终只运行一次 `load --compact`。
 
-Hook 必须给出带正确引号脚本路径的完整 `scope`、`scope --rules`、`load --compact` 和 `--help` 命令，并明确要求直接执行，不先查找 Hook、搜索命令或读取脚本源码。选择时必须覆盖所有可能相关项，保留既有递归引用，宁可多读 token 也不得漏读。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，先运行完整 `--help` 命令，不读取源码。`scope --compact` 作为紧凑输出兼容入口保留；`scope --pretty` 仅供人类阅读同一份候选数据。完整 `load` 仅用于诊断。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
+Hook 必须给出带正确引号脚本路径的完整 `scope`、`scope --rules`、`load --compact` 和 `--help` 命令，并明确要求第一个裸 `scope` 原样直接执行，不添加 `--pretty`/`--compact`，也不先执行其他命令。选择时必须覆盖所有可能相关项，保留既有递归引用，宁可多读 token 也不得漏读；直接加载整个场景时可以跳过 `scope --rules`。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，先运行完整 `--help` 命令，不读取源码。`scope --compact` 作为紧凑输出兼容入口保留；`scope --pretty` 仅供人类在终端手动查看，Agent 项目知识加载禁止使用。完整 `load` 仅用于诊断。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
 
 ## 7. 切换 Agent 指令
 
