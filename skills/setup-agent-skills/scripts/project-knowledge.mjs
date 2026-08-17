@@ -674,10 +674,10 @@ function renderHelp() {
 `;
 }
 
-function eventInstruction(eventName, script) {
+function eventInstruction(eventName) {
   let lead;
   if (eventName === "UserPromptSubmit") {
-    lead = "同任务知识已完整覆盖则继续，否则按下列流程加载。";
+    lead = "同任务知识已完整覆盖则继续，否则按以下流程加载。";
   } else if (eventName === "SessionStart") {
     lead = "压缩后按保留任务重新选择并加载知识。";
   } else if (eventName === "SubagentStart") {
@@ -686,20 +686,19 @@ function eventInstruction(eventName, script) {
     throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
   }
   return `${lead}
-直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令：
-1. 第 1 条命令必须原样作为首个命令直接执行：node ${script} scope
-2. 根据 scope 返回的 Context 与 RULE 文件名按任务相关性选择，只执行一次 node ${script} load [--context <path>]... [--rule <ID|code>]...
-完整返回正文必须遵守。疑问或报错先执行 node ${script} -h；不要读取脚本源码。`;
+1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
+2. 根据当前任务与 scope 返回结果，自主选择 Context、原子 RULE ID 或场景 code，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <ID|code>]...
+3. 原子 ID 加载单条 RULE，场景 code 加载整个场景；需要补充知识时可以继续执行 load。
+完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
 }
 
 function renderHookContext(hookInput) {
-  const quote = process.platform === "win32" ? quoteWindows : quotePosix;
-  return eventInstruction(hookInput.hook_event_name, quote(SCRIPT_PATH));
+  return eventInstruction(hookInput.hook_event_name);
 }
 
 function warningCommand(messages) {
   const ruleProblem = messages.some((message) => /RULE|rules|reference|场景/i.test(message));
-  return `node ${process.platform === "win32" ? quoteWindows(SCRIPT_PATH) : quotePosix(SCRIPT_PATH)} ${ruleProblem ? "validate-rules" : "validate-context"}`;
+  return `node docs/agents/project-knowledge.mjs ${ruleProblem ? "validate-rules" : "validate-context"}`;
 }
 
 function runHook() {
@@ -727,7 +726,7 @@ function runHook() {
     })}\n`);
   } catch (error) {
     const messages = error instanceof KnowledgeError ? error.messages : [error.message];
-    const warning = `项目知识未加载：${messages[0]}。请运行 ${warningCommand(messages)}。`;
+    const warning = `项目知识未加载：${messages[0]}。请以项目根为工作目录运行 ${warningCommand(messages)}。`;
     const codex = typeof hookInput.model === "string";
     const output = { continue: true, systemMessage: warning };
     if (!codex) {

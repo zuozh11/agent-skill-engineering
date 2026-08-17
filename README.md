@@ -134,7 +134,7 @@ npx skills@latest update --global
 
 > _数据权限怎么做、用户信息怎么取，这类长期决策不能只留在对话里，否则后续实现很容易绕开它。_
 
-**解法**：`RULES` 按场景记录长期规则和关键决策。`scope` 一次以按 ID 排序的一维数组展示各场景全部 RULE 文件名；Agent 按任务相关性选择原子 ID 或整个场景后单次紧凑加载，避免机械塞入全部规则正文。
+**解法**：`RULES` 按场景记录长期规则和关键决策。`scope` 一次以按 ID 排序的一维数组展示各场景全部 RULE 文件名；Agent 按任务相关性选择原子 ID 或整个场景并紧凑加载，需要时可继续补充知识，避免机械塞入全部规则正文。
 
 ---
 
@@ -142,12 +142,12 @@ npx skills@latest update --global
 
 ### 项目知识
 
-工作流通过 `Hook 延迟协议 → scope → 单次 load` 使用两类项目知识：
+工作流通过 `Hook 延迟协议 → scope → 按需 load` 使用两类项目知识：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。文件名帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入带完整脚本路径、可直接执行的延迟选择命令。Agent 原样先执行默认输出单行 JSON 的裸 `scope`，随后根据返回的 Context 与 RULE 文件名按任务相关性选择，最终只调用一次裸 `project-knowledge load`。同一任务且既有范围足够时不重复选择和加载；参数不清或命令报错时运行 `project-knowledge -h`。
+`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入以项目根为工作目录的延迟选择命令。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、原子 RULE ID 或场景 code；需要补充知识时可继续执行 `load`。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 

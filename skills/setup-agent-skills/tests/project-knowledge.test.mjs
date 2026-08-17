@@ -457,39 +457,55 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
 test("三个 Hook 只返回小型延迟选择协议", (t) => {
   const target = largeFixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  const nested = path.join(target.root, "nested", "workdir");
+  fs.mkdirSync(nested, { recursive: true });
 
   const expectations = new Map([
-    ["UserPromptSubmit", /同任务知识已完整覆盖则继续/],
-    ["SessionStart", /压缩后/],
-    ["SubagentStart", /当前子任务/],
+    ["UserPromptSubmit", "同任务知识已完整覆盖则继续，否则按以下流程加载。"],
+    ["SessionStart", "压缩后按保留任务重新选择并加载知识。"],
+    ["SubagentStart", "按当前子任务独立选择并加载知识。"],
   ]);
+  const commonProtocol = `1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
+2. 根据当前任务与 scope 返回结果，自主选择 Context、原子 RULE ID 或场景 code，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <ID|code>]...
+3. 原子 ID 加载单条 RULE，场景 code 加载整个场景；需要补充知识时可以继续执行 load。
+完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
+  const tails = [];
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
-    const codex = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: event, model: "gpt-test", source: "compact" }));
+    const codex = run(target, ["hook"], nested, JSON.stringify({ hook_event_name: event, model: "gpt-test", source: "compact" }));
     assert.equal(codex.status, 0, codex.stderr);
     const codexContext = JSON.parse(codex.stdout).hookSpecificOutput.additionalContext;
 
-    const claude = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: event, source: "compact" }));
+    const claude = run(target, ["hook"], nested, JSON.stringify({ hook_event_name: event, source: "compact" }));
     assert.equal(claude.status, 0, claude.stderr);
     const claudeContext = JSON.parse(claude.stdout).hookSpecificOutput.additionalContext;
 
     assert.equal(claudeContext, codexContext);
-    assert.match(codexContext, expectations.get(event));
-    const script = `'${fs.realpathSync(target.script)}'`;
-    assert.match(codexContext, /直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令/);
-    assert.match(codexContext, /第 1 条命令必须原样作为首个命令直接执行/);
-    assert.ok(codexContext.includes(`node ${script} scope`));
-    assert.ok(codexContext.includes(`node ${script} load [`));
-    assert.ok(codexContext.includes(`node ${script} -h`));
-    assert.match(codexContext, /根据 scope 返回的 Context 与 RULE 文件名按任务相关性选择/);
-    assert.doesNotMatch(codexContext, /scope --rules/);
-    assert.match(codexContext, /疑问或报错先执行/);
-    assert.match(codexContext, /不要读取脚本源码/);
-    assert.doesNotMatch(codexContext, /--compact|--pretty|--debug/);
-    assert.match(codexContext, /完整返回正文必须遵守/);
-    assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\//);
+    assert.equal(codexContext, `${expectations.get(event)}\n${commonProtocol}`);
+    tails.push(codexContext.slice(codexContext.indexOf("\n") + 1));
+    assert.doesNotMatch(codexContext, new RegExp(target.root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.doesNotMatch(codexContext, /只执行一次|最终只|原子.*优先|场景.*兜底|references/);
+    assert.doesNotMatch(codexContext, /直接执行以下命令|查找 Hook|读取脚本源码|搜索命令/);
+    assert.doesNotMatch(codexContext, /--compact|--pretty|--debug|context_options|rule_scene_options|docs\/rules\//);
     assert.ok(codexContext.length <= 700, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
+  assert.equal(new Set(tails).size, 1);
+
+  const relativeScope = spawnSync(process.execPath, ["docs/agents/project-knowledge.mjs", "scope"], {
+    cwd: target.root,
+    encoding: "utf8",
+  });
+  assert.equal(relativeScope.status, 0, relativeScope.stderr);
+  assert.equal(JSON.parse(relativeScope.stdout).context_options.length, 8);
+  const relativeLoad = spawnSync(process.execPath, [
+    "docs/agents/project-knowledge.mjs",
+    "load",
+    "--context", "ctx-0/CONTEXT.md",
+    "--rule", "A01",
+  ], { cwd: target.root, encoding: "utf8" });
+  assert.equal(relativeLoad.status, 0, relativeLoad.stderr);
+  assert.match(relativeLoad.stdout, /## CONTEXT 服务0/);
+  assert.match(relativeLoad.stdout, /## RULE A01/);
 });
 
 test("Hook 在知识损坏时提醒并继续，未采用时静默", (t) => {
@@ -502,7 +518,8 @@ test("Hook 在知识损坏时提醒并继续，未采用时静默", (t) => {
   const warningOutput = JSON.parse(warning.stdout);
   assert.equal(warningOutput.continue, true);
   assert.match(warningOutput.systemMessage, /项目知识未加载/);
-  assert.match(warningOutput.hookSpecificOutput.additionalContext, /validate-context/);
+  assert.match(warningOutput.hookSpecificOutput.additionalContext, /以项目根为工作目录运行 node docs\/agents\/project-knowledge\.mjs validate-context/);
+  assert.doesNotMatch(warningOutput.hookSpecificOutput.additionalContext, new RegExp(target.root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 
   fs.rmSync(path.join(target.root, "docs", "CONTEXT.md"));
   const silent = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
@@ -510,7 +527,7 @@ test("Hook 在知识损坏时提醒并继续，未采用时静默", (t) => {
   assert.equal(silent.stdout, "");
 });
 
-test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
+test("Hook 命令不泄露带空格和特殊字符的绝对脚本路径", (t) => {
   const original = fixture();
   const specialRoot = `${original.root} space-$-'quote`;
   fs.renameSync(original.root, specialRoot);
@@ -521,9 +538,9 @@ test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
   const result = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(output, /node '\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs' scope/);
-  assert.match(output, /node '\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs' -h/);
-  assert.match(output, /无需查找 Hook、读取脚本源码或搜索命令/);
+  assert.match(output, /node docs\/agents\/project-knowledge\.mjs scope/);
+  assert.match(output, /node docs\/agents\/project-knowledge\.mjs -h/);
+  assert.doesNotMatch(output, /space-\$|quote\/docs\/agents/);
   assert.doesNotMatch(output, /--compact|--pretty|--debug/);
 });
 
