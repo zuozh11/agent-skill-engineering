@@ -60,7 +60,7 @@ description: 供应商服务
 运行时 `scope` 以单行 JSON 返回单 Context 模式和 RULE 候选；`load` 自动加载 `docs/CONTEXT.md`，不能传 `--context`。
 <!-- layout:single:end -->
 <!-- layout:multiple:start -->
-运行时 `scope` 以单行 JSON 返回 Map 注册的稳定 `path`、对应 `description` 和 RULE 候选。Agent 将所选 `path` 作为可重复的 `load --context` 参数；`load` 保留 Map 的共享概念、Relationships 与其他正文，但省略已由 `scope` 提供的 `## Contexts` 发现列表。
+运行时 `scope` 以单行 JSON 返回 Map 注册的稳定 `path`、对应 `description` 和 RULE 候选。Agent 可将所选 `path` 作为可重复的 `load --context` 参数，也可只选择 RULE 而不加载具体 Context；`load` 始终保留 Map 的共享概念、Relationships 与其他正文，但省略已由 `scope` 提供的 `## Contexts` 发现列表。
 <!-- layout:multiple:end -->
 
 ## 术语写法

@@ -214,6 +214,44 @@ test("多 Context 按 Map 顺序加载并去重重复参数", (t) => {
   assert.equal(loadResult.stdout.match(/## CONTEXT 结算服务/g)?.length, 1);
 });
 
+test("多 Context 可只按 sceneId 或 ruleId 加载并保留固定 Map 入口", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT-MAP.md", "# Context Map\n\n## Shared Concepts\n\n共享入口知识。\n\n## Contexts\n\n- [订单](../ordering/CONTEXT.md)\n- [结算](../billing/CONTEXT.md)\n\n## Relationships\n\n- 订单 -> 结算\n");
+  write(target.root, "ordering/CONTEXT.md", context("订单服务", "# 订单 Context\n\n订单正文。\n"));
+  write(target.root, "billing/CONTEXT.md", context("结算服务", "# 结算 Context\n\n结算正文。\n"));
+  write(target.root, "docs/rules/J01-查询接口-查询入口.md", rule("# 查询入口\n\n查询必须加载共享契约。\n", ["K01-平台能力-共享契约.md"]));
+  write(target.root, "docs/rules/J02-查询接口-查询补充.md", rule("# 查询补充\n\n查询必须遵守补充规则。\n"));
+  write(target.root, "docs/rules/K01-平台能力-共享契约.md", rule("# 共享契约\n\n共享契约必须递归加载。\n", ["../../knowledge/query-contract.md"]));
+  write(target.root, "knowledge/query-contract.md", "# 查询契约\n\n这是普通递归引用。\n");
+
+  const scene = run(target, ["load", "--rule", "J"]);
+  assert.equal(scene.status, 0, scene.stderr);
+  assert.match(scene.stdout, /## CONTEXT-MAP docs\/CONTEXT-MAP\.md/);
+  assert.match(scene.stdout, /共享入口知识。/);
+  assert.match(scene.stdout, /## RULE J01/);
+  assert.match(scene.stdout, /## RULE J02/);
+  assert.match(scene.stdout, /## RULE K01/);
+  assert.match(scene.stdout, /## REFERENCE knowledge\/query-contract\.md/);
+  assert.doesNotMatch(scene.stdout, /## CONTEXT 订单服务|## CONTEXT 结算服务/);
+
+  const atomic = run(target, ["load", "--rule", "J01"]);
+  assert.equal(atomic.status, 0, atomic.stderr);
+  assert.match(atomic.stdout, /## CONTEXT-MAP docs\/CONTEXT-MAP\.md/);
+  assert.match(atomic.stdout, /## RULE J01/);
+  assert.match(atomic.stdout, /## RULE K01/);
+  assert.doesNotMatch(atomic.stdout, /## RULE J02|## CONTEXT 订单服务|## CONTEXT 结算服务/);
+
+  const mixed = run(target, ["load", "--rule", "J01", "--rule", "K"]);
+  assert.equal(mixed.status, 0, mixed.stderr);
+  assert.equal(mixed.stdout.match(/## RULE K01/g)?.length, 1);
+
+  const empty = run(target, ["load"]);
+  assert.notEqual(empty.status, 0);
+  assert.equal(empty.stdout, "");
+  assert.match(empty.stderr, /至少选择一个 --context 或 --rule/);
+});
+
 test("普通引用文件形成循环时只提醒并保证每个文件输出一次", (t) => {
   const target = fixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
@@ -461,6 +499,8 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.match(short.stdout, /load \[--debug\]/);
   assert.match(short.stdout, /load\s+输出紧凑语义标题/);
   assert.match(short.stdout, /load --debug\s+输出带文件边界的完整原文/);
+  assert.match(short.stdout, /--context\s+多 Context 项目可选且可重复/);
+  assert.doesNotMatch(short.stdout, /多 Context 项目必选|至少选择一个 --context(?:。|\n)/);
   assert.match(short.stdout, /sceneId 加载整个场景，ruleId 加载单条原子 RULE/);
   assert.doesNotMatch(short.stdout, /basename|完整文件名|文件名片段|ruleName 或|模糊/);
 

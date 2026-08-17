@@ -76,7 +76,7 @@ references:
 
 运行时 `scope` 默认输出单行 JSON。每个 RULE 场景只返回 `sceneId`、`sceneName` 和 `rules`；`rules` 按 `ruleId` 排序，每项只含 `ruleId` 和 `ruleName`。`ruleName` 来自文件名去掉 `<ruleId>-<sceneName>-` 前缀和 `.md` 后缀，不返回路径或其他字段。
 
-`load --rule` 可重复传入 `sceneId` 或 `ruleId`。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE；混合与重复选择按真实路径去重，并自动递归展开所选 RULE 及普通知识文件的 `references`。`load` 用 `## RULE <ruleId> · <标题>` 输出 RULE，省略 RULE Frontmatter 和重复一级标题，但正文行保持不变；普通递归引用文件保留完整内容。
+`load --rule` 可重复传入 `sceneId` 或 `ruleId`。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE；多 Context 项目可以只选择 RULE，不必同时传入 `--context`。混合与重复选择按真实路径去重，并自动递归展开所选 RULE 及普通知识文件的 `references`。`load` 用 `## RULE <ruleId> · <标题>` 输出 RULE，省略 RULE Frontmatter 和重复一级标题，但正文行保持不变；普通递归引用文件保留完整内容。
 
 ## 创建、重命名与删除
 

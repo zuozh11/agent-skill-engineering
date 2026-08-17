@@ -73,7 +73,7 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs scope
    ```
 
-4. 检查 `scope.rule_scene_options` 按 `sceneId` 排序，每项只含 `sceneId`、`sceneName`、`rules`，其中 `rules` 按 `ruleId` 排序且每项只含 `ruleId`、`ruleName`；从返回结果选择代表性 Context 与 RULE 并执行 `load`。项目没有 RULE 时只验证固定 Context 文档。
+4. 检查 `scope.rule_scene_options` 按 `sceneId` 排序，每项只含 `sceneId`、`sceneName`、`rules`，其中 `rules` 按 `ruleId` 排序且每项只含 `ruleId`、`ruleName`；从返回结果选择代表性 RULE 执行不带 `--context` 的 `load`，多 Context 布局再选择代表性 Context 验证带 `--context` 的加载。项目没有 RULE 时只验证固定 Context 文档。
 
 Node 不可用或候选验证失败时，给出直接错误和失败命令，删除临时快照，真实项目保持不变。
 

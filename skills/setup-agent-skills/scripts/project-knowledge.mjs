@@ -548,8 +548,8 @@ function renderLoad(knowledge, args) {
   if (knowledge.mode === "single" && selection.contexts.length) {
     errors.push("load：单 Context 项目不能传入 --context");
   }
-  if (knowledge.mode === "multiple" && !selection.contexts.length) {
-    errors.push("load：多 Context 项目至少选择一个 --context");
+  if (knowledge.mode === "multiple" && !selection.contexts.length && !selection.rules.length) {
+    errors.push("load：多 Context 项目至少选择一个 --context 或 --rule");
   }
   for (const contextPath of selection.contexts) {
     if (!contextByPath.has(contextPath)) errors.push(`load：未知 Context ${contextPath}`);
@@ -660,7 +660,7 @@ function renderHelp() {
 加载：
   load               输出紧凑语义标题，省略 Context/RULE 元数据与重复标题。
   load --debug       输出带文件边界的完整原文，用于诊断。
-  --context          多 Context 项目必选且可重复，值来自 scope 的 context_options[].path。
+  --context          多 Context 项目可选且可重复，值来自 scope 的 context_options[].path。
   --rule             可重复；sceneId 加载整个场景，ruleId 加载单条原子 RULE；可混合，重复选择按真实路径去重。
   references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
 
