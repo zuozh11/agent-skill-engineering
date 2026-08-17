@@ -537,7 +537,7 @@ function renderCompactDocument(document) {
 function renderLoad(knowledge, args) {
   const selection = parseLoadArguments(args);
   const contextByPath = new Map(knowledge.contexts.map((context) => [context.path, context]));
-  const rulesById = new Map(knowledge.rules.map((rule) => [rule.id, rule]));
+  const rulesByFilename = new Map(knowledge.rules.map((rule) => [rule.filename, rule]));
   const rulesByScene = new Map();
   for (const rule of knowledge.rules) {
     if (!rulesByScene.has(rule.code)) rulesByScene.set(rule.code, []);
@@ -558,10 +558,12 @@ function renderLoad(knowledge, args) {
   for (const value of selection.rules) {
     if (rulesByScene.has(value)) {
       for (const rule of rulesByScene.get(value)) selectedRules.add(rule);
-    } else if (rulesById.has(value)) {
-      selectedRules.add(rulesById.get(value));
+    } else if (rulesByFilename.has(value)) {
+      selectedRules.add(rulesByFilename.get(value));
     } else if (/^[A-Z]+[0-9]{2}$/.test(value)) {
-      errors.push(`load：未知 RULE ID ${value}`);
+      errors.push(`load：原子 RULE 不接受 ID ${value}，请使用 scope files 中的完整文件名`);
+    } else if (value.endsWith(".md")) {
+      errors.push(`load：未知 RULE 文件名 ${value}`);
     } else if (/^[A-Z]+$/.test(value)) {
       errors.push(`load：未知 RULE 场景 ${value}`);
     } else {
@@ -653,11 +655,11 @@ function renderHelp() {
   node ${script} scope
   node ${script} scope --compact
   node ${script} scope --pretty
-  node ${script} load [--debug] [--context <path>]... [--rule <场景码|RULE ID>]...
+  node ${script} load [--debug] [--context <path>]... [--rule <文件名|场景码>]...
   node ${script} hook
 
 选择：
-  scope              输出 Context path/显示名与 RULE 场景 code/name/files；files 是按 RULE ID 排序的一维 basename 字符串数组。
+  scope              输出 Context path/显示名与 RULE 场景 code/name/files；files 是按文件名前缀编号排序的一维 basename 字符串数组。
   scope --compact    与 scope 相同，保留为兼容入口。
   scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行；仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
 
@@ -665,12 +667,12 @@ function renderHelp() {
   load               输出紧凑语义标题，省略 Context/RULE 元数据与重复标题。
   load --debug       输出带文件边界的完整原文，用于诊断。
   --context          多 Context 项目必选且可重复，值来自 scope 的 context_options[].path。
-  --rule             可重复；场景码只含大写字母，RULE ID 为场景码加两位编号，两者无歧义。
-                     场景码加载整个场景，RULE ID 只加载该 RULE；混合与重复选择按真实路径去重。
+  --rule             可重复；传入 scope files 中的完整文件名加载单条 RULE，传入场景码加载整个场景。
+                     文件名与场景码可混合，重复选择按真实路径去重。
   references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
 
 示例：
-  node ${script} load --context services/order/CONTEXT.md --rule A03 --rule H
+  node ${script} load --context services/order/CONTEXT.md --rule A03-通用约束-需求范围最小化.md --rule H
 `;
 }
 
@@ -687,8 +689,8 @@ function eventInstruction(eventName) {
   }
   return `${lead}
 1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
-2. 根据当前任务与 scope 返回结果，自主选择 Context、原子 RULE ID 或场景 code，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <ID|code>]...
-3. 原子 ID 加载单条 RULE，场景 code 加载整个场景；需要补充知识时可以继续执行 load。
+2. 根据当前任务与 scope 返回结果，自主选择 Context、原子 RULE 文件名或场景 code，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <filename|code>]...
+3. 原子 RULE 文件名加载单条 RULE，场景 code 加载整个场景；需要补充知识时可以继续执行 load。
 完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
 }
 

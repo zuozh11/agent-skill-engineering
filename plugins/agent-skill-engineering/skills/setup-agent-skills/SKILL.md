@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。Hook 注入延迟选择协议；Agent 运行 `scope`，根据返回的 Context 与按 RULE ID 排序的 RULE basename 数组自主选择，再按需运行 `load`。
+为目标仓库部署项目知识基础设施。Hook 注入延迟选择协议；Agent 运行 `scope`，根据返回的 Context 与按编号排序的 RULE basename 数组自主选择，再按需运行 `load`。
 
 本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
 
@@ -73,7 +73,7 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs scope
    ```
 
-4. 检查 `scope.rule_scene_options[].files` 是按 RULE ID 排序的一维 basename 数组，从返回的 Context 与 RULE 文件名选择代表性项目并执行 `load`。项目没有 RULE 时只验证固定 Context 文档。
+4. 检查 `scope.rule_scene_options[].files` 是按文件名前缀编号排序的一维 basename 数组，从返回的 Context 与 RULE 文件名选择代表性项目并执行 `load`。项目没有 RULE 时只验证固定 Context 文档。
 
 Node 不可用或候选验证失败时，给出直接错误和失败命令，删除临时快照，真实项目保持不变。
 
@@ -133,7 +133,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - `SessionStart(compact)`：压缩后按保留任务重新选择并加载知识。
 - `SubagentStart`：按当前子任务独立选择并加载知识。
 
-Hook 使用相对于项目根的 `node docs/agents/project-knowledge.mjs` 命令，并明确以项目根为工作目录。Agent 根据当前任务与 `scope` 返回结果，自主选择 Context、原子 RULE ID 或场景 code；原子 ID 加载单条 RULE，场景 code 加载整个场景，需要补充知识时可继续执行 `load`。疑问或报错时执行 `node docs/agents/project-knowledge.mjs -h`。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
+Hook 使用相对于项目根的 `node docs/agents/project-knowledge.mjs` 命令，并明确以项目根为工作目录。Agent 根据当前任务与 `scope` 返回结果，自主选择 Context、原子 RULE 文件名或场景 code；完整文件名加载单条 RULE，场景 code 加载整个场景，需要补充知识时可继续执行 `load`。疑问或报错时执行 `node docs/agents/project-knowledge.mjs -h`。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
 
 ## 7. 切换 Agent 指令
 
