@@ -256,18 +256,18 @@ function parseRules(errors) {
     const label = `docs/rules/${filename}`;
     const match = RULE_FILE_PATTERN.exec(filename);
     if (!match) {
-      errors.push(`${label}：文件名不符合“场景编码+两位编号-场景名称-规则名称.md”`);
+      errors.push(`${label}：文件名不符合“ruleId-sceneName-ruleName.md”`);
       continue;
     }
     const [, code, number, sceneName, ruleName] = match;
     const encoding = `${code}${number}`;
-    if (encodings.has(encoding)) errors.push(`${label}：完整编码 ${encoding} 重复`);
+    if (encodings.has(encoding)) errors.push(`${label}：ruleId ${encoding} 重复`);
     encodings.add(encoding);
     if (codeToName.has(code) && codeToName.get(code) !== sceneName) {
-      errors.push(`${label}：场景编码 ${code} 对应了多个场景名称`);
+      errors.push(`${label}：sceneId ${code} 对应了多个 sceneName`);
     }
     if (nameToCode.has(sceneName) && nameToCode.get(sceneName) !== code) {
-      errors.push(`${label}：场景名称 ${sceneName} 对应了多个场景编码`);
+      errors.push(`${label}：sceneName ${sceneName} 对应了多个 sceneId`);
     }
     codeToName.set(code, sceneName);
     nameToCode.set(sceneName, code);
@@ -298,7 +298,7 @@ function parseRules(errors) {
   for (const [code, numbers] of numbersByScene) {
     const sorted = [...numbers].sort((left, right) => left - right);
     if (sorted.some((number, index) => number !== index + 1)) {
-      errors.push(`RULE 场景 ${code} 编号必须从 01 连续，当前为 ${sorted.map((number) => String(number).padStart(2, "0")).join("、")}`);
+      errors.push(`RULE sceneId ${code} 的 ruleId 编号必须从 01 连续，当前为 ${sorted.map((number) => String(number).padStart(2, "0")).join("、")}`);
     }
   }
 
@@ -414,17 +414,17 @@ function assertValid(knowledge) {
 function createScope(knowledge) {
   const scenes = new Map();
   for (const rule of knowledge.rules) {
-    if (!scenes.has(rule.code)) scenes.set(rule.code, { code: rule.code, name: rule.sceneName, rules: [] });
+    if (!scenes.has(rule.code)) scenes.set(rule.code, { sceneId: rule.code, sceneName: rule.sceneName, rules: [] });
     scenes.get(rule.code).rules.push(rule);
   }
   const ruleSceneOptions = [...scenes.values()]
-    .sort((left, right) => compareUtf8(left.code, right.code))
+    .sort((left, right) => compareUtf8(left.sceneId, right.sceneId))
     .map((scene) => ({
-      code: scene.code,
-      name: scene.name,
-      files: scene.rules
+      sceneId: scene.sceneId,
+      sceneName: scene.sceneName,
+      rules: scene.rules
         .sort((left, right) => compareUtf8(left.id, right.id))
-        .map((rule) => rule.filename),
+        .map((rule) => ({ ruleId: rule.id, ruleName: rule.ruleName })),
     }));
 
   if (knowledge.mode === "single") {
@@ -537,7 +537,7 @@ function renderCompactDocument(document) {
 function renderLoad(knowledge, args) {
   const selection = parseLoadArguments(args);
   const contextByPath = new Map(knowledge.contexts.map((context) => [context.path, context]));
-  const rulesByFilename = new Map(knowledge.rules.map((rule) => [rule.filename, rule]));
+  const rulesById = new Map(knowledge.rules.map((rule) => [rule.id, rule]));
   const rulesByScene = new Map();
   for (const rule of knowledge.rules) {
     if (!rulesByScene.has(rule.code)) rulesByScene.set(rule.code, []);
@@ -558,16 +558,10 @@ function renderLoad(knowledge, args) {
   for (const value of selection.rules) {
     if (rulesByScene.has(value)) {
       for (const rule of rulesByScene.get(value)) selectedRules.add(rule);
-    } else if (rulesByFilename.has(value)) {
-      selectedRules.add(rulesByFilename.get(value));
-    } else if (/^[A-Z]+[0-9]{2}$/.test(value)) {
-      errors.push(`load：原子 RULE 不接受 ID ${value}，请使用 scope files 中的完整文件名`);
-    } else if (value.endsWith(".md")) {
-      errors.push(`load：未知 RULE 文件名 ${value}`);
-    } else if (/^[A-Z]+$/.test(value)) {
-      errors.push(`load：未知 RULE 场景 ${value}`);
+    } else if (rulesById.has(value)) {
+      selectedRules.add(rulesById.get(value));
     } else {
-      errors.push(`load：无效 RULE 选择 ${value}`);
+      errors.push(`load：未知 sceneId 或 ruleId ${value}`);
     }
   }
   if (errors.length) throw new KnowledgeError(errors);
@@ -655,11 +649,11 @@ function renderHelp() {
   node ${script} scope
   node ${script} scope --compact
   node ${script} scope --pretty
-  node ${script} load [--debug] [--context <path>]... [--rule <文件名|场景码>]...
+  node ${script} load [--debug] [--context <path>]... [--rule <sceneId|ruleId>]...
   node ${script} hook
 
 选择：
-  scope              输出 Context path/显示名与 RULE 场景 code/name/files；files 是按文件名前缀编号排序的一维 basename 字符串数组。
+  scope              输出 Context path/显示名与 RULE 场景 sceneId/sceneName/rules；rules 按 ruleId 排序，只含 ruleId/ruleName。
   scope --compact    与 scope 相同，保留为兼容入口。
   scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行；仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
 
@@ -667,12 +661,11 @@ function renderHelp() {
   load               输出紧凑语义标题，省略 Context/RULE 元数据与重复标题。
   load --debug       输出带文件边界的完整原文，用于诊断。
   --context          多 Context 项目必选且可重复，值来自 scope 的 context_options[].path。
-  --rule             可重复；传入 scope files 中的完整文件名加载单条 RULE，传入场景码加载整个场景。
-                     文件名与场景码可混合，重复选择按真实路径去重。
+  --rule             可重复；sceneId 加载整个场景，ruleId 加载单条原子 RULE；可混合，重复选择按真实路径去重。
   references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
 
 示例：
-  node ${script} load --context services/order/CONTEXT.md --rule A03-通用约束-需求范围最小化.md --rule H
+  node ${script} load --context services/order/CONTEXT.md --rule A03 --rule H
 `;
 }
 
@@ -689,8 +682,8 @@ function eventInstruction(eventName) {
   }
   return `${lead}
 1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
-2. 根据当前任务与 scope 返回结果，自主选择 Context、原子 RULE 文件名或场景 code，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <filename|code>]...
-3. 原子 RULE 文件名加载单条 RULE，场景 code 加载整个场景；需要补充知识时可以继续执行 load。
+2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
+3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
 完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
 }
 

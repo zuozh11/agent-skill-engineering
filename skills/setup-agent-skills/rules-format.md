@@ -16,7 +16,7 @@
 RULE 统一存放在领域文档根目录的 `docs/rules/`，文件名为：
 
 ```text
-<英文场景编码><两位场景内编码>-<场景名称>-<规则名称>.md
+<sceneId><两位序号>-<sceneName>-<ruleName>.md
 ```
 
 示例：
@@ -26,10 +26,10 @@ A01-通用约束-需求范围只做明确要求的最小改动.md
 C02-保存接口-结构性入参优先使用BeanValidation.md
 ```
 
-- 场景编码使用一个或多个大写英文字母，同一编码始终对应同一场景名称。
-- 场景内编码使用两位数字，每个场景都从 `01` 开始连续编号；它不表达优先级。
-- 场景名称不包含 `-`；规则名称应能直接说明约束。
-- 新规则优先归入已有场景。确实需要新增场景时，由用户确认编码和名称。
+- `sceneId` 使用一个或多个大写英文字母，同一 `sceneId` 始终对应同一 `sceneName`。
+- `ruleId` 由 `sceneId` 和两位序号组成；每个场景都从 `01` 开始连续编号，序号不表达优先级。
+- `sceneName` 不包含 `-`；`ruleName` 应能直接说明约束。
+- 新规则优先归入已有场景。确实需要新增场景时，由用户确认 `sceneId` 和 `sceneName`。
 
 ## 正文
 
@@ -74,9 +74,9 @@ references:
 - 引用项不重复，并按相对路径 UTF-8 字节序排列。
 - 引用环允许存在，加载时按真实路径去重终止并给出提醒；RULE 与递归引用文件按项目根相对路径稳定排序，固定入口和所选 Context 仍保持入口优先与 Map 顺序。
 
-运行时 `scope` 每个 RULE 场景返回 `code`、`name` 和 `files`：`files` 是该场景所有 RULE basename 组成的扁平一维字符串数组，按文件名前缀编号排序；不返回数量、嵌套数组或 `docs/rules/` 路径。默认输出单行 JSON。
+运行时 `scope` 默认输出单行 JSON。每个 RULE 场景只返回 `sceneId`、`sceneName` 和 `rules`；`rules` 按 `ruleId` 排序，每项只含 `ruleId` 和 `ruleName`。`ruleName` 来自文件名去掉 `<ruleId>-<sceneName>-` 前缀和 `.md` 后缀，不返回路径或其他字段。
 
-`load --rule` 可重复传入场景 code 或 `scope.files` 返回的完整 basename：场景 code 加载整个场景，完整文件名只加载目标 RULE，并自动递归展开所选 RULE 及普通知识文件的 `references`；混合与重复选择按真实路径去重。`load` 用 `## RULE <编号> · <标题>` 输出 RULE，省略 RULE Frontmatter 和重复一级标题，但正文行保持不变；普通递归引用文件保留完整内容。
+`load --rule` 可重复传入 `sceneId` 或 `ruleId`。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE；混合与重复选择按真实路径去重，并自动递归展开所选 RULE 及普通知识文件的 `references`。`load` 用 `## RULE <ruleId> · <标题>` 输出 RULE，省略 RULE Frontmatter 和重复一级标题，但正文行保持不变；普通递归引用文件保留完整内容。
 
 ## 创建、重命名与删除
 
@@ -90,4 +90,4 @@ node docs/agents/project-knowledge.mjs validate-rules
 
 迁移或增删 RULE 时，对每个场景从 `01` 连续重编号，并在同一次候选变更中同步所有入向 `references`；验证候选快照不存在缺失引用后再写入真实项目。
 
-重命名或移动任意被引用文件时，在同一次变更中更新所有 `references`；RULE 场景编码或名称变化时，同场景文件一起更新。删除前先查找入向引用，不保留别名或跳转文件。
+重命名或移动任意被引用文件时，在同一次变更中更新所有 `references`；RULE 的 `sceneId` 或 `sceneName` 变化时，同场景文件一起更新。删除前先查找入向引用，不保留别名或跳转文件。
