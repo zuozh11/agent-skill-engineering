@@ -1,0 +1,45 @@
+{
+  "description": "按当前任务选择并加载项目知识。",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/docs/agents/project-knowledge.mjs\" hook",
+            "commandWindows": "cmd /d /s /c \"for /f \\\"delims=\\\" %i in ('git rev-parse --show-toplevel') do node \\\"%i\\docs\\agents\\project-knowledge.mjs\\\" hook\"",
+            "timeout": 5,
+            "additionalContextLimit": 10000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "^compact$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/docs/agents/project-knowledge.mjs\" hook",
+            "commandWindows": "cmd /d /s /c \"for /f \\\"delims=\\\" %i in ('git rev-parse --show-toplevel') do node \\\"%i\\docs\\agents\\project-knowledge.mjs\\\" hook\"",
+            "timeout": 5,
+            "additionalContextLimit": 10000
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/docs/agents/project-knowledge.mjs\" hook",
+            "commandWindows": "cmd /d /s /c \"for /f \\\"delims=\\\" %i in ('git rev-parse --show-toplevel') do node \\\"%i\\docs\\agents\\project-knowledge.mjs\\\" hook\"",
+            "timeout": 5,
+            "additionalContextLimit": 10000
+          }
+        ]
+      }
+    ]
+  }
+}

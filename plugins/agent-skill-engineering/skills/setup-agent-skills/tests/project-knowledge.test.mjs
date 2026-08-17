@@ -23,8 +23,8 @@ function fixture() {
   return { root, script };
 }
 
-function run(target, args, cwd = target.root) {
-  return spawnSync(process.execPath, [target.script, ...args], { cwd, encoding: "utf8" });
+function run(target, args, cwd = target.root, input) {
+  return spawnSync(process.execPath, [target.script, ...args], { cwd, encoding: "utf8", input });
 }
 
 function context(description, body = "# Context\n") {
@@ -128,4 +128,77 @@ test("最大 fixture 的最后一条 RULE 正文完整返回", (t) => {
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /===== docs\/rules\/A39-必读-规则39\.md =====/);
   assert.ok(result.stdout.endsWith(`${"正文".repeat(500)}\n`));
+});
+
+test("Codex 与 Claude Code Hook 为三个事件返回宿主适配提示", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+  write(target.root, "docs/rules/A01-必读-基础约束.md", "# 基础约束\n");
+
+  for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
+    const codex = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: event, model: "gpt-test", source: "compact" }));
+    assert.equal(codex.status, 0, codex.stderr);
+    const codexOutput = JSON.parse(codex.stdout);
+    assert.equal(codexOutput.hookSpecificOutput.hookEventName, event);
+    assert.match(codexOutput.hookSpecificOutput.additionalContext, /max_output_tokens/);
+    assert.match(codexOutput.hookSpecificOutput.additionalContext, /只调用一次 load/);
+
+    const claude = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: event, source: "compact" }));
+    assert.equal(claude.status, 0, claude.stderr);
+    const claudeOutput = JSON.parse(claude.stdout);
+    assert.equal(claudeOutput.hookSpecificOutput.hookEventName, event);
+    assert.match(claudeOutput.hookSpecificOutput.additionalContext, /宿主生成的会话文件路径/);
+  }
+});
+
+test("Hook 在知识损坏时提醒并继续，未采用时静默", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", "# 缺少 Frontmatter\n");
+
+  const warning = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit" }));
+  assert.equal(warning.status, 0, warning.stderr);
+  const warningOutput = JSON.parse(warning.stdout);
+  assert.equal(warningOutput.continue, true);
+  assert.match(warningOutput.systemMessage, /项目知识未加载/);
+  assert.match(warningOutput.hookSpecificOutput.additionalContext, /validate-context/);
+
+  fs.rmSync(path.join(target.root, "docs", "CONTEXT.md"));
+  const silent = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
+  assert.equal(silent.status, 0, silent.stderr);
+  assert.equal(silent.stdout, "");
+});
+
+test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
+  const original = fixture();
+  const specialRoot = `${original.root} space-$-'quote`;
+  fs.renameSync(original.root, specialRoot);
+  const target = { root: specialRoot, script: path.join(specialRoot, "docs", "agents", "project-knowledge.mjs") };
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+
+  const result = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
+  assert.equal(result.status, 0, result.stderr);
+  const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
+  assert.match(output, /node '\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs' load/);
+});
+
+test("Hook 模板覆盖三个事件并保持项目根定位", () => {
+  const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const codex = JSON.parse(fs.readFileSync(path.join(skillRoot, "hook-templates", "codex-hooks.json"), "utf8"));
+  const claude = JSON.parse(fs.readFileSync(path.join(skillRoot, "hook-templates", "claude-settings.json"), "utf8"));
+  assert.deepEqual(Object.keys(codex.hooks), ["UserPromptSubmit", "SessionStart", "SubagentStart"]);
+  assert.deepEqual(Object.keys(claude.hooks), ["UserPromptSubmit", "SessionStart", "SubagentStart"]);
+  for (const event of Object.keys(codex.hooks)) {
+    const handler = codex.hooks[event][0].hooks[0];
+    assert.match(handler.command, /git rev-parse --show-toplevel/);
+    assert.match(handler.commandWindows, /git rev-parse --show-toplevel/);
+    assert.equal(handler.additionalContextLimit, 10000);
+  }
+  for (const event of Object.keys(claude.hooks)) {
+    const handler = claude.hooks[event][0].hooks[0];
+    assert.equal(handler.command, "node");
+    assert.deepEqual(handler.args, ["${CLAUDE_PROJECT_DIR}/docs/agents/project-knowledge.mjs", "hook"]);
+  }
 });

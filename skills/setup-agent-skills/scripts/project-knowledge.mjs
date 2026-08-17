@@ -397,9 +397,128 @@ function printWarnings(cycles) {
   for (const cycle of cycles) process.stderr.write(`warning: RULE 引用环：${cycle}\n`);
 }
 
+function quotePosix(value) {
+  return `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
+function quoteWindows(value) {
+  if (!/[\s"&%]/.test(value)) return value;
+  let result = '"';
+  let backslashes = 0;
+  for (const character of value) {
+    if (character === "\\") {
+      backslashes += 1;
+    } else if (character === '"') {
+      result += "\\".repeat(backslashes * 2 + 1) + '"';
+      backslashes = 0;
+    } else {
+      result += "\\".repeat(backslashes) + character;
+      backslashes = 0;
+    }
+  }
+  return result + "\\".repeat(backslashes * 2) + '"';
+}
+
+function renderLoadCommand() {
+  const quote = process.platform === "win32" ? quoteWindows : quotePosix;
+  return `node ${quote(SCRIPT_PATH)} load`;
+}
+
+function eventInstruction(eventName) {
+  if (eventName === "UserPromptSubmit") {
+    return "先判断当前请求是否只是同一任务的延续：若当前上下文已经加载项目知识且原选择完整覆盖本次请求，不调用 load，直接继续；否则重新选择当前完整范围并调用一次 load。";
+  }
+  if (eventName === "SessionStart") {
+    return "上下文已经压缩，必须根据当前保留的任务重新选择完整范围并调用一次 load。";
+  }
+  if (eventName === "SubagentStart") {
+    return "执行当前子任务前，必须依据子任务独立选择完整范围并调用一次 load。";
+  }
+  throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
+}
+
+function renderHookContext(knowledge, hookInput) {
+  const scope = createScope(knowledge);
+  const codex = typeof hookInput.model === "string";
+  const contextSelection = knowledge.mode === "multiple" ? "CONTEXT 和 RULE 场景" : "RULE 场景";
+  const repeatableOptions = knowledge.mode === "multiple" ? "--context 和 --rule 均可重复" : "--rule 可以重复";
+  const contextArguments = knowledge.mode === "multiple"
+    ? '  --context "<context_options[].path>" \\\n+  --context "<context_options[].path>" \\\n+'
+    : "";
+  const outputInstruction = codex
+    ? "调用命令工具时将 max_output_tokens 设为至少 20000，确保完整取得 load 输出。"
+    : "结果包含宿主生成的会话文件路径时，完整读取该文件；它就是本次 load 的完整正文，不要再次调用 load。";
+
+  return `项目知识加载要求：
+
+${eventInstruction(hookInput.hook_event_name)}
+
+需要加载时，从下方 scope 选择所有可能相关的 ${contextSelection}；只要存在任何相关可能就选择。汇总后只调用一次 load，并将返回的全部正文作为当前任务必须遵守的项目知识。
+
+调用示例，${repeatableOptions}：
+
+${renderLoadCommand()} \\
+${contextArguments}  --rule "<rule_scene_options[].code>" \\
+  --rule "<rule_scene_options[].code>"
+
+${outputInstruction}
+
+<project_knowledge_scope>
+${JSON.stringify(scope)}
+</project_knowledge_scope>`;
+}
+
+function warningCommand(messages) {
+  const ruleProblem = messages.some((message) => /RULE|rules|reference|场景/i.test(message));
+  return `node ${process.platform === "win32" ? quoteWindows(SCRIPT_PATH) : quotePosix(SCRIPT_PATH)} ${ruleProblem ? "validate-rules" : "validate-context"}`;
+}
+
+function runHook() {
+  const rawInput = fs.readFileSync(0, "utf8");
+  let hookInput;
+  try {
+    hookInput = JSON.parse(rawInput);
+  } catch {
+    throw new KnowledgeError(["hook：stdin 不是合法 JSON"]);
+  }
+  if (!hookInput || typeof hookInput.hook_event_name !== "string") {
+    throw new KnowledgeError(["hook：缺少 hook_event_name"]);
+  }
+
+  try {
+    const knowledge = buildKnowledge();
+    if (!knowledge.adopted) return;
+    assertValid(knowledge);
+    const additionalContext = renderHookContext(knowledge, hookInput);
+    process.stdout.write(`${JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: hookInput.hook_event_name,
+        additionalContext,
+      },
+    })}\n`);
+  } catch (error) {
+    const messages = error instanceof KnowledgeError ? error.messages : [error.message];
+    const warning = `项目知识未加载：${messages[0]}。请运行 ${warningCommand(messages)}。`;
+    const codex = typeof hookInput.model === "string";
+    const output = { continue: true, systemMessage: warning };
+    if (!codex) {
+      output.hookSpecificOutput = {
+        hookEventName: hookInput.hook_event_name,
+        additionalContext: warning,
+      };
+    }
+    process.stdout.write(`${JSON.stringify(output)}\n`);
+  }
+}
+
 function main() {
   const [command, ...args] = process.argv.slice(2);
-  if (!command) throw new KnowledgeError(["缺少子命令：validate-context、validate-rules、scope 或 load"]);
+  if (!command) throw new KnowledgeError(["缺少子命令：validate-context、validate-rules、scope、load 或 hook"]);
+  if (command === "hook") {
+    if (args.length) throw new KnowledgeError(["hook 不接受参数"]);
+    runHook();
+    return;
+  }
   const knowledge = buildKnowledge();
 
   if (command === "validate-context") {
