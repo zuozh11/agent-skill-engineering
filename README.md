@@ -134,7 +134,7 @@ npx skills@latest update --global
 
 > _数据权限怎么做、用户信息怎么取，这类长期决策不能只留在对话里，否则后续实现很容易绕开它。_
 
-**解法**：`RULES` 按场景记录长期规则和关键决策。`scope` 展示场景，`scope --rules` 按需下钻原子 RULE；Agent 汇总相关原子 ID 或整个场景后单次紧凑加载，避免机械塞入全部规则。
+**解法**：`RULES` 按场景记录长期规则和关键决策。`scope` 一次展示场景及其中全部 RULE 文件名；Agent 按任务相关性选择原子 ID 或整个场景后单次紧凑加载，避免机械塞入全部规则正文。
 
 ---
 
@@ -142,12 +142,12 @@ npx skills@latest update --global
 
 ### 项目知识
 
-工作流通过 `Hook 延迟协议 → scope → 按需 scope --rules → 单次 load --compact` 使用两类项目知识：
+工作流通过 `Hook 延迟协议 → scope → 单次 load --compact` 使用两类项目知识：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。文件名帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入带完整脚本路径、可直接执行的延迟选择命令。Agent 必须原样先执行默认紧凑、单行 JSON 的裸 `scope`，不得添加 `--pretty`/`--compact` 或先执行其他命令；选择时宁可多读 token，也不得漏读，整场景直接加载可跳过原子下钻，最终只调用一次 `project-knowledge load --compact`。同一任务且既有范围足够时不重复选择和加载；`scope --pretty` 仅供人类在终端手动查看，Agent 项目知识加载禁止使用，完整 `load` 仅用于诊断。
+`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入带完整脚本路径、可直接执行的延迟选择命令。Agent 必须原样先执行默认紧凑、单行 JSON 的裸 `scope`，不得添加 `--pretty`/`--compact` 或先执行其他命令；随后根据返回的 Context 与 RULE 文件名按任务相关性选择，最终只调用一次 `project-knowledge load --compact`。同一任务且既有范围足够时不重复选择和加载；`scope --pretty` 仅供人类在终端手动查看，Agent 项目知识加载禁止使用，完整 `load` 仅用于诊断。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 

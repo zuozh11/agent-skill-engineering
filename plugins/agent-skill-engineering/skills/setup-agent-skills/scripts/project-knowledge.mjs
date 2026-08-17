@@ -419,7 +419,14 @@ function createScope(knowledge) {
   }
   const ruleSceneOptions = [...scenes.values()]
     .sort((left, right) => compareUtf8(left.code, right.code))
-    .map((scene) => ({ code: scene.code, name: scene.name, count: scene.rules.length }));
+    .map((scene) => ({
+      code: scene.code,
+      name: scene.name,
+      files: scene.rules
+        .sort((left, right) => compareUtf8(left.id, right.id))
+        .map((rule) => rule.filename)
+        .join(","),
+    }));
 
   if (knowledge.mode === "single") {
     return { context_mode: "single", rule_scene_options: ruleSceneOptions };
@@ -428,21 +435,6 @@ function createScope(knowledge) {
     context_mode: "multiple",
     context_options: knowledge.contexts.map((context) => ({ path: context.path, description: context.description })),
     rule_scene_options: ruleSceneOptions,
-  };
-}
-
-function createRuleScope(knowledge, sceneCodes) {
-  const knownScenes = new Set(knowledge.rules.map((rule) => rule.code));
-  const errors = sceneCodes
-    .filter((code) => !knownScenes.has(code))
-    .map((code) => `scope --rules：未知 RULE 场景 ${code}`);
-  if (errors.length) throw new KnowledgeError(errors);
-  const selectedScenes = new Set(sceneCodes);
-  return {
-    rule_options: knowledge.rules
-      .filter((rule) => selectedScenes.has(rule.code))
-      .sort((left, right) => compareUtf8(left.id, right.id))
-      .map((rule) => ({ id: rule.id, title: rule.title })),
   };
 }
 
@@ -456,7 +448,6 @@ function argumentError(message) {
 }
 
 function parseScopeArguments(args) {
-  const scenes = [];
   let pretty = false;
   for (let index = 0; index < args.length; index += 1) {
     if (args[index] === "--compact") continue;
@@ -465,14 +456,9 @@ function parseScopeArguments(args) {
       pretty = true;
       continue;
     }
-    if (args[index] !== "--rules") throw argumentError(`scope：未知参数 ${args[index]}`);
-    const value = args[index + 1];
-    if (!value || value.startsWith("--")) throw argumentError("scope：--rules 缺少场景码");
-    if (!/^[A-Z]+$/.test(value)) throw argumentError(`scope：无效 RULE 场景码 ${value}`);
-    scenes.push(value);
-    index += 1;
+    throw argumentError(`scope：未知参数 ${args[index]}`);
   }
-  return { mode: scenes.length ? "rules" : "compact", scenes: [...new Set(scenes)], pretty };
+  return { pretty };
 }
 
 function parseLoadArguments(args) {
@@ -660,17 +646,13 @@ function renderHelp() {
   node ${script} scope
   node ${script} scope --compact
   node ${script} scope --pretty
-  node ${script} scope --rules <场景码> [--rules <场景码> ...]
-  node ${script} scope --pretty --rules <场景码> [--rules <场景码> ...]
   node ${script} load [--compact] [--context <path>]... [--rule <场景码|RULE ID>]...
   node ${script} hook
 
 选择：
-  scope              输出 Context path/显示名与 RULE 场景 code/name/count。
+  scope              输出 Context path/显示名与 RULE 场景 code/name/files；files 是按 RULE ID 排序、英文逗号连接的文件名。
   scope --compact    与 scope 相同，保留为兼容入口。
   scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行；仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
-  scope --rules      按场景下钻原子 RULE；--rules 可重复，多场景与重复值去重，结果按 RULE ID 排序。
-                     人类手动查看时可与 --pretty 组合；Agent 默认使用单行 JSON。
 
 加载：
   load               输出带文件边界的完整原文，用于诊断与兼容。
@@ -681,7 +663,6 @@ function renderHelp() {
   references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
 
 示例：
-  node ${script} scope --rules A --rules H
   node ${script} load --compact --context services/order/CONTEXT.md --rule A03 --rule H
 `;
 }
@@ -700,8 +681,7 @@ function eventInstruction(eventName, script) {
   return `${lead}
 直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令：
 1. 第 1 条命令必须原样直接执行，Agent 不得添加 --pretty/--compact，不得先执行其他命令：node ${script} scope
-2. scope --rules 默认紧凑；对所有可能相关场景执行 node ${script} scope --rules <code>（可重复）。若直接加载整个场景，可跳过此步
-3. 宁可多选，不得漏选；汇总后只执行一次 node ${script} load --compact [--context <path>]... [--rule <ID|code>]...
+2. 根据 scope 返回的 Context 与 RULE 文件名按任务相关性选择，只执行一次 node ${script} load --compact [--context <path>]... [--rule <ID|code>]...
 完整返回正文必须遵守。疑问或报错只允许先执行 node ${script} --help；不要读取脚本源码。`;
 }
 
@@ -791,9 +771,7 @@ function main() {
   assertValid(knowledge);
   printWarnings(knowledge.cycles);
   if (command === "scope") {
-    const output = scopeSelection.mode === "rules"
-      ? createRuleScope(knowledge, scopeSelection.scenes)
-      : createScope(knowledge);
+    const output = createScope(knowledge);
     process.stdout.write(`${JSON.stringify(output, null, scopeSelection.pretty ? 2 : 0)}\n`);
     return;
   }

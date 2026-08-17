@@ -78,10 +78,11 @@ test("单 Context scope 和 load 按场景展开引用且不自动加入必读",
   assert.equal(compactResult.status, 0, compactResult.stderr);
   const compact = JSON.parse(compactResult.stdout);
   assert.deepEqual(compact.rule_scene_options, [
-    { code: "A", name: "必读", count: 1 },
-    { code: "C", name: "保存接口", count: 1 },
-    { code: "F", name: "平台能力", count: 1 },
+    { code: "A", name: "必读", files: "A01-必读-基础约束.md" },
+    { code: "C", name: "保存接口", files: "C01-保存接口-保存前读取约束.md" },
+    { code: "F", name: "平台能力", files: "F01-平台能力-复用平台入口.md" },
   ]);
+  assert.equal(compactResult.stdout.includes("count"), false);
   assert.equal(compactResult.stdout.includes("paths"), false);
 
   const loadResult = run(target, ["load", "--rule", "C"]);
@@ -299,14 +300,19 @@ test("scope 默认单行紧凑、--compact 兼容且 --pretty 仅美化显示", 
   assert.equal(defaultResult.status, 0, defaultResult.stderr);
   assert.equal(compactResult.status, 0, compactResult.stderr);
   assert.equal(defaultResult.stdout, compactResult.stdout);
+  assert.equal(run(target, ["scope"]).stdout, defaultResult.stdout);
   assert.equal(defaultResult.stdout.trim().split("\n").length, 1);
   const compact = JSON.parse(compactResult.stdout);
   assert.equal(compact.context_options.length, 8);
   assert.equal(compact.rule_scene_options.length, 10);
-  assert.equal(compact.rule_scene_options.reduce((sum, scene) => sum + scene.count, 0), 66);
+  assert.equal(compact.rule_scene_options.reduce((sum, scene) => sum + scene.files.split(",").length, 0), 66);
+  assert.equal(compact.rule_scene_options.some((scene) => "count" in scene), false);
   assert.equal(compact.rule_scene_options.some((scene) => "paths" in scene), false);
+  assert.equal(compact.rule_scene_options.some((scene) => Array.isArray(scene.files)), false);
+  assert.match(compact.rule_scene_options[0].files, /^A01-场景A-规则01\.md,A02-场景A-规则02\.md,/);
+  assert.equal(compact.rule_scene_options.some((scene) => scene.files.includes("/")), false);
   assert.doesNotMatch(compactResult.stdout, /docs\/rules\//);
-  assert.ok(defaultResult.stdout.length <= 1600, `compact scope ${defaultResult.stdout.length} 字符`);
+  assert.ok(defaultResult.stdout.length <= 2600, `compact scope ${defaultResult.stdout.length} 字符`);
 
   const prettyResult = run(target, ["scope", "--pretty"]);
   assert.equal(prettyResult.status, 0, prettyResult.stderr);
@@ -323,7 +329,7 @@ test("scope 默认单行紧凑、--compact 兼容且 --pretty 仅美化显示", 
   assert.equal(loadResult.stdout.match(/===== docs\/rules\/A/g)?.length, 7);
 });
 
-test("scope --rules 支持多场景重复下钻并按原子 ID 稳定排序", (t) => {
+test("scope files 按 RULE ID 排序且 scope --rules 明确失败", (t) => {
   const target = fixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
   write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
@@ -331,26 +337,25 @@ test("scope --rules 支持多场景重复下钻并按原子 ID 稳定排序", (t
   write(target.root, "docs/rules/A02-必读-第二条.md", rule("# 第二条标题\n\n必须执行第二条。\n"));
   write(target.root, "docs/rules/B01-查询接口-查询约束.md", rule("# 查询约束标题\n\n查询必须遵守约束。\n"));
 
-  const result = run(target, ["scope", "--rules", "B", "--rules", "A", "--rules", "A"]);
+  const result = run(target, ["scope"]);
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), {
-    rule_options: [
-      { id: "A01", title: "第一条标题" },
-      { id: "A02", title: "第二条标题" },
-      { id: "B01", title: "查询约束标题" },
+    context_mode: "single",
+    rule_scene_options: [
+      { code: "A", name: "必读", files: "A01-必读-第一条.md,A02-必读-第二条.md" },
+      { code: "B", name: "查询接口", files: "B01-查询接口-查询约束.md" },
     ],
   });
-  assert.doesNotMatch(result.stdout, /docs\/rules|正文|必须执行/);
+  assert.doesNotMatch(result.stdout, /docs\/rules|正文|必须执行|count/);
   assert.equal(result.stdout.trim().split("\n").length, 1);
 
-  const pretty = run(target, ["scope", "--pretty", "--rules", "B", "--rules", "A", "--rules", "A"]);
-  assert.equal(pretty.status, 0, pretty.stderr);
-  assert.deepEqual(JSON.parse(pretty.stdout), JSON.parse(result.stdout));
-  assert.ok(pretty.stdout.trim().split("\n").length > 1);
-
-  const unknown = run(target, ["scope", "--rules", "Z"]);
-  assert.notEqual(unknown.status, 0);
-  assert.match(unknown.stderr, /未知 RULE 场景 Z/);
+  for (const args of [["scope", "--rules", "A"], ["scope", "--pretty", "--rules", "A"]]) {
+    const rejected = run(target, args);
+    assert.notEqual(rejected.status, 0);
+    assert.equal(rejected.stdout, "");
+    assert.match(rejected.stderr, /scope：未知参数 --rules/);
+    assert.match(rejected.stderr, /--help 查看用法/);
+  }
 });
 
 test("原子 load 递归跨场景引用，场景与原子混合选择按真实路径去重", (t) => {
@@ -429,7 +434,8 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.match(short.stdout, /scope --compact/);
   assert.match(short.stdout, /scope --pretty/);
   assert.match(short.stdout, /仅供人类在终端手动查看，Agent 项目知识加载禁止使用/);
-  assert.match(short.stdout, /scope --rules <场景码> \[--rules <场景码> \.\.\.\]/);
+  assert.doesNotMatch(short.stdout, /scope --rules|code\/name\/count/);
+  assert.match(short.stdout, /code\/name\/files/);
   assert.match(short.stdout, /load \[--compact\]/);
   assert.match(short.stdout, /场景码加载整个场景，RULE ID 只加载该 RULE/);
 
@@ -466,19 +472,17 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     assert.match(codexContext, /第 1 条命令必须原样直接执行/);
     assert.match(codexContext, /Agent 不得添加 --pretty\/--compact，不得先执行其他命令/);
     assert.ok(codexContext.includes(`node ${script} scope`));
-    assert.ok(codexContext.includes(`node ${script} scope --rules <code>`));
     assert.ok(codexContext.includes(`node ${script} load --compact`));
     assert.ok(codexContext.includes(`node ${script} --help`));
-    assert.match(codexContext, /宁可多选，不得漏选/);
-    assert.match(codexContext, /若直接加载整个场景，可跳过此步/);
-    assert.match(codexContext, /scope --rules 默认紧凑/);
+    assert.match(codexContext, /根据 scope 返回的 Context 与 RULE 文件名按任务相关性选择/);
+    assert.doesNotMatch(codexContext, /scope --rules/);
     assert.match(codexContext, /疑问或报错只允许先执行/);
     assert.match(codexContext, /不要读取脚本源码/);
     assert.doesNotMatch(codexContext, /scope --compact/);
     assert.doesNotMatch(codexContext, /node .* scope --(?:pretty|compact)/);
     assert.match(codexContext, /完整返回正文必须遵守/);
     assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\//);
-    assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);
+    assert.ok(codexContext.length <= 700, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
 });
 
