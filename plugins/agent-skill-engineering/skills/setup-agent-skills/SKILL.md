@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。Hook 注入可直接执行的延迟选择协议；Agent 运行默认紧凑的 `scope`，根据返回的 Context 与 RULE 文件名按任务相关性选择，最后只运行一次 `load --compact`。
+为目标仓库部署项目知识基础设施。Hook 注入可直接执行的延迟选择协议；Agent 运行默认紧凑的 `scope`，根据返回的 Context 与按 RULE ID 排序的 RULE basename 数组选择，最后只运行一次 `load --compact`。
 
 本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
 
@@ -68,7 +68,7 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs scope --compact
    ```
 
-4. 从 `scope` 返回的 Context 与 RULE 文件名选择代表性项目，执行一次 `load --compact`；另执行一次完整 `load` 验证兼容输出。项目没有 RULE 时只验证固定 Context 文档。
+4. 检查 `scope.rule_scene_options[].files` 是按 RULE ID 排序的一维 basename 数组，从返回的 Context 与 RULE 文件名选择代表性项目，执行一次 `load --compact`；另执行一次完整 `load` 验证兼容输出。项目没有 RULE 时只验证固定 Context 文档。
 
 Node 不可用或候选验证失败时，给出直接错误和失败命令，删除临时快照，真实项目保持不变。
 

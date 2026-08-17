@@ -74,7 +74,7 @@ references:
 - 引用项不重复，并按相对路径 UTF-8 字节序排列。
 - 引用环允许存在，加载时按真实路径去重终止并给出提醒；RULE 与递归引用文件按项目根相对路径稳定排序，固定入口和所选 Context 仍保持入口优先与 Map 顺序。
 
-运行时 `scope` 每个 RULE 场景返回 `code`、`name` 和 `files`：`files` 是该场景所有 RULE 的 basename，按 RULE ID 排序并用英文逗号连接成单个字符串；不返回数量、嵌套数组或 `docs/rules/` 路径。默认输出单行 JSON，`scope --compact` 是等价兼容入口。`scope --pretty` 只美化相同数据，仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
+运行时 `scope` 每个 RULE 场景返回 `code`、`name` 和 `files`：`files` 是该场景所有 RULE basename 组成的扁平一维字符串数组，按 RULE ID 排序；不返回数量、嵌套数组或 `docs/rules/` 路径。默认输出单行 JSON，`scope --compact` 是等价兼容入口。`scope --pretty` 只美化相同数据，仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
 
 `load --rule` 可重复传入场景码或原子 RULE ID：场景码加载整个场景，原子 ID 只加载目标 RULE，混合与重复选择按真实路径去重。运行时默认使用 `load --compact`：RULE 输出为 `## RULE <ID> · <标题>`，省略 RULE Frontmatter 和重复一级标题，但正文行保持不变；普通递归引用文件保留完整内容。完整 `load` 保留文件边界和原文用于诊断与兼容。
 

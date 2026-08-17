@@ -78,9 +78,9 @@ test("单 Context scope 和 load 按场景展开引用且不自动加入必读",
   assert.equal(compactResult.status, 0, compactResult.stderr);
   const compact = JSON.parse(compactResult.stdout);
   assert.deepEqual(compact.rule_scene_options, [
-    { code: "A", name: "必读", files: "A01-必读-基础约束.md" },
-    { code: "C", name: "保存接口", files: "C01-保存接口-保存前读取约束.md" },
-    { code: "F", name: "平台能力", files: "F01-平台能力-复用平台入口.md" },
+    { code: "A", name: "必读", files: ["A01-必读-基础约束.md"] },
+    { code: "C", name: "保存接口", files: ["C01-保存接口-保存前读取约束.md"] },
+    { code: "F", name: "平台能力", files: ["F01-平台能力-复用平台入口.md"] },
   ]);
   assert.equal(compactResult.stdout.includes("count"), false);
   assert.equal(compactResult.stdout.includes("paths"), false);
@@ -305,12 +305,14 @@ test("scope 默认单行紧凑、--compact 兼容且 --pretty 仅美化显示", 
   const compact = JSON.parse(compactResult.stdout);
   assert.equal(compact.context_options.length, 8);
   assert.equal(compact.rule_scene_options.length, 10);
-  assert.equal(compact.rule_scene_options.reduce((sum, scene) => sum + scene.files.split(",").length, 0), 66);
+  assert.equal(compact.rule_scene_options.reduce((sum, scene) => sum + scene.files.length, 0), 66);
   assert.equal(compact.rule_scene_options.some((scene) => "count" in scene), false);
   assert.equal(compact.rule_scene_options.some((scene) => "paths" in scene), false);
-  assert.equal(compact.rule_scene_options.some((scene) => Array.isArray(scene.files)), false);
-  assert.match(compact.rule_scene_options[0].files, /^A01-场景A-规则01\.md,A02-场景A-规则02\.md,/);
-  assert.equal(compact.rule_scene_options.some((scene) => scene.files.includes("/")), false);
+  assert.equal(compact.rule_scene_options.every((scene) => Array.isArray(scene.files)), true);
+  assert.equal(compact.rule_scene_options.some((scene) => scene.files.some(Array.isArray)), false);
+  assert.equal(compact.rule_scene_options.every((scene) => scene.files.every((file) => typeof file === "string" && /^[A-Z]+\d{2}-.+\.md$/.test(file))), true);
+  assert.deepEqual(compact.rule_scene_options[0].files.slice(0, 3), ["A01-场景A-规则01.md", "A02-场景A-规则02.md", "A03-场景A-规则03.md"]);
+  assert.equal(compact.rule_scene_options.some((scene) => scene.files.some((file) => file.includes("/"))), false);
   assert.doesNotMatch(compactResult.stdout, /docs\/rules\//);
   assert.ok(defaultResult.stdout.length <= 2600, `compact scope ${defaultResult.stdout.length} 字符`);
 
@@ -342,8 +344,8 @@ test("scope files 按 RULE ID 排序且 scope --rules 明确失败", (t) => {
   assert.deepEqual(JSON.parse(result.stdout), {
     context_mode: "single",
     rule_scene_options: [
-      { code: "A", name: "必读", files: "A01-必读-第一条.md,A02-必读-第二条.md" },
-      { code: "B", name: "查询接口", files: "B01-查询接口-查询约束.md" },
+      { code: "A", name: "必读", files: ["A01-必读-第一条.md", "A02-必读-第二条.md"] },
+      { code: "B", name: "查询接口", files: ["B01-查询接口-查询约束.md"] },
     ],
   });
   assert.doesNotMatch(result.stdout, /docs\/rules|正文|必须执行|count/);

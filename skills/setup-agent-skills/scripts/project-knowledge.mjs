@@ -424,8 +424,7 @@ function createScope(knowledge) {
       name: scene.name,
       files: scene.rules
         .sort((left, right) => compareUtf8(left.id, right.id))
-        .map((rule) => rule.filename)
-        .join(","),
+        .map((rule) => rule.filename),
     }));
 
   if (knowledge.mode === "single") {
@@ -650,7 +649,7 @@ function renderHelp() {
   node ${script} hook
 
 选择：
-  scope              输出 Context path/显示名与 RULE 场景 code/name/files；files 是按 RULE ID 排序、英文逗号连接的文件名。
+  scope              输出 Context path/显示名与 RULE 场景 code/name/files；files 是按 RULE ID 排序的一维 basename 字符串数组。
   scope --compact    与 scope 相同，保留为兼容入口。
   scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行；仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
 
