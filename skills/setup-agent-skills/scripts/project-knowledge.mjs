@@ -396,7 +396,7 @@ function assertValid(knowledge) {
   if (errors.length) throw new KnowledgeError(errors);
 }
 
-function createScope(knowledge) {
+function createScope(knowledge, compact = false) {
   const scenes = new Map();
   for (const rule of knowledge.rules) {
     if (!scenes.has(rule.code)) scenes.set(rule.code, { code: rule.code, name: rule.sceneName, rules: [] });
@@ -404,13 +404,15 @@ function createScope(knowledge) {
   }
   const ruleSceneOptions = [...scenes.values()]
     .sort((left, right) => compareUtf8(left.code, right.code))
-    .map((scene) => ({
-      code: scene.code,
-      name: scene.name,
-      paths: scene.rules
-        .sort((left, right) => left.number - right.number || compareUtf8(left.filename, right.filename))
-        .map((rule) => rule.path),
-    }));
+    .map((scene) => compact
+      ? { code: scene.code, name: scene.name, count: scene.rules.length }
+      : {
+          code: scene.code,
+          name: scene.name,
+          paths: scene.rules
+            .sort((left, right) => left.number - right.number || compareUtf8(left.filename, right.filename))
+            .map((rule) => rule.path),
+        });
 
   if (knowledge.mode === "single") {
     return { context_mode: "single", rule_scene_options: ruleSceneOptions };
@@ -520,53 +522,22 @@ function quoteWindows(value) {
   return result + "\\".repeat(backslashes * 2) + '"';
 }
 
-function renderLoadCommand() {
-  const quote = process.platform === "win32" ? quoteWindows : quotePosix;
-  return `node ${quote(SCRIPT_PATH)} load`;
-}
-
 function eventInstruction(eventName) {
   if (eventName === "UserPromptSubmit") {
-    return "先判断当前请求是否只是同一任务的延续：若当前上下文已经加载项目知识且原选择完整覆盖本次请求，不调用 load，直接继续；否则重新选择当前完整范围并调用一次 load。";
+    return "同一任务且已加载范围完整覆盖时直接继续；否则用 Node 运行该脚本的 scope --compact，选择全部可能相关项，按 path/code 传入 --context/--rule，只执行一次 load。";
   }
   if (eventName === "SessionStart") {
-    return "上下文已经压缩，必须根据当前保留的任务重新选择完整范围并调用一次 load。";
+    return "上下文已压缩；用 Node 运行该脚本的 scope --compact，根据当前任务选择全部可能相关项，按 path/code 传入 --context/--rule，只执行一次 load。";
   }
   if (eventName === "SubagentStart") {
-    return "执行当前子任务前，必须依据子任务独立选择完整范围并调用一次 load。";
+    return "先为当前子任务用 Node 运行该脚本的 scope --compact，选择全部可能相关项，按 path/code 传入 --context/--rule，只执行一次 load。";
   }
   throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
 }
 
-function renderHookContext(knowledge, hookInput) {
-  const scope = createScope(knowledge);
-  const codex = typeof hookInput.model === "string";
-  const contextSelection = knowledge.mode === "multiple" ? "CONTEXT 和 RULE 场景" : "RULE 场景";
-  const repeatableOptions = knowledge.mode === "multiple" ? "--context 和 --rule 均可重复" : "--rule 可以重复";
-  const contextArguments = knowledge.mode === "multiple"
-    ? '  --context "<context_options[].path>" \\\n+  --context "<context_options[].path>" \\\n+'
-    : "";
-  const outputInstruction = codex
-    ? "调用命令工具时将 max_output_tokens 设为至少 20000，确保完整取得 load 输出。"
-    : "结果包含宿主生成的会话文件路径时，完整读取该文件；它就是本次 load 的完整正文，不要再次调用 load。";
-
-  return `项目知识加载要求：
-
-${eventInstruction(hookInput.hook_event_name)}
-
-需要加载时，从下方 scope 选择所有可能相关的 ${contextSelection}；只要存在任何相关可能就选择。汇总后只调用一次 load，并将返回的全部正文作为当前任务必须遵守的项目知识。
-
-调用示例，${repeatableOptions}：
-
-${renderLoadCommand()} \\
-${contextArguments}  --rule "<rule_scene_options[].code>" \\
-  --rule "<rule_scene_options[].code>"
-
-${outputInstruction}
-
-<project_knowledge_scope>
-${JSON.stringify(scope)}
-</project_knowledge_scope>`;
+function renderHookContext(hookInput) {
+  const quote = process.platform === "win32" ? quoteWindows : quotePosix;
+  return `项目知识脚本：${quote(SCRIPT_PATH)}\n${eventInstruction(hookInput.hook_event_name)}`;
 }
 
 function warningCommand(messages) {
@@ -590,7 +561,7 @@ function runHook() {
     const knowledge = buildKnowledge();
     if (!knowledge.adopted) return;
     assertValid(knowledge);
-    const additionalContext = renderHookContext(knowledge, hookInput);
+    const additionalContext = renderHookContext(hookInput);
     process.stdout.write(`${JSON.stringify({
       hookSpecificOutput: {
         hookEventName: hookInput.hook_event_name,
@@ -640,8 +611,10 @@ function main() {
   assertValid(knowledge);
   printWarnings(knowledge.cycles);
   if (command === "scope") {
-    if (args.length) throw new KnowledgeError(["scope 不接受参数"]);
-    process.stdout.write(`${JSON.stringify(createScope(knowledge))}\n`);
+    if (args.length > 1 || (args.length === 1 && args[0] !== "--compact")) {
+      throw new KnowledgeError(["scope 只接受可选参数 --compact"]);
+    }
+    process.stdout.write(`${JSON.stringify(createScope(knowledge, args[0] === "--compact"))}\n`);
     return;
   }
   process.stdout.write(renderLoad(knowledge, args));

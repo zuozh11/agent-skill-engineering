@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施，让 Hook 提供可选范围，由 Agent 根据当前任务一次加载所有可能相关的 Context 和 RULE 场景。
+为目标仓库部署项目知识基础设施。Hook 只注入延迟选择协议；Agent 需要加载时先运行 `scope --compact`，再根据当前任务一次加载所有可能相关的 Context 和 RULE 场景。
 
 本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
 
@@ -65,6 +65,7 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs validate-context
    node docs/agents/project-knowledge.mjs validate-rules
    node docs/agents/project-knowledge.mjs scope
+   node docs/agents/project-knowledge.mjs scope --compact
    ```
 
 4. 从 `scope` 选择一个代表性 Context 和 RULE 场景执行一次 `load`；项目没有 RULE 时只验证固定 Context 文档。
@@ -121,6 +122,14 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 
 安装后检查当前项目配置中每个事件只有一个自有 Hook。信任只做提醒：能在当前宿主真实触发就验证三个事件，不能自动确认时如实报告“Hook 待信任”，不维护额外状态文件。
 
+三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入脚本位置和延迟选择协议：
+
+- `UserPromptSubmit`：同一任务且已加载范围完整覆盖时直接继续；否则先运行 `scope --compact`，重新选择完整范围并只运行一次 `load`。
+- `SessionStart(compact)`：根据压缩后保留的任务先运行 `scope --compact`，再只运行一次 `load`。
+- `SubagentStart`：根据当前子任务先运行 `scope --compact`，再只运行一次 `load`。
+
+完整 `scope` 仅用于诊断；运行时选择使用 `scope --compact`。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
+
 ## 7. 切换 Agent 指令
 
 在根 `AGENTS.md`、`CLAUDE.md` 中维护以下唯一标记块；两个文件都存在时都更新，但 Hook 仍只安装当前宿主：
@@ -148,7 +157,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；每个 RULE 都有 Frontmatter且正文为一到三句话，Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
 - Agent 指令文件各有一个完整标记块，不再执行全量 RULE 读取；
-- 从项目根及一个子目录触发时，Hook 都能提供 scope；Agent 一次 `load` 能取得完整正文；
+- 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope --compact` 足以构造一次 `load`，完整正文和递归引用仍由该次 `load` 返回；
 - 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
 - 用户原有改动和项目定制已保留。
 

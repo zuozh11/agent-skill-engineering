@@ -40,6 +40,26 @@ function rule(body, items = []) {
   return `${references(items)}${body}`;
 }
 
+function largeFixture() {
+  const target = fixture();
+  const contextEntries = [];
+  for (let index = 0; index < 8; index += 1) {
+    contextEntries.push(`- [服务${index}](../ctx-${index}/CONTEXT.md)`);
+    write(target.root, `ctx-${index}/CONTEXT.md`, context(`服务${index}`));
+  }
+  write(target.root, "docs/CONTEXT-MAP.md", `# Context Map\n\n## Contexts\n\n${contextEntries.join("\n")}\n`);
+
+  const sceneCounts = [7, 7, 7, 7, 7, 7, 6, 6, 6, 6];
+  for (let sceneIndex = 0; sceneIndex < sceneCounts.length; sceneIndex += 1) {
+    const code = String.fromCharCode("A".charCodeAt(0) + sceneIndex);
+    for (let index = 0; index < sceneCounts[sceneIndex]; index += 1) {
+      const number = String(index).padStart(2, "0");
+      write(target.root, `docs/rules/${code}${number}-场景${code}-规则${number}.md`, rule(`# 规则 ${number}\n\n必须遵守场景 ${code} 的规则 ${number}。\n`));
+    }
+  }
+  return target;
+}
+
 test("单 Context scope 和 load 按场景展开引用且不自动加入必读", (t) => {
   const target = fixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
@@ -53,6 +73,16 @@ test("单 Context scope 和 load 按场景展开引用且不自动加入必读",
   const scope = JSON.parse(scopeResult.stdout);
   assert.equal(scope.context_mode, "single");
   assert.deepEqual(scope.rule_scene_options.map((scene) => scene.code), ["A", "C", "F"]);
+
+  const compactResult = run(target, ["scope", "--compact"]);
+  assert.equal(compactResult.status, 0, compactResult.stderr);
+  const compact = JSON.parse(compactResult.stdout);
+  assert.deepEqual(compact.rule_scene_options, [
+    { code: "A", name: "必读", count: 1 },
+    { code: "C", name: "保存接口", count: 1 },
+    { code: "F", name: "平台能力", count: 1 },
+  ]);
+  assert.equal(compactResult.stdout.includes("paths"), false);
 
   const loadResult = run(target, ["load", "--rule", "C"]);
   assert.equal(loadResult.status, 0, loadResult.stderr);
@@ -218,25 +248,58 @@ test("40 条原子 RULE fixture 的最后一条正文完整返回", (t) => {
   assert.ok(result.stdout.endsWith(`${"正文".repeat(20)}。${"补充".repeat(20)}。${"验收".repeat(20)}。\n`));
 });
 
-test("Codex 与 Claude Code Hook 为三个事件返回宿主适配提示", (t) => {
-  const target = fixture();
+test("8 Context、66 RULE、10 场景的 compact scope 足以构造 load", (t) => {
+  const target = largeFixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
-  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
-  write(target.root, "docs/rules/A01-必读-基础约束.md", rule("# 基础约束\n\n只做明确要求。\n"));
+
+  const compactResult = run(target, ["scope", "--compact"]);
+  assert.equal(compactResult.status, 0, compactResult.stderr);
+  const compact = JSON.parse(compactResult.stdout);
+  assert.equal(compact.context_options.length, 8);
+  assert.equal(compact.rule_scene_options.length, 10);
+  assert.equal(compact.rule_scene_options.reduce((sum, scene) => sum + scene.count, 0), 66);
+  assert.equal(compact.rule_scene_options.some((scene) => "paths" in scene), false);
+  assert.doesNotMatch(compactResult.stdout, /docs\/rules\//);
+
+  const fullResult = run(target, ["scope"]);
+  assert.equal(fullResult.status, 0, fullResult.stderr);
+  assert.match(fullResult.stdout, /"paths":\["docs\/rules\//);
+
+  const loadResult = run(target, [
+    "load",
+    "--context", compact.context_options[0].path,
+    "--rule", compact.rule_scene_options[0].code,
+  ]);
+  assert.equal(loadResult.status, 0, loadResult.stderr);
+  assert.match(loadResult.stdout, /===== ctx-0\/CONTEXT\.md =====/);
+  assert.equal(loadResult.stdout.match(/===== docs\/rules\/A/g)?.length, 7);
+});
+
+test("三个 Hook 只返回小型延迟选择协议", (t) => {
+  const target = largeFixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+
+  const expectations = new Map([
+    ["UserPromptSubmit", /同一任务且已加载范围完整覆盖时直接继续；否则/],
+    ["SessionStart", /上下文已压缩/],
+    ["SubagentStart", /当前子任务/],
+  ]);
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
     const codex = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: event, model: "gpt-test", source: "compact" }));
     assert.equal(codex.status, 0, codex.stderr);
-    const codexOutput = JSON.parse(codex.stdout);
-    assert.equal(codexOutput.hookSpecificOutput.hookEventName, event);
-    assert.match(codexOutput.hookSpecificOutput.additionalContext, /max_output_tokens/);
-    assert.match(codexOutput.hookSpecificOutput.additionalContext, /只调用一次 load/);
+    const codexContext = JSON.parse(codex.stdout).hookSpecificOutput.additionalContext;
 
     const claude = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: event, source: "compact" }));
     assert.equal(claude.status, 0, claude.stderr);
-    const claudeOutput = JSON.parse(claude.stdout);
-    assert.equal(claudeOutput.hookSpecificOutput.hookEventName, event);
-    assert.match(claudeOutput.hookSpecificOutput.additionalContext, /宿主生成的会话文件路径/);
+    const claudeContext = JSON.parse(claude.stdout).hookSpecificOutput.additionalContext;
+
+    assert.equal(claudeContext, codexContext);
+    assert.match(codexContext, expectations.get(event));
+    assert.match(codexContext, /scope --compact/);
+    assert.match(codexContext, /只执行一次 load/);
+    assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\//);
+    assert.ok(codexContext.length <= 360, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
 });
 
@@ -269,7 +332,8 @@ test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
   const result = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(output, /node '\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs' load/);
+  assert.match(output, /项目知识脚本：'\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs'/);
+  assert.match(output, /scope --compact/);
 });
 
 test("Hook 模板覆盖三个事件并保持项目根定位", () => {
@@ -282,7 +346,7 @@ test("Hook 模板覆盖三个事件并保持项目根定位", () => {
     const handler = codex.hooks[event][0].hooks[0];
     assert.match(handler.command, /git rev-parse --show-toplevel/);
     assert.match(handler.commandWindows, /git rev-parse --show-toplevel/);
-    assert.equal(handler.additionalContextLimit, 10000);
+    assert.equal(handler.additionalContextLimit, 1000);
   }
   for (const event of Object.keys(claude.hooks)) {
     const handler = claude.hooks[event][0].hooks[0];

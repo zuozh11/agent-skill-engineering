@@ -74,6 +74,8 @@ references:
 - 引用项不重复，并按相对路径 UTF-8 字节序排列。
 - 引用环允许存在，加载时按真实路径去重终止并给出提醒；RULE 与递归引用文件按项目根相对路径稳定排序，固定入口和所选 Context 仍保持入口优先与 Map 顺序。
 
+运行时 `scope --compact` 每个 RULE 场景只返回 `code`、`name` 和规则数量，不返回单条 RULE 路径；Agent 将所选 `code` 作为可重复的 `load --rule` 参数。完整 `scope` 仍保留场景内 RULE 路径用于诊断。
+
 ## 创建、重命名与删除
 
 创建、拆分或修改 RULE 后运行：

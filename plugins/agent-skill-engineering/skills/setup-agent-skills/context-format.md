@@ -57,6 +57,8 @@ description: 供应商服务
 
 `description` 使用非空单行普通文本，直接填写便于选择的简洁 Context 显示名称，例如“功能平移服务”“生产寻源服务”。不填写职责摘要、文件路径或技术栈。当前不添加其他 Frontmatter 字段。
 
+运行时 `scope --compact` 只返回 Map 注册的稳定 `path` 和对应 `description`，Agent 将所选 `path` 作为可重复的 `load --context` 参数。完整 `scope` 保留相同 Context 信息用于诊断。
+
 ## 术语写法
 
 - 定义项目特有概念，不记录通用编程术语。
