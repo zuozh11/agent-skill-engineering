@@ -411,7 +411,7 @@ function assertValid(knowledge) {
   if (errors.length) throw new KnowledgeError(errors);
 }
 
-function createScope(knowledge, full = false) {
+function createScope(knowledge) {
   const scenes = new Map();
   for (const rule of knowledge.rules) {
     if (!scenes.has(rule.code)) scenes.set(rule.code, { code: rule.code, name: rule.sceneName, rules: [] });
@@ -419,15 +419,7 @@ function createScope(knowledge, full = false) {
   }
   const ruleSceneOptions = [...scenes.values()]
     .sort((left, right) => compareUtf8(left.code, right.code))
-    .map((scene) => full
-      ? {
-          code: scene.code,
-          name: scene.name,
-          paths: scene.rules
-            .sort((left, right) => left.number - right.number || compareUtf8(left.filename, right.filename))
-            .map((rule) => rule.path),
-        }
-      : { code: scene.code, name: scene.name, count: scene.rules.length });
+    .map((scene) => ({ code: scene.code, name: scene.name, count: scene.rules.length }));
 
   if (knowledge.mode === "single") {
     return { context_mode: "single", rule_scene_options: ruleSceneOptions };
@@ -464,11 +456,15 @@ function argumentError(message) {
 }
 
 function parseScopeArguments(args) {
-  if (!args.length) return { mode: "compact", scenes: [] };
-  if (args.length === 1 && args[0] === "--compact") return { mode: "compact", scenes: [] };
-  if (args.length === 1 && args[0] === "--full") return { mode: "full", scenes: [] };
   const scenes = [];
+  let pretty = false;
   for (let index = 0; index < args.length; index += 1) {
+    if (args[index] === "--compact") continue;
+    if (args[index] === "--pretty") {
+      if (pretty) throw argumentError("scope：--pretty 不能重复");
+      pretty = true;
+      continue;
+    }
     if (args[index] !== "--rules") throw argumentError(`scope：未知参数 ${args[index]}`);
     const value = args[index + 1];
     if (!value || value.startsWith("--")) throw argumentError("scope：--rules 缺少场景码");
@@ -476,7 +472,7 @@ function parseScopeArguments(args) {
     scenes.push(value);
     index += 1;
   }
-  return { mode: "rules", scenes: [...new Set(scenes)] };
+  return { mode: scenes.length ? "rules" : "compact", scenes: [...new Set(scenes)], pretty };
 }
 
 function parseLoadArguments(args) {
@@ -663,16 +659,18 @@ function renderHelp() {
   node ${script} validate-rules
   node ${script} scope
   node ${script} scope --compact
-  node ${script} scope --full
+  node ${script} scope --pretty
   node ${script} scope --rules <场景码> [--rules <场景码> ...]
+  node ${script} scope --pretty --rules <场景码> [--rules <场景码> ...]
   node ${script} load [--compact] [--context <path>]... [--rule <场景码|RULE ID>]...
   node ${script} hook
 
 选择：
   scope              输出 Context path/显示名与 RULE 场景 code/name/count。
   scope --compact    与 scope 相同，保留为兼容入口。
-  scope --full       输出完整候选范围，保留 RULE 路径用于诊断。
+  scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行。
   scope --rules      按场景下钻原子 RULE；--rules 可重复，多场景与重复值去重，结果按 RULE ID 排序。
+                     可与 --pretty 组合；默认仍输出单行 JSON。
 
 加载：
   load               输出带文件边界的完整原文，用于诊断与兼容。
@@ -789,8 +787,8 @@ function main() {
   if (command === "scope") {
     const output = scopeSelection.mode === "rules"
       ? createRuleScope(knowledge, scopeSelection.scenes)
-      : createScope(knowledge, scopeSelection.mode === "full");
-    process.stdout.write(`${JSON.stringify(output)}\n`);
+      : createScope(knowledge);
+    process.stdout.write(`${JSON.stringify(output, null, scopeSelection.pretty ? 2 : 0)}\n`);
     return;
   }
   process.stdout.write(renderLoad(knowledge, args));

@@ -290,7 +290,7 @@ test("40 条原子 RULE fixture 的最后一条正文完整返回", (t) => {
   assert.ok(result.stdout.endsWith(`${"正文".repeat(20)}。\n${"补充".repeat(20)}。\n${"验收".repeat(20)}。\n`));
 });
 
-test("scope 默认紧凑、--compact 兼容且 --full 保留诊断输出", (t) => {
+test("scope 默认单行紧凑、--compact 兼容且 --pretty 仅美化显示", (t) => {
   const target = largeFixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
 
@@ -299,16 +299,19 @@ test("scope 默认紧凑、--compact 兼容且 --full 保留诊断输出", (t) =
   assert.equal(defaultResult.status, 0, defaultResult.stderr);
   assert.equal(compactResult.status, 0, compactResult.stderr);
   assert.equal(defaultResult.stdout, compactResult.stdout);
+  assert.equal(defaultResult.stdout.trim().split("\n").length, 1);
   const compact = JSON.parse(compactResult.stdout);
   assert.equal(compact.context_options.length, 8);
   assert.equal(compact.rule_scene_options.length, 10);
   assert.equal(compact.rule_scene_options.reduce((sum, scene) => sum + scene.count, 0), 66);
   assert.equal(compact.rule_scene_options.some((scene) => "paths" in scene), false);
   assert.doesNotMatch(compactResult.stdout, /docs\/rules\//);
+  assert.ok(defaultResult.stdout.length <= 1600, `compact scope ${defaultResult.stdout.length} 字符`);
 
-  const fullResult = run(target, ["scope", "--full"]);
-  assert.equal(fullResult.status, 0, fullResult.stderr);
-  assert.match(fullResult.stdout, /"paths":\["docs\/rules\//);
+  const prettyResult = run(target, ["scope", "--pretty"]);
+  assert.equal(prettyResult.status, 0, prettyResult.stderr);
+  assert.deepEqual(JSON.parse(prettyResult.stdout), compact);
+  assert.ok(prettyResult.stdout.trim().split("\n").length > 1);
 
   const loadResult = run(target, [
     "load",
@@ -338,6 +341,12 @@ test("scope --rules 支持多场景重复下钻并按原子 ID 稳定排序", (t
     ],
   });
   assert.doesNotMatch(result.stdout, /docs\/rules|正文|必须执行/);
+  assert.equal(result.stdout.trim().split("\n").length, 1);
+
+  const pretty = run(target, ["scope", "--pretty", "--rules", "B", "--rules", "A", "--rules", "A"]);
+  assert.equal(pretty.status, 0, pretty.stderr);
+  assert.deepEqual(JSON.parse(pretty.stdout), JSON.parse(result.stdout));
+  assert.ok(pretty.stdout.trim().split("\n").length > 1);
 
   const unknown = run(target, ["scope", "--rules", "Z"]);
   assert.notEqual(unknown.status, 0);
@@ -418,7 +427,7 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.equal(long.status, 0, long.stderr);
   assert.equal(short.stdout, long.stdout);
   assert.match(short.stdout, /scope --compact/);
-  assert.match(short.stdout, /scope --full/);
+  assert.match(short.stdout, /scope --pretty/);
   assert.match(short.stdout, /scope --rules <场景码> \[--rules <场景码> \.\.\.\]/);
   assert.match(short.stdout, /load \[--compact\]/);
   assert.match(short.stdout, /场景码加载整个场景，RULE ID 只加载该 RULE/);

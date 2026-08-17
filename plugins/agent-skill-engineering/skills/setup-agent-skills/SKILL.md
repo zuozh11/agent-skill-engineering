@@ -66,8 +66,9 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs validate-rules
    node docs/agents/project-knowledge.mjs scope
    node docs/agents/project-knowledge.mjs scope --compact
-   node docs/agents/project-knowledge.mjs scope --full
+   node docs/agents/project-knowledge.mjs scope --pretty
    node docs/agents/project-knowledge.mjs scope --rules <代表性场景码>
+   node docs/agents/project-knowledge.mjs scope --pretty --rules <代表性场景码>
    ```
 
 4. 从 `scope` 选择一个代表性 Context，并从 `scope --rules` 选择原子 RULE，执行一次 `load --compact`；另执行一次完整 `load` 验证兼容输出。项目没有 RULE 时只验证固定 Context 文档。
@@ -130,7 +131,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - `SessionStart(compact)`：根据压缩后保留的任务重新发现和下钻范围，最终只运行一次 `load --compact`。
 - `SubagentStart`：根据当前子任务独立发现和下钻范围，最终只运行一次 `load --compact`。
 
-Hook 不要求标准流程先调用帮助。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，运行 `node docs/agents/project-knowledge.mjs --help`。`scope --full` 与完整 `load` 仅用于诊断；`scope --compact` 作为紧凑输出兼容入口保留。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
+Hook 不要求标准流程先调用帮助。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，运行 `node docs/agents/project-knowledge.mjs --help`。`scope --compact` 作为紧凑输出兼容入口保留；`scope --pretty` 仅供人类阅读同一份候选数据。完整 `load` 仅用于诊断。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
 
 ## 7. 切换 Agent 指令
 
