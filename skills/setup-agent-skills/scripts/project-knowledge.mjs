@@ -439,7 +439,7 @@ function createScope(knowledge) {
 
 function helpHint() {
   const quote = process.platform === "win32" ? quoteWindows : quotePosix;
-  return `运行 node ${quote(SCRIPT_PATH)} --help 查看用法`;
+  return `运行 node ${quote(SCRIPT_PATH)} -h 查看用法`;
 }
 
 function argumentError(message) {
@@ -463,12 +463,20 @@ function parseScopeArguments(args) {
 function parseLoadArguments(args) {
   const contexts = [];
   const rules = [];
-  let compact = false;
+  let compactAlias = false;
+  let debug = false;
   for (let index = 0; index < args.length; index += 1) {
     const option = args[index];
     if (option === "--compact") {
-      if (compact) throw argumentError("load：--compact 不能重复");
-      compact = true;
+      if (compactAlias) throw argumentError("load：--compact 不能重复");
+      if (debug) throw argumentError("load：--compact 不能与 --debug 同时使用");
+      compactAlias = true;
+      continue;
+    }
+    if (option === "--debug") {
+      if (debug) throw argumentError("load：--debug 不能重复");
+      if (compactAlias) throw argumentError("load：--debug 不能与 --compact 同时使用");
+      debug = true;
       continue;
     }
     if (option !== "--context" && option !== "--rule") {
@@ -481,7 +489,7 @@ function parseLoadArguments(args) {
     (option === "--context" ? contexts : rules).push(value);
     index += 1;
   }
-  return { contexts: [...new Set(contexts)], rules: [...new Set(rules)], compact };
+  return { contexts: [...new Set(contexts)], rules: [...new Set(rules)], debug };
 }
 
 function bodyWithoutFrontmatter(raw) {
@@ -599,13 +607,13 @@ function renderLoad(knowledge, args) {
     addDocument(knowledge.documents.get(realPath));
   }
 
-  if (selection.compact) {
-    return [...documents.values()].map(renderCompactDocument).join("\n\n") + "\n";
+  if (selection.debug) {
+    return [...documents.values()].map((document) => {
+      const raw = fs.readFileSync(document.absolutePath, "utf8");
+      return `===== ${document.path} =====\n${raw.replace(/[\r\n]+$/u, "")}`;
+    }).join("\n\n") + "\n";
   }
-  return [...documents.values()].map((document) => {
-    const raw = fs.readFileSync(document.absolutePath, "utf8");
-    return `===== ${document.path} =====\n${raw.replace(/[\r\n]+$/u, "")}`;
-  }).join("\n\n") + "\n";
+  return [...documents.values()].map(renderCompactDocument).join("\n\n") + "\n";
 }
 
 function printWarnings(cycles) {
@@ -645,7 +653,7 @@ function renderHelp() {
   node ${script} scope
   node ${script} scope --compact
   node ${script} scope --pretty
-  node ${script} load [--compact] [--context <path>]... [--rule <场景码|RULE ID>]...
+  node ${script} load [--debug] [--context <path>]... [--rule <场景码|RULE ID>]...
   node ${script} hook
 
 选择：
@@ -654,15 +662,15 @@ function renderHelp() {
   scope --pretty     输出与 scope 相同的数据，仅增加缩进和换行；仅供人类在终端手动查看，Agent 项目知识加载禁止使用。
 
 加载：
-  load               输出带文件边界的完整原文，用于诊断与兼容。
-  load --compact     输出紧凑语义标题，省略 Context/RULE 元数据与重复标题。
+  load               输出紧凑语义标题，省略 Context/RULE 元数据与重复标题。
+  load --debug       输出带文件边界的完整原文，用于诊断。
   --context          多 Context 项目必选且可重复，值来自 scope 的 context_options[].path。
   --rule             可重复；场景码只含大写字母，RULE ID 为场景码加两位编号，两者无歧义。
                      场景码加载整个场景，RULE ID 只加载该 RULE；混合与重复选择按真实路径去重。
   references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
 
 示例：
-  node ${script} load --compact --context services/order/CONTEXT.md --rule A03 --rule H
+  node ${script} load --context services/order/CONTEXT.md --rule A03 --rule H
 `;
 }
 
@@ -679,9 +687,9 @@ function eventInstruction(eventName, script) {
   }
   return `${lead}
 直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令：
-1. 第 1 条命令必须原样直接执行，Agent 不得添加 --pretty/--compact，不得先执行其他命令：node ${script} scope
-2. 根据 scope 返回的 Context 与 RULE 文件名按任务相关性选择，只执行一次 node ${script} load --compact [--context <path>]... [--rule <ID|code>]...
-完整返回正文必须遵守。疑问或报错只允许先执行 node ${script} --help；不要读取脚本源码。`;
+1. 第 1 条命令必须原样作为首个命令直接执行：node ${script} scope
+2. 根据 scope 返回的 Context 与 RULE 文件名按任务相关性选择，只执行一次 node ${script} load [--context <path>]... [--rule <ID|code>]...
+完整返回正文必须遵守。疑问或报错先执行 node ${script} -h；不要读取脚本源码。`;
 }
 
 function renderHookContext(hookInput) {

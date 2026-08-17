@@ -1,9 +1,8 @@
 # CONTEXT 格式
 
-本文件只定义 `CONTEXT.md` 与 `CONTEXT-MAP.md` 应怎样编写。任务运行时如何选择 Context 由项目 Hook 说明。
+本文件只定义项目采用的 Context 布局应怎样编写。任务运行时如何选择 Context 由项目 Hook 说明。
 
-## 单 Context
-
+<!-- layout:single:start -->
 入口为 `docs/CONTEXT.md`：
 
 ```markdown
@@ -18,9 +17,8 @@ description: 订单服务
 客户确认购买后形成的交易意向。
 _Avoid_: Purchase
 ```
-
-## 多 Context
-
+<!-- layout:single:end -->
+<!-- layout:multiple:start -->
 入口为 `docs/CONTEXT-MAP.md`，每个 Context 的术语文件直接放在其根目录：
 
 ```markdown
@@ -44,6 +42,7 @@ _Avoid_: Purchase
 `## Contexts` 中每项只放一个普通 Markdown 链接。目标 `CONTEXT.md` 的 `description` 是 `scope` 发现列表中的显示名称；列表顺序就是 `scope` 的展示顺序。
 
 链接必须是指向 `CONTEXT.md` 的相对文件路径，目标真实存在且位于领域文档根目录内。`## 共享概念` 和 `## Relationships` 不参与 Context 注册。
+<!-- layout:multiple:end -->
 
 ## Frontmatter
 
@@ -57,7 +56,12 @@ description: 供应商服务
 
 `description` 使用非空单行普通文本，直接填写便于选择的简洁 Context 显示名称，例如“功能平移服务”“生产寻源服务”。不填写职责摘要、文件路径或技术栈。当前不添加其他 Frontmatter 字段。
 
-运行时 `scope` 只返回 Map 注册的稳定 `path` 和对应 `description`，并以单行 JSON 输出；`scope --compact` 是等价兼容入口。`scope --pretty` 只美化相同数据，仅供人类在终端手动查看，Agent 项目知识加载禁止使用。Agent 将所选 `path` 作为可重复的 `load --context` 参数。`load --compact` 用 `## CONTEXT <description>` 替代 Context Frontmatter 和重复一级标题；多 Context 项目的 Map 保留共享概念、Relationships 与其他正文，但省略已由 `scope` 提供的 `## Contexts` 发现列表。完整 `load` 保留原始诊断信息。
+<!-- layout:single:start -->
+运行时 `scope` 以单行 JSON 返回单 Context 模式和 RULE 候选；`load` 自动加载 `docs/CONTEXT.md`，不能传 `--context`。
+<!-- layout:single:end -->
+<!-- layout:multiple:start -->
+运行时 `scope` 以单行 JSON 返回 Map 注册的稳定 `path`、对应 `description` 和 RULE 候选。Agent 将所选 `path` 作为可重复的 `load --context` 参数；`load` 保留 Map 的共享概念、Relationships 与其他正文，但省略已由 `scope` 提供的 `## Contexts` 发现列表。
+<!-- layout:multiple:end -->
 
 ## 术语写法
 

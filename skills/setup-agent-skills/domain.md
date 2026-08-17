@@ -13,23 +13,32 @@
 
 ## 落点
 
-### 单 Context
-
+<!-- layout:single:start -->
 - 术语写入 `docs/CONTEXT.md`。
 - 规则写入 `docs/rules/`。
-
-### 多 Context
-
+<!-- layout:single:end -->
+<!-- layout:multiple:start -->
 - 某个 Context 专属术语写入地图声明的 `<ctx-dir>/CONTEXT.md`。
 - 所有 Context 同等使用的平台术语写入 `docs/CONTEXT-MAP.md` 的 `## 共享概念`。
 - Context 之间的依赖写入 `docs/CONTEXT-MAP.md` 的 `## Relationships`。
 - 规则统一写入领域文档根目录的 `docs/rules/`，不按 Context 分目录。
+<!-- layout:multiple:end -->
 
+<!-- layout:single:start -->
+CONTEXT 的格式见 `docs/agents/context-format.md`，RULE 的格式和场景命名见 `docs/agents/rules-format.md`。
+<!-- layout:single:end -->
+<!-- layout:multiple:start -->
 CONTEXT 与 CONTEXT-MAP 的格式见 `docs/agents/context-format.md`，RULE 的格式和场景命名见 `docs/agents/rules-format.md`。
+<!-- layout:multiple:end -->
 
 ## 提议与落盘
 
+<!-- layout:single:start -->
+1. 先检查现有 CONTEXT 和 RULE，确认候选内容没有被覆盖。
+<!-- layout:single:end -->
+<!-- layout:multiple:start -->
 1. 先检查现有 CONTEXT、CONTEXT-MAP 和 RULE，确认候选内容没有被覆盖。
+<!-- layout:multiple:end -->
 2. 向用户说明候选内容、依据和预计落点。
 3. 只有用户确认且当前任务允许修改项目文档时才写入；只读任务只报告候选项。
 4. 修改后运行对应 validator：
