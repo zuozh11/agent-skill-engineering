@@ -57,7 +57,7 @@ description: 供应商服务
 
 `description` 使用非空单行普通文本，直接填写便于选择的简洁 Context 显示名称，例如“功能平移服务”“生产寻源服务”。不填写职责摘要、文件路径或技术栈。当前不添加其他 Frontmatter 字段。
 
-运行时 `scope --compact` 只返回 Map 注册的稳定 `path` 和对应 `description`，Agent 将所选 `path` 作为可重复的 `load --context` 参数。`load --compact` 用 `## CONTEXT <description>` 替代 Context Frontmatter 和重复一级标题；多 Context 项目的 Map 保留共享概念、Relationships 与其他正文，但省略已由 `scope` 提供的 `## Contexts` 发现列表。完整 `scope` 与 `load` 保留原始诊断信息。
+运行时 `scope` 只返回 Map 注册的稳定 `path` 和对应 `description`，Agent 将所选 `path` 作为可重复的 `load --context` 参数；`scope --compact` 保留为等价兼容入口，`scope --full` 保留完整诊断信息。`load --compact` 用 `## CONTEXT <description>` 替代 Context Frontmatter 和重复一级标题；多 Context 项目的 Map 保留共享概念、Relationships 与其他正文，但省略已由 `scope` 提供的 `## Contexts` 发现列表。完整 `load` 保留原始诊断信息。
 
 ## 术语写法
 

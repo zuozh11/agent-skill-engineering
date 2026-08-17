@@ -290,12 +290,15 @@ test("40 条原子 RULE fixture 的最后一条正文完整返回", (t) => {
   assert.ok(result.stdout.endsWith(`${"正文".repeat(20)}。\n${"补充".repeat(20)}。\n${"验收".repeat(20)}。\n`));
 });
 
-test("8 Context、66 RULE、10 场景的 compact scope 足以构造 load", (t) => {
+test("scope 默认紧凑、--compact 兼容且 --full 保留诊断输出", (t) => {
   const target = largeFixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
 
+  const defaultResult = run(target, ["scope"]);
   const compactResult = run(target, ["scope", "--compact"]);
+  assert.equal(defaultResult.status, 0, defaultResult.stderr);
   assert.equal(compactResult.status, 0, compactResult.stderr);
+  assert.equal(defaultResult.stdout, compactResult.stdout);
   const compact = JSON.parse(compactResult.stdout);
   assert.equal(compact.context_options.length, 8);
   assert.equal(compact.rule_scene_options.length, 10);
@@ -303,7 +306,7 @@ test("8 Context、66 RULE、10 场景的 compact scope 足以构造 load", (t) =
   assert.equal(compact.rule_scene_options.some((scene) => "paths" in scene), false);
   assert.doesNotMatch(compactResult.stdout, /docs\/rules\//);
 
-  const fullResult = run(target, ["scope"]);
+  const fullResult = run(target, ["scope", "--full"]);
   assert.equal(fullResult.status, 0, fullResult.stderr);
   assert.match(fullResult.stdout, /"paths":\["docs\/rules\//);
 
@@ -415,6 +418,7 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.equal(long.status, 0, long.stderr);
   assert.equal(short.stdout, long.stdout);
   assert.match(short.stdout, /scope --compact/);
+  assert.match(short.stdout, /scope --full/);
   assert.match(short.stdout, /scope --rules <场景码> \[--rules <场景码> \.\.\.\]/);
   assert.match(short.stdout, /load \[--compact\]/);
   assert.match(short.stdout, /场景码加载整个场景，RULE ID 只加载该 RULE/);
@@ -447,7 +451,8 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
 
     assert.equal(claudeContext, codexContext);
     assert.match(codexContext, expectations.get(event));
-    assert.match(codexContext, /scope --compact/);
+    assert.match(codexContext, /scope 选 Context\/场景/);
+    assert.doesNotMatch(codexContext, /scope --compact/);
     assert.match(codexContext, /scope --rules <code>/);
     assert.match(codexContext, /一次 load --compact/);
     assert.match(codexContext, /完整正文必须遵守/);
@@ -487,7 +492,8 @@ test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
   assert.match(output, /脚本：'\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs'/);
-  assert.match(output, /scope --compact/);
+  assert.match(output, /scope 选 Context\/场景/);
+  assert.doesNotMatch(output, /scope --compact/);
 });
 
 test("Hook 模板覆盖三个事件并保持项目根定位", () => {

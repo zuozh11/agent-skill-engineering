@@ -126,7 +126,7 @@ npx skills@latest update --global
 
 > _你说一个业务词，agent 不知道它对应哪个实体、模块，就只能每次重新查代码库，或者用猜的。_
 
-**解法**：`CONTEXT.md` 沉淀项目术语、实体关系和规范命名。项目 Hook 只注入延迟选择协议，Agent 通过 `scope --compact` 取得可选 Context，最后用一次紧凑加载取得当前任务需要的完整知识。
+**解法**：`CONTEXT.md` 沉淀项目术语、实体关系和规范命名。项目 Hook 只注入延迟选择协议，Agent 通过默认紧凑的 `scope` 取得可选 Context，最后用一次紧凑加载取得当前任务需要的完整知识。
 
 ---
 
@@ -134,7 +134,7 @@ npx skills@latest update --global
 
 > _数据权限怎么做、用户信息怎么取，这类长期决策不能只留在对话里，否则后续实现很容易绕开它。_
 
-**解法**：`RULES` 按场景记录长期规则和关键决策。`scope --compact` 展示场景，`scope --rules` 按需下钻原子 RULE；Agent 汇总相关原子 ID 或整个场景后单次紧凑加载，避免机械塞入全部规则。
+**解法**：`RULES` 按场景记录长期规则和关键决策。`scope` 展示场景，`scope --rules` 按需下钻原子 RULE；Agent 汇总相关原子 ID 或整个场景后单次紧凑加载，避免机械塞入全部规则。
 
 ---
 
@@ -142,12 +142,12 @@ npx skills@latest update --global
 
 ### 项目知识
 
-工作流通过 `Hook 延迟协议 → scope --compact → 按需 scope --rules → 单次 load --compact` 使用两类项目知识：
+工作流通过 `Hook 延迟协议 → scope → 按需 scope --rules → 单次 load --compact` 使用两类项目知识：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。文件名帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 只注入脚本位置和延迟选择协议。Agent 先选择 Context 和可能相关场景，再按需下钻原子 RULE，最终只调用一次 `project-knowledge load --compact`；同一任务且既有范围足够时不重复选择和加载。完整 `scope` 与 `load` 仅用于诊断。
+`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 只注入脚本位置和延迟选择协议。Agent 先用默认紧凑的 `scope` 选择 Context 和可能相关场景，再按需下钻原子 RULE，最终只调用一次 `project-knowledge load --compact`；同一任务且既有范围足够时不重复选择和加载。`scope --full` 与完整 `load` 仅用于诊断。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 

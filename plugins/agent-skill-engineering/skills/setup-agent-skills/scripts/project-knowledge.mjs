@@ -411,7 +411,7 @@ function assertValid(knowledge) {
   if (errors.length) throw new KnowledgeError(errors);
 }
 
-function createScope(knowledge, compact = false) {
+function createScope(knowledge, full = false) {
   const scenes = new Map();
   for (const rule of knowledge.rules) {
     if (!scenes.has(rule.code)) scenes.set(rule.code, { code: rule.code, name: rule.sceneName, rules: [] });
@@ -419,15 +419,15 @@ function createScope(knowledge, compact = false) {
   }
   const ruleSceneOptions = [...scenes.values()]
     .sort((left, right) => compareUtf8(left.code, right.code))
-    .map((scene) => compact
-      ? { code: scene.code, name: scene.name, count: scene.rules.length }
-      : {
+    .map((scene) => full
+      ? {
           code: scene.code,
           name: scene.name,
           paths: scene.rules
             .sort((left, right) => left.number - right.number || compareUtf8(left.filename, right.filename))
             .map((rule) => rule.path),
-        });
+        }
+      : { code: scene.code, name: scene.name, count: scene.rules.length });
 
   if (knowledge.mode === "single") {
     return { context_mode: "single", rule_scene_options: ruleSceneOptions };
@@ -464,8 +464,9 @@ function argumentError(message) {
 }
 
 function parseScopeArguments(args) {
-  if (!args.length) return { mode: "full", scenes: [] };
+  if (!args.length) return { mode: "compact", scenes: [] };
   if (args.length === 1 && args[0] === "--compact") return { mode: "compact", scenes: [] };
+  if (args.length === 1 && args[0] === "--full") return { mode: "full", scenes: [] };
   const scenes = [];
   for (let index = 0; index < args.length; index += 1) {
     if (args[index] !== "--rules") throw argumentError(`scope：未知参数 ${args[index]}`);
@@ -662,13 +663,15 @@ function renderHelp() {
   node ${script} validate-rules
   node ${script} scope
   node ${script} scope --compact
+  node ${script} scope --full
   node ${script} scope --rules <场景码> [--rules <场景码> ...]
   node ${script} load [--compact] [--context <path>]... [--rule <场景码|RULE ID>]...
   node ${script} hook
 
 选择：
-  scope              输出完整候选范围，保留 RULE 路径用于诊断。
-  scope --compact    输出 Context path/显示名与 RULE 场景 code/name/count。
+  scope              输出 Context path/显示名与 RULE 场景 code/name/count。
+  scope --compact    与 scope 相同，保留为兼容入口。
+  scope --full       输出完整候选范围，保留 RULE 路径用于诊断。
   scope --rules      按场景下钻原子 RULE；--rules 可重复，多场景与重复值去重，结果按 RULE ID 排序。
 
 加载：
@@ -687,13 +690,13 @@ function renderHelp() {
 
 function eventInstruction(eventName) {
   if (eventName === "UserPromptSubmit") {
-    return "同任务知识已覆盖则继续；否则 scope --compact 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
+    return "同任务知识已覆盖则继续；否则 scope 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
   }
   if (eventName === "SessionStart") {
-    return "压缩后 scope --compact 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
+    return "压缩后 scope 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
   }
   if (eventName === "SubagentStart") {
-    return "本子任务 scope --compact 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
+    return "本子任务 scope 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
   }
   throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
 }
@@ -786,7 +789,7 @@ function main() {
   if (command === "scope") {
     const output = scopeSelection.mode === "rules"
       ? createRuleScope(knowledge, scopeSelection.scenes)
-      : createScope(knowledge, scopeSelection.mode === "compact");
+      : createScope(knowledge, scopeSelection.mode === "full");
     process.stdout.write(`${JSON.stringify(output)}\n`);
     return;
   }
