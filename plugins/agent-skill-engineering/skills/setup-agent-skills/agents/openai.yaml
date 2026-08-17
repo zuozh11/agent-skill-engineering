@@ -1,5 +1,5 @@
 interface:
   display_name: "Setup Agent Skills"
-  short_description: "初始化 Agent 领域文档与规则基础设施"
+  short_description: "安装按需项目知识与当前宿主 Hook"
 policy:
   allow_implicit_invocation: false

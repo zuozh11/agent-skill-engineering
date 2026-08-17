@@ -1,132 +1,154 @@
 ---
 name: setup-agent-skills
-description: 为仓库初始化或校验 Agent 领域文档基础设施。创建 CONTEXT.md、RULES 的遵守要求、维护判断与格式配置，并在 AGENTS.md 或 CLAUDE.md 中写入入口。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查文档漂移时重新运行。
+description: 为仓库初始化或升级 Agent 项目知识基础设施。部署 CONTEXT/RULE 格式、按需加载脚本和当前宿主的项目级 Hook，并迁移旧的全量 RULE 读取入口。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查漂移时重新运行。
 disable-model-invocation: true
 ---
 
 # Setup Agent Skills
 
-为目标仓库初始化工程 Skill 所需的领域文档基础设施。
+为目标仓库部署项目知识基础设施，让 Hook 提供可选范围，由 Agent 根据当前任务一次加载所有可能相关的 Context 和 RULE 场景。
 
-**本 Skill 只负责创建入口和基础文件。** 领域文档的布局与使用、维护判断与落盘规则由 `docs/agents/domain.md` 负责，格式分别由 `docs/agents/context-format.md` 和 `docs/agents/rules-format.md` 负责，不在 Agent 指令文件中重复展开。
+本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
 
-## 流程
+## 1. 探索项目
 
-### 1. 探索仓库
+先读取并保留目标项目真实状态：
 
-读取目标仓库的真实状态：
+- 根 `AGENTS.md`、`CLAUDE.md` 及其中已有的项目知识或领域文档段落；
+- `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`、地图声明的 Context 文件和 `docs/rules/`；
+- `docs/agents/` 下已有文档、`read-rules.py` 和 `project-knowledge.mjs`；
+- 当前宿主的项目配置：Codex 使用 `.codex/hooks.json` 或 `.codex/config.toml`，Claude Code 使用 `.claude/settings.json`；
+- 本次运行前的 Git 状态。已有用户改动不得覆盖、暂存或提交。
 
-- `AGENTS.md`、`CLAUDE.md` 及其中已有的 `## 领域文档` 段落；
-- 仓库的目录、模块与业务边界；
-- `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`，以及多 Context 布局下各 Context 根目录的 `CONTEXT.md`；
-- `docs/agents/` 下已有的配置文件。
+从子目录或独立子仓库启动时，向上查找已有 Context 入口；如果外层 `CONTEXT-MAP.md` 明确链接当前 Context，使用地图所在项目作为领域文档根。没有既有布局时使用当前项目 Git 根。
 
-从子目录或独立子仓库启动时，先按 [domain.md](./domain.md) 的「领域文档根目录」规则向上定位，不得直接把当前 Git 仓库根目录当成领域文档根目录。多 Context 地图已经声明当前 Context 时，以该地图所在目录为根。
+根据当前正在执行 Skill 的宿主选择 Codex 或 Claude Code，不根据项目中存在什么指令文件猜测，也不顺带修改另一个宿主的配置。
 
-首次初始化时领域文件通常不存在，应主要依据代码库结构和业务边界判断布局。已有领域文件只用于识别重复运行和保护现有内容。
+## 2. 确定布局与迁移内容
 
-如果 `docs/CONTEXT.md` 与 `docs/CONTEXT-MAP.md` 同时存在，停止写入并使用提问工具让用户确认保留哪种布局。
+- 已存在且有效的单/多 Context 布局保持不变。
+- 两个入口都不存在时：仓库只有一个主要业务边界或无法确认多个独立边界，使用 `docs/CONTEXT.md`；确有多个可独立描述的业务 Context，使用 `docs/CONTEXT-MAP.md`。
+- 两个入口同时存在，或不同选择会明显改变知识归属时，使用提问工具确认。
 
-### 2. 确定布局
+形成清楚的迁移清单：
 
-- **单 Context**：仓库围绕一个主要业务领域组织。普通仓库和无法确认存在独立业务边界的多模块仓库，默认使用此布局。入口为 `docs/CONTEXT.md`。
-- **多 Context**：仓库存在多个边界清晰、可独立描述的业务 Context。入口为 `docs/CONTEXT-MAP.md`，由它声明各 Context 的位置和关系；每个 Context 的术语文件直接放在其根目录，即 `<ctx-dir>/CONTEXT.md`，不额外放入 `<ctx-dir>/docs/`。
+- 创建或更新三份格式文档与 `project-knowledge.mjs`；
+- 需要补充的 Context `description`、需要规范的 Map 链接；
+- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；
+- 旧 Agent 指令、`read-rules.py` 和旧 Hook 的去留；
+- 当前宿主需要新增或更新的三个 Hook。
 
-不要因为目录多或使用 monorepo 就自动选择多 Context。只有布局确实无法判断时，才使用提问工具让用户确认。
+能从文件名和现有规则内容明确判断场景时直接整理；场景划分或项目定制存在多种合理结果时，展示建议后再询问用户。
 
-### 3. 写入 Agent 指令入口
+## 3. 保护项目定制
 
-使用下方入口模板更新 Agent 指令文件中的 `## 领域文档` 段落：
+本 Skill 内置文件是发布种子，不是覆盖用户内容的理由：
 
-- `AGENTS.md` 和 `CLAUDE.md` 都存在：两者都更新；
-- 只有一个存在：更新现有文件；
-- 都不存在：创建当前宿主使用的标准指令文件；无法判断当前宿主时再询问用户。
+- 当前文件与已知旧官方模板一致时，可以升级为当前种子；
+- 文件包含项目术语、自定义流程或其他明显定制时，保留内容，展示当前文件与建议结果，只合并用户确认的部分；
+- Agent 指令只维护 `project-knowledge` 标记块；
+- Hook 只维护调用 `docs/agents/project-knowledge.mjs hook` 的三个项目级条目；
+- 无法可靠识别所有权时，停止该文件的写入并提醒用户，不影响其他只读检查。
 
-已有 `## 领域文档` 段落时原地替换，不重复追加。只替换该段落，不改动文件中的其他内容。
+不读取或修改用户级、本地级、托管级、插件级 Hook。
+
+## 4. 生成并验证候选快照
+
+在临时目录复制本次迁移涉及的知识文件，先生成完整候选结果，不直接改真实项目：
+
+1. 部署本 Skill 的三份文档和 `scripts/project-knowledge.mjs`。
+2. 保留 Context 正文、共享概念、Relationships 和 RULE 正文，只应用迁移清单中的格式变更。
+3. 在候选根运行：
+
+   ```bash
+   node docs/agents/project-knowledge.mjs validate-context
+   node docs/agents/project-knowledge.mjs validate-rules
+   node docs/agents/project-knowledge.mjs scope
+   ```
+
+4. 从 `scope` 选择一个代表性 Context 和 RULE 场景执行一次 `load`；项目没有 RULE 时只验证固定 Context 文档。
+
+Node 不可用或候选验证失败时，给出直接错误和失败命令，删除临时快照，真实项目保持不变。
+
+## 5. 部署知识文件
+
+候选快照通过后，展示将创建、更新、重命名和删除的文件。涉及项目定制、RULE 重命名或删除时，在副作用发生前取得用户确认。
+
+只为本轮会修改的真实文件创建恢复副本，然后应用已经验证的候选知识树：
+
+- `domain.md` → `docs/agents/domain.md`
+- `context-format.md` → `docs/agents/context-format.md`
+- `rules-format.md` → `docs/agents/rules-format.md`
+- `scripts/project-knowledge.mjs` → `docs/agents/project-knowledge.mjs`
+
+任一步失败时恢复本轮已修改文件，并报告仍需人工处理的内容。
+
+## 6. 安装当前宿主 Hook
+
+三个事件都调用项目内同一入口：
+
+- `UserPromptSubmit`
+- `SessionStart`，只匹配 `compact`
+- `SubagentStart`
+
+### Codex
+
+使用 [hook-templates/codex-hooks.json](./hook-templates/codex-hooks.json) 的字段与事件结构。
+
+- 项目已有 `.codex/hooks.json` 时，解析 JSON，只合并或更新自己的三个 Hook。
+- 项目只使用 `.codex/config.toml` 内联 Hook 时，在文件末尾维护一个注释标记的自有段：
+
+  ```toml
+  # project-knowledge:start
+  <由 codex-hooks.json 等价转换的三个 Hook>
+  # project-knowledge:end
+  ```
+
+- 已有完整标记段时原位更新段内内容；不得解析或重写标记段外 TOML。
+- 两种 Codex Hook 表示同时存在时，只更新已经包含自有 Hook 的那一种；尚未安装时优先写入 `.codex/hooks.json`，并提醒用户 Codex 会合并同层两个来源。
+- Hook 命令从当前项目 Git 根定位 `docs/agents/project-knowledge.mjs`，不把安装时绝对路径作为身份。
+- 其他 Hook 和配置保持不变；发现相似但无法确认归属的条目时提醒用户，不自动删除。
+
+### Claude Code
+
+使用 [hook-templates/claude-settings.json](./hook-templates/claude-settings.json)：
+
+- `.claude/settings.json` 不存在时创建，存在时只合并 `hooks` 中自己的三个 matcher group 和 handler；
+- handler 固定使用 `command: node`、`args` 与 `${CLAUDE_PROJECT_DIR}`，不经过 shell；
+- 重复运行时原位更新同事件、同 matcher、同项目脚本参数的自有 Hook；
+- 其他设置、matcher group 和 Hook 保持原语义与顺序；JSON 损坏时停止该文件写入并提醒用户。
+
+安装后检查当前项目配置中每个事件只有一个自有 Hook。信任只做提醒：能在当前宿主真实触发就验证三个事件，不能自动确认时如实报告“Hook 待信任”，不维护额外状态文件。
+
+## 7. 切换 Agent 指令
+
+在根 `AGENTS.md`、`CLAUDE.md` 中维护以下唯一标记块；两个文件都存在时都更新，但 Hook 仍只安装当前宿主：
 
 ```markdown
+<!-- project-knowledge:start -->
+## 项目知识
 
----
+执行项目任务时，先遵循项目 Hook 注入的知识选择与加载协议；加载结果中的项目术语用于当前任务命名，项目规则必须遵守。
 
-## 领域文档
-
-<布局说明>。
-
-执行项目任务时，按以下顺序加载知识；不得只向子 Agent 转述“遵守全部规则”而不传递实际内容或可访问路径：
-
-1. 读取 `docs/agents/domain.md`、<布局入口> 和目标 Context 的 `CONTEXT.md`。
-2. 使用当前环境可用的 Python 3 入口运行 `<领域文档根目录>/docs/agents/read-rules.py`，一次性加载并遵守全部项目规则。
-
-任务中自然出现新的项目特有术语、实体或 Context 关系、规范命名或长期项目规则时，按 `docs/agents/domain.md` 的维护流程自行判断是否值得记录；不要为了维护文档而强行扩展每个任务。
-
-满足记录条件且现有文档未覆盖时，先提出候选内容、依据和落点；经用户确认且当前任务允许写入后再更新。不得借此扩大当前任务的写入范围，也不得静默覆盖与现有文档或代码冲突的内容。
+任务中出现需要长期记录或调整的项目术语、Context 关系或规则时，按 `docs/agents/domain.md` 提议和维护。
+<!-- project-knowledge:end -->
 ```
 
-写入时将 `<布局说明>` 替换为：
+- 已有完整标记块：只替换块内文本。
+- 明确匹配旧官方 `## 领域文档` 模板：在原位置迁移为标记块。
+- 旧段落包含项目定制：展示保留内容和建议结果，用户确认后合并。
+- 没有新旧入口：在文件末尾追加一次。
 
-- 单 Context：本仓库采用单 Context 布局，入口为 `docs/CONTEXT.md`
-- 多 Context：本仓库采用多 Context 布局，入口为 `docs/CONTEXT-MAP.md`
+新脚本、当前 Hook、两个 validator、`scope` 和代表性 `load` 都验证成功后，删除未定制的旧 `read-rules.py` 和旧全量读取入口。定制旧脚本未经用户确认不删除，也不得宣称迁移完成。
 
-将 `<布局入口>` 替换为：
+## 8. 完成检查
 
-- 单 Context：`docs/CONTEXT.md`
-- 多 Context：`docs/CONTEXT-MAP.md`
+- 三份文档和 `project-knowledge.mjs` 已部署；
+- 单/多 Context、Map、RULE 场景和引用通过对应 validator；
+- 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
+- Agent 指令文件各有一个完整标记块，不再执行全量 RULE 读取；
+- 从项目根及一个子目录触发时，Hook 都能提供 scope；Agent 一次 `load` 能取得完整正文；
+- 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
+- 用户原有改动和项目定制已保留。
 
-### 4. 写入领域文档基础文件
-
-将本 Skill 目录中的种子文件部署到目标仓库：
-
-- [domain.md](./domain.md) → `docs/agents/domain.md`
-- [context-format.md](./context-format.md) → `docs/agents/context-format.md`
-- [rules-format.md](./rules-format.md) → `docs/agents/rules-format.md`
-- [read-rules.py](./scripts/read-rules.py) → `docs/agents/read-rules.py`
-
-缺失的文件直接创建。已有文件默认保留，不覆盖用户修改；只有用户明确要求刷新模板时，才对比并更新。
-
-已有文件不得只因存在就跳过检查。逐项对照本 Skill 的当前种子文件，区分：
-
-- **内容定制**：项目术语、Context 列表、共享概念和关系等项目事实，必须保留；
-- **规则漂移**：与当前 `domain.md`、`context-format.md`、`rules-format.md` 冲突的旧版布局或命名规则，以及缺失的当前必备流程，必须报告。
-
-多 Context 仓库至少搜索以下旧版痕迹：Context 级 `docs/rules/`、Context 根目录下旧版 `docs/CONTEXT.md`、`Context 级 RULES`、`SYS-NN`、`<CTX>-NN`、规则文件名前缀、各层独立编号。发现规则漂移时停止自动写入，使用提问工具列出冲突文件和推荐的最小迁移；只有用户明确同意刷新或迁移后才修改，且不得覆盖项目事实。
-
-同时检查已部署的 `docs/agents/domain.md` 是否明确规定所有项目规则均必须遵守、通过 `docs/agents/read-rules.py` 一次性加载规则，并包含「维护判断与落盘」流程。任一要求缺失，或将 RULES 的适用范围缩小为当前任务相关规则时，都将其视为规则漂移。
-
-根据布局创建缺失的入口文件：
-
-- 单 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT.md` 骨架；
-- 多 Context：按 `docs/agents/context-format.md` 创建 `docs/CONTEXT-MAP.md`，并在每个已识别的 Context 根目录创建 `CONTEXT.md` 骨架。
-
-已存在的 `CONTEXT.md`、`CONTEXT-MAP.md` 不改写。
-
-### 5. 初始化领域术语
-
-仅对本次新建的 `CONTEXT.md` 执行轻量代码扫描，提炼高置信度的项目特有术语：
-
-- 排除依赖、生成物、第三方代码和通用编程概念；
-- 定义遵循 `docs/agents/context-format.md`；
-- 多 Context 下按 `docs/agents/domain.md` 确定术语归属；
-- 无法提炼出可信术语时保留空骨架，不为填充文件而制造术语。
-
-### 6. 验证并完成
-
-写入后检查：
-
-- 每个目标 Agent 指令文件中只有一个 `## 领域文档` 段落；
-- `docs/agents/domain.md`、`context-format.md`、`rules-format.md`、`read-rules.py` 均存在；
-- `docs/agents/domain.md` 明确规定所有项目规则均必须遵守、通过 `docs/agents/read-rules.py` 一次性加载规则，并包含「维护判断与落盘」流程，Agent 指令中对应入口可解析；
-- 从领域文档根目录和任一已声明 Context 目录启动时，`docs/agents/read-rules.py` 都能按文件名顺序完整输出 `docs/rules/` 下的全部 Markdown 规则，并保留文件边界；
-- 当前布局的入口文件存在；
-- 多 Context 下 `CONTEXT-MAP.md` 指向的 Context 文件真实存在；
-- 从任一已声明 Context 目录启动时，都能回溯到同一个领域文档根目录；
-- `CONTEXT-MAP.md`、`docs/agents/*.md` 与实际 `docs/rules/` 布局不存在互相矛盾的旧版规则；
-- 已有领域文档和用户修改没有被意外覆盖。
-
-最后向用户说明采用的布局、创建或更新的文件，以及初始术语提炼结果。
-
-## 重复运行
-
-- 缺失文件直接补齐；
-- Agent 指令中的 `## 领域文档` 段落更新为当前入口模板；
-- 已有领域文档和 `docs/agents/*.md` 默认保留，但必须执行规则漂移检查；
-- 布局冲突、规则漂移或需要刷新已有模板时，先交由用户确认，再做最小迁移。
+最后报告布局、创建或更新的文件、迁移的旧入口、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。

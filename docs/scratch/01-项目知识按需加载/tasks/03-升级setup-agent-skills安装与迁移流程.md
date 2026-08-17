@@ -1,5 +1,5 @@
 ---
-Status: ready-for-agent
+Status: completed
 Blocked by:
   - task: 02-接入Codex与Claude-Code项目Hook.md
     reason: 安装流程必须部署已经可验证的脚本和宿主模板
