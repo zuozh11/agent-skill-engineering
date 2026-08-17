@@ -31,49 +31,6 @@ codex plugin add agent-skill-engineering@agent-skill-engineering
 codex plugin marketplace upgrade agent-skill-engineering
 ```
 
-#### 项目级安装
-
-Codex 支持仓库级 marketplace 和项目配置层。先在目标仓库提交 `.agents/plugins/marketplace.json`：
-
-```json
-{
-  "name": "agent-skill-engineering",
-  "interface": {
-    "displayName": "Agent Skills Engineering"
-  },
-  "plugins": [
-    {
-      "name": "agent-skill-engineering",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/zuozh11/agent-skill-engineering.git",
-        "path": "./plugins/agent-skill-engineering",
-        "ref": "main"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Engineering"
-    }
-  ]
-}
-```
-
-再提交 `.codex/config.toml`，在项目配置层注册 marketplace 并启用插件：
-
-```toml
-[marketplaces.agent-skill-engineering]
-source_type = "git"
-source = "https://github.com/zuozh11/agent-skill-engineering.git"
-ref = "main"
-
-[plugins."agent-skill-engineering@agent-skill-engineering"]
-enabled = true
-```
-
-重新打开该项目或新建任务后生效。插件缓存仍在用户目录，但启用项来自项目配置，因此其他项目不会加载该插件。
-
 ### Claude Code 插件
 
 #### 全局安装
@@ -88,22 +45,6 @@ claude plugin install agent-skill-engineering@agent-skill-engineering --scope us
 ```bash
 claude plugin marketplace update agent-skill-engineering
 claude plugin update agent-skill-engineering@agent-skill-engineering --scope user
-```
-
-#### 项目级安装
-
-项目级配置会写入目标仓库的 `.claude/settings.json`，可随项目提交并共享给团队：
-
-```bash
-claude plugin marketplace add zuozh11/agent-skill-engineering --scope project
-claude plugin install agent-skill-engineering@agent-skill-engineering --scope project
-```
-
-更新：
-
-```bash
-claude plugin marketplace update agent-skill-engineering
-claude plugin update agent-skill-engineering@agent-skill-engineering --scope project
 ```
 
 ### 独立 Skill
@@ -185,7 +126,7 @@ npx skills@latest update --global
 
 > _你说一个业务词，agent 不知道它对应哪个实体、模块，就只能每次重新查代码库，或者用猜的。_
 
-**解法**：`CONTEXT.md` 沉淀项目术语、实体关系和规范命名，让 agent 先有领域词典；同时让 PRD、任务卡和代码使用同一套语言，减少术语漂移。
+**解法**：`CONTEXT.md` 沉淀项目术语、实体关系和规范命名。项目 Hook 先把可选 Context 注入会话，Agent 根据当前任务一次加载所有可能相关的范围，让 PRD、任务卡和代码使用同一套语言。
 
 ---
 
@@ -193,20 +134,22 @@ npx skills@latest update --global
 
 > _数据权限怎么做、用户信息怎么取，这类长期决策不能只留在对话里，否则后续实现很容易绕开它。_
 
-**解法**：`RULES` 记录通用的、难逆转的决策：为什么这样做、放弃什么、何时重审。所有项目规则均必须遵守，避免重复争论已经定下来的约束。
+**解法**：`RULES` 按场景记录长期规则和关键决策。项目 Hook 展示场景及文件名，Agent 选择所有可能相关的场景，单次加载并遵守其中规则，避免每个任务机械塞入全部正文。
 
 ---
 
 ## 核心概念
 
-### 领域文档
+### 项目知识
 
-工作流会读取两类项目知识：
+工作流通过 `scope → Agent 选择 → 单次 load` 使用两类项目知识：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
-- **`RULES`** — 项目规则。把项目长期有效的关键决策与约定（架构、选型、错误码、单位、命名等）显式写下来供 agent 遵守，防止实现跑偏。
+- **`RULES`** — 按场景组织的项目规则。文件名帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-> 任务中自然出现候选知识时，Agent 按全局维护规则自行判断是否值得写入 `CONTEXT.md` 或 RULES；不强制每个任务维护文档。
+`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入当前 scope。Agent 使用自然语言选择所有可能相关的 Context 和 RULE 场景，只调用一次 `project-knowledge load`；同一任务且既有范围足够时不重复加载。
+
+> Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 
 ### 项目文档布局
 
@@ -215,10 +158,14 @@ npx skills@latest update --global
 ```
 docs/
 ├── CONTEXT.md                ← 项目术语和命名约定
-├── agents/                   ← domain.md + 格式模板 + 一次性加载全部规则的 read-rules.py
+├── agents/
+│   ├── domain.md             ← 项目知识维护判断与落点
+│   ├── context-format.md     ← CONTEXT 与 CONTEXT-MAP 格式
+│   ├── rules-format.md       ← RULE 场景、命名与 references
+│   └── project-knowledge.mjs ← scope、load、hook 与 validator
 ├── rules/                    ← 项目规则（RULES）
-│   ├── 01-数据权限-按部门隔离.md
-│   └── 02-接口错误码-统一包装.md
+│   ├── A01-必读-需求范围只做明确要求的最小改动.md
+│   └── C01-保存接口-结构性入参优先使用BeanValidation.md
 └── scratch/
     └── <NN>-<中文需求名称>/     ← NN 按需求进入仓库的顺序递增
         ├── PRD.md            ← /to-prd 产出
@@ -230,7 +177,7 @@ docs/
 
 `<NN>-<中文需求名称>` 的编号表示需求工作目录在 `docs/scratch/` 下的创建顺序；中文需求名称和任务卡名称使用 `CONTEXT.md` 中的统一术语，目录内的任务卡使用独立编号。
 
-> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 指向各 Context 根目录的 `CONTEXT.md`（Context 目录位置由地图声明，不限于 `src/`）；RULES 不随 Context 拆分，始终统一放在领域文档根目录的 `docs/rules/`，并由 `docs/agents/read-rules.py` 按文件名顺序一次性加载。即使从独立子仓库启动，也要沿地图回溯到该根目录；重复运行 `/setup-agent-skills` 会检查旧版布局与当前规则是否漂移。两种布局、术语使用、规则遵守、维护判断与落盘解析统一见 `docs/agents/domain.md`。
+> 上面是单 Context 布局（大多数仓库）。monorepo（多 Context）改用 `docs/CONTEXT-MAP.md` 注册各 Context 根目录的 `CONTEXT.md`；RULE 始终统一放在领域文档根目录的 `docs/rules/`。`/setup-agent-skills` 会部署单文件脚本、只安装当前宿主的项目级 Hook，并保护已有 Agent 指令和其他 Hook。
 
 ---
 
@@ -267,7 +214,7 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 初始化领域文档基础设施，并写入维护判断入口 |
+| **[setup-agent-skills](./skills/setup-agent-skills/SKILL.md)** | 部署项目知识脚本与格式，并安装当前宿主的项目级 Hook |
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-Status: ready-for-agent
+Status: archived
 Blocked by:
   - task: 03-升级setup-agent-skills安装与迁移流程.md
     reason: 全仓旧指针只能在 V2 安装与运行入口可用后统一切换

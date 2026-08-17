@@ -1,5 +1,5 @@
 ---
-Status: completed
+Status: archived
 Blocked by:
   - task: 01-实现项目知识范围与加载命令.md
     reason: Hook 需要复用已经稳定的 scope、load 和错误结果
