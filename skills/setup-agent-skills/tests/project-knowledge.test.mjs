@@ -53,7 +53,7 @@ function largeFixture() {
   for (let sceneIndex = 0; sceneIndex < sceneCounts.length; sceneIndex += 1) {
     const code = String.fromCharCode("A".charCodeAt(0) + sceneIndex);
     for (let index = 0; index < sceneCounts[sceneIndex]; index += 1) {
-      const number = String(index).padStart(2, "0");
+      const number = String(index + 1).padStart(2, "0");
       write(target.root, `docs/rules/${code}${number}-场景${code}-规则${number}.md`, rule(`# 规则 ${number}\n\n必须遵守场景 ${code} 的规则 ${number}。\n`));
     }
   }
@@ -97,12 +97,12 @@ test("RULE 必须有 Frontmatter，正文接受一到三句并拒绝四句", (t)
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
   write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
   write(target.root, "docs/rules/A01-必读-一句规则.md", rule("# 一句规则\n\n只做明确要求。\n"));
-  write(target.root, "docs/rules/A02-必读-三句规则.md", rule("# 三句规则\n\n先确认范围。再实施修改。最后完成验证。\n"));
+  write(target.root, "docs/rules/A02-必读-三句规则.md", rule("# 三句规则\n\n先确认范围。\n再实施修改。\n最后完成验证。\n"));
 
   const valid = run(target, ["validate-rules"]);
   assert.equal(valid.status, 0, valid.stderr);
 
-  write(target.root, "docs/rules/A03-必读-四句规则.md", rule("# 四句规则\n\n第一句。第二句。第三句。第四句。\n"));
+  write(target.root, "docs/rules/A03-必读-四句规则.md", rule("# 四句规则\n\n第一句。\n第二句。\n第三句。\n第四句。\n"));
   const tooMany = run(target, ["validate-rules"]);
   assert.notEqual(tooMany.status, 0);
   assert.match(tooMany.stderr, /必须包含 1–3 句话，当前为 4 句/);
@@ -112,6 +112,48 @@ test("RULE 必须有 Frontmatter，正文接受一到三句并拒绝四句", (t)
   const missing = run(target, ["validate-rules"]);
   assert.notEqual(missing.status, 0);
   assert.match(missing.stderr, /RULE 必须提供 references Frontmatter/);
+});
+
+test("RULE 正文拒绝同一行多句和单句跨行", (t) => {
+  const cases = [
+    ["同一行多句", "# 同一行多句\n\n第一句。第二句。\n"],
+    ["单句跨行", "# 单句跨行\n\n这句话被错误地\n拆成两行。\n"],
+  ];
+  for (const [name, body] of cases) {
+    const target = fixture();
+    t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+    write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+    write(target.root, `docs/rules/A01-必读-${name}.md`, rule(body));
+    const result = run(target, ["validate-rules"]);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /每句话必须独占一个非空行/);
+  }
+});
+
+test("RULE 每个场景必须从 01 连续编号", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+  write(target.root, "docs/rules/A01-必读-第一条.md", rule("# 第一条\n\n必须执行第一条。\n"));
+  write(target.root, "docs/rules/A03-必读-第三条.md", rule("# 第三条\n\n必须执行第三条。\n"));
+  write(target.root, "docs/rules/B01-查询接口-第一条.md", rule("# 第一条\n\n必须执行查询规则。\n"));
+
+  const gap = run(target, ["validate-rules"]);
+  assert.notEqual(gap.status, 0);
+  assert.match(gap.stderr, /场景 A 编号必须从 01 连续，当前为 01、03/);
+  assert.doesNotMatch(gap.stderr, /场景 B 编号必须/);
+
+  fs.renameSync(
+    path.join(target.root, "docs/rules/A03-必读-第三条.md"),
+    path.join(target.root, "docs/rules/A02-必读-第三条.md"),
+  );
+  fs.renameSync(
+    path.join(target.root, "docs/rules/A01-必读-第一条.md"),
+    path.join(target.root, "docs/rules/A00-必读-第一条.md"),
+  );
+  const zero = run(target, ["validate-rules"]);
+  assert.notEqual(zero.status, 0);
+  assert.match(zero.stderr, /场景 A 编号必须从 01 连续，当前为 00、02/);
 });
 
 test("RULE 正文拒绝分号串联、长清单和多章节", (t) => {
@@ -178,7 +220,7 @@ test("普通引用文件形成循环时只提醒并保证每个文件输出一�
   write(target.root, "knowledge/first.md", `${references(["second.md"])}# 第一份知识\n`);
   write(target.root, "knowledge/second.md", `${references(["first.md"])}# 第二份知识\n`);
 
-  const result = run(target, ["load", "--rule", "A"]);
+  const result = run(target, ["load", "--rule", "A01"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stderr, /references 引用环/);
   assert.equal(result.stdout.match(/===== knowledge\/first\.md =====/g)?.length, 1);
@@ -239,13 +281,13 @@ test("40 条原子 RULE fixture 的最后一条正文完整返回", (t) => {
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
   write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
   for (let index = 0; index < 40; index += 1) {
-    const number = String(index).padStart(2, "0");
-    write(target.root, `docs/rules/A${number}-必读-规则${number}.md`, rule(`# 规则 ${number}\n\n${"正文".repeat(20)}。${"补充".repeat(20)}。${"验收".repeat(20)}。\n`));
+    const number = String(index + 1).padStart(2, "0");
+    write(target.root, `docs/rules/A${number}-必读-规则${number}.md`, rule(`# 规则 ${number}\n\n${"正文".repeat(20)}。\n${"补充".repeat(20)}。\n${"验收".repeat(20)}。\n`));
   }
   const result = run(target, ["load", "--rule", "A"]);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /===== docs\/rules\/A39-必读-规则39\.md =====/);
-  assert.ok(result.stdout.endsWith(`${"正文".repeat(20)}。${"补充".repeat(20)}。${"验收".repeat(20)}。\n`));
+  assert.match(result.stdout, /===== docs\/rules\/A40-必读-规则40\.md =====/);
+  assert.ok(result.stdout.endsWith(`${"正文".repeat(20)}。\n${"补充".repeat(20)}。\n${"验收".repeat(20)}。\n`));
 });
 
 test("8 Context、66 RULE、10 场景的 compact scope 足以构造 load", (t) => {
@@ -275,14 +317,123 @@ test("8 Context、66 RULE、10 场景的 compact scope 足以构造 load", (t) =
   assert.equal(loadResult.stdout.match(/===== docs\/rules\/A/g)?.length, 7);
 });
 
+test("scope --rules 支持多场景重复下钻并按原子 ID 稳定排序", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+  write(target.root, "docs/rules/A01-必读-第一条.md", rule("# 第一条标题\n\n必须执行第一条。\n"));
+  write(target.root, "docs/rules/A02-必读-第二条.md", rule("# 第二条标题\n\n必须执行第二条。\n"));
+  write(target.root, "docs/rules/B01-查询接口-查询约束.md", rule("# 查询约束标题\n\n查询必须遵守约束。\n"));
+
+  const result = run(target, ["scope", "--rules", "B", "--rules", "A", "--rules", "A"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), {
+    rule_options: [
+      { id: "A01", title: "第一条标题" },
+      { id: "A02", title: "第二条标题" },
+      { id: "B01", title: "查询约束标题" },
+    ],
+  });
+  assert.doesNotMatch(result.stdout, /docs\/rules|正文|必须执行/);
+
+  const unknown = run(target, ["scope", "--rules", "Z"]);
+  assert.notEqual(unknown.status, 0);
+  assert.match(unknown.stderr, /未知 RULE 场景 Z/);
+});
+
+test("原子 load 递归跨场景引用，场景与原子混合选择按真实路径去重", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域", "# 单一业务领域\n\n共享概念正文。\n"));
+  write(target.root, "docs/rules/A01-必读-基础规则.md", rule("# 基础规则\n\n必须遵守基础规则。\n"));
+  write(target.root, "docs/rules/A02-必读-跨场景入口.md", rule("# 跨场景入口\n\n必须加载查询规则。\n", ["B01-查询接口-查询规则.md"]));
+  write(target.root, "docs/rules/B01-查询接口-查询规则.md", rule("# 查询规则\n\n查询必须加载普通契约。\n", ["../../knowledge/query-contract.md"]));
+  write(target.root, "knowledge/query-contract.md", `${references()}# 普通契约\n\n普通文件 Frontmatter 和标题必须保留。\n`);
+
+  const atomic = run(target, ["load", "--compact", "--rule", "A02"]);
+  assert.equal(atomic.status, 0, atomic.stderr);
+  assert.doesNotMatch(atomic.stdout, /RULE A01/);
+  assert.match(atomic.stdout, /## RULE A02 · 跨场景入口/);
+  assert.match(atomic.stdout, /## RULE B01 · 查询规则/);
+  assert.match(atomic.stdout, /## REFERENCE knowledge\/query-contract\.md\n\n---\nreferences: \[\]\n---\n# 普通契约/);
+
+  const wholeScene = run(target, ["load", "--compact", "--rule", "A"]);
+  assert.equal(wholeScene.status, 0, wholeScene.stderr);
+  assert.ok(atomic.stdout.length < wholeScene.stdout.length);
+
+  const mixed = run(target, ["load", "--compact", "--rule", "A", "--rule", "A02", "--rule", "B01", "--rule", "A01"]);
+  assert.equal(mixed.status, 0, mixed.stderr);
+  assert.equal(mixed.stdout.match(/## RULE A01/g)?.length, 1);
+  assert.equal(mixed.stdout.match(/## RULE A02/g)?.length, 1);
+  assert.equal(mixed.stdout.match(/## RULE B01/g)?.length, 1);
+
+  const unknownId = run(target, ["load", "--compact", "--rule", "A99"]);
+  assert.notEqual(unknownId.status, 0);
+  assert.equal(unknownId.stdout, "");
+  assert.match(unknownId.stderr, /未知 RULE ID A99/);
+
+  const ambiguous = run(target, ["load", "--compact", "--rule", "A1"]);
+  assert.notEqual(ambiguous.status, 0);
+  assert.equal(ambiguous.stdout, "");
+  assert.match(ambiguous.stderr, /无效 RULE 选择 A1/);
+});
+
+test("compact load 精简 Map、Context 与 RULE，完整 load 保持原文", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT-MAP.md", "# 项目 Context Map\n\n## Shared Concepts\n\n共享概念保留。\n\n## Contexts\n\n- [订单](../ordering/CONTEXT.md)\n- [结算](../billing/CONTEXT.md)\n\n## Relationships\n\n- 订单 -> 结算\n");
+  write(target.root, "ordering/CONTEXT.md", context("订单服务", "# 订单 Context\n\n订单正文第一句。\n订单正文第二句。\n"));
+  write(target.root, "billing/CONTEXT.md", context("结算服务", "# 结算 Context\n\n结算正文。\n"));
+  write(target.root, "docs/rules/A01-必读-项目约束.md", rule("# 项目约束标题\n\n第一句保持原行。\n第二句保持原行。\n", ["../CONTEXT-MAP.md"]));
+
+  const compact = run(target, ["load", "--compact", "--context", "ordering/CONTEXT.md", "--rule", "A01"]);
+  assert.equal(compact.status, 0, compact.stderr);
+  assert.match(compact.stdout, /## CONTEXT-MAP docs\/CONTEXT-MAP\.md/);
+  assert.match(compact.stdout, /## Shared Concepts[\s\S]*共享概念保留。/);
+  assert.match(compact.stdout, /## Relationships[\s\S]*订单 -> 结算/);
+  assert.doesNotMatch(compact.stdout, /## Contexts|- \[订单\]/);
+  assert.match(compact.stdout, /## CONTEXT 订单服务\n\n订单正文第一句。\n订单正文第二句。/);
+  assert.match(compact.stdout, /## RULE A01 · 项目约束标题\n\n第一句保持原行。\n第二句保持原行。/);
+  assert.doesNotMatch(compact.stdout, /description:|references:|# 订单 Context|# 项目约束标题/);
+
+  const full = run(target, ["load", "--context", "ordering/CONTEXT.md", "--rule", "A01"]);
+  assert.equal(full.status, 0, full.stderr);
+  assert.match(full.stdout, /===== docs\/CONTEXT-MAP\.md =====[\s\S]*## Contexts/);
+  assert.match(full.stdout, /===== ordering\/CONTEXT\.md =====\n---\ndescription: 订单服务\n---\n# 订单 Context/);
+  assert.match(full.stdout, /===== docs\/rules\/A01-[\s\S]*references:[\s\S]*\.\.\/CONTEXT-MAP\.md[\s\S]*# 项目约束标题/);
+  assert.ok(compact.stdout.length < full.stdout.length);
+});
+
+test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", "# 损坏的 Context\n");
+
+  const short = run(target, ["-h"]);
+  const long = run(target, ["--help"]);
+  assert.equal(short.status, 0, short.stderr);
+  assert.equal(long.status, 0, long.stderr);
+  assert.equal(short.stdout, long.stdout);
+  assert.match(short.stdout, /scope --compact/);
+  assert.match(short.stdout, /scope --rules <场景码> \[--rules <场景码> \.\.\.\]/);
+  assert.match(short.stdout, /load \[--compact\]/);
+  assert.match(short.stdout, /场景码加载整个场景，RULE ID 只加载该 RULE/);
+
+  for (const args of [["scope", "--unknown"], ["load", "--unknown"]]) {
+    const result = run(target, args);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /--help 查看用法/);
+  }
+});
+
 test("三个 Hook 只返回小型延迟选择协议", (t) => {
   const target = largeFixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
 
   const expectations = new Map([
-    ["UserPromptSubmit", /同一任务且已加载范围完整覆盖时直接继续；否则/],
-    ["SessionStart", /上下文已压缩/],
-    ["SubagentStart", /当前子任务/],
+    ["UserPromptSubmit", /同任务知识已覆盖则继续；否则/],
+    ["SessionStart", /压缩后/],
+    ["SubagentStart", /本子任务/],
   ]);
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
@@ -297,9 +448,12 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     assert.equal(claudeContext, codexContext);
     assert.match(codexContext, expectations.get(event));
     assert.match(codexContext, /scope --compact/);
-    assert.match(codexContext, /只执行一次 load/);
+    assert.match(codexContext, /scope --rules <code>/);
+    assert.match(codexContext, /一次 load --compact/);
+    assert.match(codexContext, /完整正文必须遵守/);
+    assert.match(codexContext, /疑问\/报错：--help/);
     assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\//);
-    assert.ok(codexContext.length <= 360, `${event} Hook 文案 ${codexContext.length} 字符`);
+    assert.ok(codexContext.length <= 380, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
 });
 
@@ -332,7 +486,7 @@ test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
   const result = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(output, /项目知识脚本：'\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs'/);
+  assert.match(output, /脚本：'\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs'/);
   assert.match(output, /scope --compact/);
 });
 

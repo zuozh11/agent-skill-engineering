@@ -125,6 +125,14 @@ function parseReferences(raw, fileLabel, errors, required = false) {
   return references;
 }
 
+function splitSentences(value) {
+  return value
+    .replace(/(?:[。！？!?]+|[.]+(?=\s|$))/g, "$&\n")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function validateRuleBody(raw, fileLabel, errors) {
   const normalized = raw.replaceAll("\r\n", "\n");
   const frontmatterEnd = normalized.startsWith("---\n") ? normalized.indexOf("\n---\n", 4) : -1;
@@ -144,30 +152,16 @@ function validateRuleBody(raw, fileLabel, errors) {
     errors.push(`${fileLabel}：RULE 正文不得使用分号串联多个约束，请拆成多个原子 RULE`);
   }
 
-  const blocks = [];
-  let paragraph = [];
-  function flushParagraph() {
-    if (paragraph.length) blocks.push(paragraph.join(" ").trim());
-    paragraph = [];
+  const proseLines = contentLines
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^(?:[-*+]|\d+[.)])\s+/, ""));
+  const sentenceLines = proseLines.map((line) => splitSentences(line));
+  if (sentenceLines.some((sentences) => sentences.length !== 1)
+      || proseLines.some((line) => !/(?:[。！？!?]|[.])$/.test(line))) {
+    errors.push(`${fileLabel}：RULE 正文每句话必须独占一个非空行并以句末标点结束`);
   }
-  for (const line of contentLines) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      flushParagraph();
-    } else if (/^(?:[-*+]|\d+[.)])\s+\S/.test(trimmed)) {
-      flushParagraph();
-      blocks.push(trimmed.replace(/^(?:[-*+]|\d+[.)])\s+/, ""));
-    } else {
-      paragraph.push(trimmed);
-    }
-  }
-  flushParagraph();
-
-  const sentences = blocks.flatMap((block) => block
-    .replace(/(?:[。！？!?]+|[.]+(?=\s|$))/g, "$&\n")
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean));
+  const sentences = sentenceLines.flat();
   if (sentences.length < 1 || sentences.length > 3) {
     errors.push(`${fileLabel}：RULE 正文必须包含 1–3 句话，当前为 ${sentences.length} 句`);
   }
@@ -265,7 +259,7 @@ function parseRules(errors) {
       errors.push(`${label}：文件名不符合“场景编码+两位编号-场景名称-规则名称.md”`);
       continue;
     }
-    const [, code, number, sceneName] = match;
+    const [, code, number, sceneName, ruleName] = match;
     const encoding = `${code}${number}`;
     if (encodings.has(encoding)) errors.push(`${label}：完整编码 ${encoding} 重复`);
     encodings.add(encoding);
@@ -280,10 +274,14 @@ function parseRules(errors) {
     const absolutePath = path.join(RULES_DIR, filename);
     const raw = fs.readFileSync(absolutePath, "utf8");
     validateRuleBody(raw, label, errors);
+    const title = withoutFirstH1(raw).title ?? ruleName;
     rules.push({
       code,
       number: Number(number),
+      id: encoding,
       sceneName,
+      ruleName,
+      title,
       filename,
       path: label,
       absolutePath,
@@ -292,7 +290,21 @@ function parseRules(errors) {
     });
   }
 
+  const numbersByScene = new Map();
+  for (const rule of rules) {
+    if (!numbersByScene.has(rule.code)) numbersByScene.set(rule.code, []);
+    numbersByScene.get(rule.code).push(rule.number);
+  }
+  for (const [code, numbers] of numbersByScene) {
+    const sorted = [...numbers].sort((left, right) => left - right);
+    if (sorted.some((number, index) => number !== index + 1)) {
+      errors.push(`RULE 场景 ${code} 编号必须从 01 连续，当前为 ${sorted.map((number) => String(number).padStart(2, "0")).join("、")}`);
+    }
+  }
+
   const documents = new Map(rules.map((rule) => [fs.realpathSync(rule.absolutePath), {
+    kind: "rule",
+    rule,
     path: rule.path,
     absolutePath: fs.realpathSync(rule.absolutePath),
     raw: rule.raw,
@@ -317,6 +329,7 @@ function parseRules(errors) {
         const targetPath = relativeToRoot(realPath);
         const raw = fs.readFileSync(realPath, "utf8");
         target = {
+          kind: "reference",
           path: targetPath,
           absolutePath: realPath,
           raw,
@@ -368,8 +381,9 @@ function buildKnowledge() {
 
   const fixedRealPath = resolveExistingFile(layout.fixedPath, ROOT, relativeToRoot(layout.fixedPath), contextErrors);
   let contexts = [];
+  let fixedDescription = null;
   if (layout.mode === "single" && fixedRealPath) {
-    parseContextDescription(fs.readFileSync(fixedRealPath, "utf8"), "docs/CONTEXT.md", contextErrors);
+    fixedDescription = parseContextDescription(fs.readFileSync(fixedRealPath, "utf8"), "docs/CONTEXT.md", contextErrors);
   }
   if (layout.mode === "multiple" && fixedRealPath) {
     contexts = parseContextMap(fixedRealPath, contextErrors).map((context) => ({
@@ -382,6 +396,7 @@ function buildKnowledge() {
     adopted: true,
     mode: layout.mode,
     fixedPath: fixedRealPath,
+    fixedDescription,
     contexts,
     rules,
     documents,
@@ -424,28 +439,120 @@ function createScope(knowledge, compact = false) {
   };
 }
 
+function createRuleScope(knowledge, sceneCodes) {
+  const knownScenes = new Set(knowledge.rules.map((rule) => rule.code));
+  const errors = sceneCodes
+    .filter((code) => !knownScenes.has(code))
+    .map((code) => `scope --rules：未知 RULE 场景 ${code}`);
+  if (errors.length) throw new KnowledgeError(errors);
+  const selectedScenes = new Set(sceneCodes);
+  return {
+    rule_options: knowledge.rules
+      .filter((rule) => selectedScenes.has(rule.code))
+      .sort((left, right) => compareUtf8(left.id, right.id))
+      .map((rule) => ({ id: rule.id, title: rule.title })),
+  };
+}
+
+function helpHint() {
+  const quote = process.platform === "win32" ? quoteWindows : quotePosix;
+  return `运行 node ${quote(SCRIPT_PATH)} --help 查看用法`;
+}
+
+function argumentError(message) {
+  return new KnowledgeError([`${message}；${helpHint()}`]);
+}
+
+function parseScopeArguments(args) {
+  if (!args.length) return { mode: "full", scenes: [] };
+  if (args.length === 1 && args[0] === "--compact") return { mode: "compact", scenes: [] };
+  const scenes = [];
+  for (let index = 0; index < args.length; index += 1) {
+    if (args[index] !== "--rules") throw argumentError(`scope：未知参数 ${args[index]}`);
+    const value = args[index + 1];
+    if (!value || value.startsWith("--")) throw argumentError("scope：--rules 缺少场景码");
+    if (!/^[A-Z]+$/.test(value)) throw argumentError(`scope：无效 RULE 场景码 ${value}`);
+    scenes.push(value);
+    index += 1;
+  }
+  return { mode: "rules", scenes: [...new Set(scenes)] };
+}
+
 function parseLoadArguments(args) {
   const contexts = [];
   const rules = [];
+  let compact = false;
   for (let index = 0; index < args.length; index += 1) {
     const option = args[index];
+    if (option === "--compact") {
+      if (compact) throw argumentError("load：--compact 不能重复");
+      compact = true;
+      continue;
+    }
     if (option !== "--context" && option !== "--rule") {
-      throw new KnowledgeError([`load：未知参数 ${option}`]);
+      throw argumentError(`load：未知参数 ${option}`);
     }
     const value = args[index + 1];
     if (!value || value.startsWith("--")) {
-      throw new KnowledgeError([`load：${option} 缺少值`]);
+      throw argumentError(`load：${option} 缺少值`);
     }
     (option === "--context" ? contexts : rules).push(value);
     index += 1;
   }
-  return { contexts: [...new Set(contexts)], rules: [...new Set(rules)] };
+  return { contexts: [...new Set(contexts)], rules: [...new Set(rules)], compact };
+}
+
+function bodyWithoutFrontmatter(raw) {
+  const normalized = raw.replaceAll("\r\n", "\n");
+  if (!normalized.startsWith("---\n")) return normalized;
+  const end = normalized.indexOf("\n---\n", 4);
+  return end < 0 ? normalized : normalized.slice(end + 5);
+}
+
+function withoutFirstH1(raw) {
+  const lines = bodyWithoutFrontmatter(raw).split("\n");
+  const index = lines.findIndex((line) => /^#\s+\S/.test(line));
+  const title = index < 0 ? null : lines[index].replace(/^#\s+/, "").trim();
+  if (index >= 0) lines.splice(index, 1);
+  return { title, body: lines.join("\n").replace(/^\n+|\n+$/g, "") };
+}
+
+function compactContextMap(raw) {
+  const lines = withoutFirstH1(raw).body.split("\n");
+  const start = lines.findIndex((line) => line === "## Contexts");
+  if (start >= 0) {
+    let end = start + 1;
+    while (end < lines.length && !lines[end].startsWith("## ")) end += 1;
+    lines.splice(start, end - start);
+  }
+  return lines.join("\n").replace(/^\n+|\n+$/g, "");
+}
+
+function renderCompactDocument(document) {
+  const raw = fs.readFileSync(document.absolutePath, "utf8");
+  if (document.kind === "map") {
+    return `## CONTEXT-MAP ${document.path}\n\n${compactContextMap(raw)}`.replace(/\n+$/u, "");
+  }
+  if (document.kind === "context") {
+    const body = withoutFirstH1(raw).body;
+    return `## CONTEXT ${document.description}\n\n${body}`.replace(/\n+$/u, "");
+  }
+  if (document.kind === "rule") {
+    const stripped = withoutFirstH1(raw);
+    return `## RULE ${document.rule.id} · ${document.rule.title}\n\n${stripped.body}`.replace(/\n+$/u, "");
+  }
+  return `## REFERENCE ${document.path}\n\n${raw.replace(/[\r\n]+$/u, "")}`;
 }
 
 function renderLoad(knowledge, args) {
   const selection = parseLoadArguments(args);
   const contextByPath = new Map(knowledge.contexts.map((context) => [context.path, context]));
-  const sceneCodes = new Set(knowledge.rules.map((rule) => rule.code));
+  const rulesById = new Map(knowledge.rules.map((rule) => [rule.id, rule]));
+  const rulesByScene = new Map();
+  for (const rule of knowledge.rules) {
+    if (!rulesByScene.has(rule.code)) rulesByScene.set(rule.code, []);
+    rulesByScene.get(rule.code).push(rule);
+  }
   const errors = [];
 
   if (knowledge.mode === "single" && selection.contexts.length) {
@@ -457,14 +564,23 @@ function renderLoad(knowledge, args) {
   for (const contextPath of selection.contexts) {
     if (!contextByPath.has(contextPath)) errors.push(`load：未知 Context ${contextPath}`);
   }
-  for (const code of selection.rules) {
-    if (!sceneCodes.has(code)) errors.push(`load：未知 RULE 场景 ${code}`);
+  const selectedRules = new Set();
+  for (const value of selection.rules) {
+    if (rulesByScene.has(value)) {
+      for (const rule of rulesByScene.get(value)) selectedRules.add(rule);
+    } else if (rulesById.has(value)) {
+      selectedRules.add(rulesById.get(value));
+    } else if (/^[A-Z]+[0-9]{2}$/.test(value)) {
+      errors.push(`load：未知 RULE ID ${value}`);
+    } else if (/^[A-Z]+$/.test(value)) {
+      errors.push(`load：未知 RULE 场景 ${value}`);
+    } else {
+      errors.push(`load：无效 RULE 选择 ${value}`);
+    }
   }
   if (errors.length) throw new KnowledgeError(errors);
 
-  const selectedDocuments = new Set(knowledge.rules
-    .filter((rule) => selection.rules.includes(rule.code))
-    .map((rule) => fs.realpathSync(rule.absolutePath)));
+  const selectedDocuments = new Set([...selectedRules].map((rule) => fs.realpathSync(rule.absolutePath)));
   const pending = [...selectedDocuments];
   while (pending.length) {
     const realPath = pending.pop();
@@ -478,18 +594,32 @@ function renderLoad(knowledge, args) {
 
   const documents = new Map();
   function addDocument(document) {
-    documents.set(fs.realpathSync(document.absolutePath), document);
+    const realPath = fs.realpathSync(document.absolutePath);
+    if (!documents.has(realPath)) documents.set(realPath, document);
   }
-  addDocument({ path: relativeToRoot(knowledge.fixedPath), absolutePath: knowledge.fixedPath });
+  addDocument({
+    kind: knowledge.mode === "single" ? "context" : "map",
+    path: relativeToRoot(knowledge.fixedPath),
+    absolutePath: knowledge.fixedPath,
+    description: knowledge.fixedDescription,
+  });
   if (knowledge.mode === "multiple") {
     for (const context of knowledge.contexts) {
-      if (selection.contexts.includes(context.path)) addDocument({ path: context.path, absolutePath: context.realPath });
+      if (selection.contexts.includes(context.path)) addDocument({
+        kind: "context",
+        path: context.path,
+        absolutePath: context.realPath,
+        description: context.description,
+      });
     }
   }
   for (const realPath of [...selectedDocuments].sort((left, right) => compareUtf8(relativeToRoot(left), relativeToRoot(right)))) {
     addDocument(knowledge.documents.get(realPath));
   }
 
+  if (selection.compact) {
+    return [...documents.values()].map(renderCompactDocument).join("\n\n") + "\n";
+  }
   return [...documents.values()].map((document) => {
     const raw = fs.readFileSync(document.absolutePath, "utf8");
     return `===== ${document.path} =====\n${raw.replace(/[\r\n]+$/u, "")}`;
@@ -522,22 +652,55 @@ function quoteWindows(value) {
   return result + "\\".repeat(backslashes * 2) + '"';
 }
 
+function renderHelp() {
+  const quote = process.platform === "win32" ? quoteWindows : quotePosix;
+  const script = quote(SCRIPT_PATH);
+  return `项目知识命令
+
+用法：
+  node ${script} validate-context
+  node ${script} validate-rules
+  node ${script} scope
+  node ${script} scope --compact
+  node ${script} scope --rules <场景码> [--rules <场景码> ...]
+  node ${script} load [--compact] [--context <path>]... [--rule <场景码|RULE ID>]...
+  node ${script} hook
+
+选择：
+  scope              输出完整候选范围，保留 RULE 路径用于诊断。
+  scope --compact    输出 Context path/显示名与 RULE 场景 code/name/count。
+  scope --rules      按场景下钻原子 RULE；--rules 可重复，多场景与重复值去重，结果按 RULE ID 排序。
+
+加载：
+  load               输出带文件边界的完整原文，用于诊断与兼容。
+  load --compact     输出紧凑语义标题，省略 Context/RULE 元数据与重复标题。
+  --context          多 Context 项目必选且可重复，值来自 scope 的 context_options[].path。
+  --rule             可重复；场景码只含大写字母，RULE ID 为场景码加两位编号，两者无歧义。
+                     场景码加载整个场景，RULE ID 只加载该 RULE；混合与重复选择按真实路径去重。
+  references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
+
+示例：
+  node ${script} scope --rules A --rules H
+  node ${script} load --compact --context services/order/CONTEXT.md --rule A03 --rule H
+`;
+}
+
 function eventInstruction(eventName) {
   if (eventName === "UserPromptSubmit") {
-    return "同一任务且已加载范围完整覆盖时直接继续；否则用 Node 运行该脚本的 scope --compact，选择全部可能相关项，按 path/code 传入 --context/--rule，只执行一次 load。";
+    return "同任务知识已覆盖则继续；否则 scope --compact 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
   }
   if (eventName === "SessionStart") {
-    return "上下文已压缩；用 Node 运行该脚本的 scope --compact，根据当前任务选择全部可能相关项，按 path/code 传入 --context/--rule，只执行一次 load。";
+    return "压缩后 scope --compact 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
   }
   if (eventName === "SubagentStart") {
-    return "先为当前子任务用 Node 运行该脚本的 scope --compact，选择全部可能相关项，按 path/code 传入 --context/--rule，只执行一次 load。";
+    return "本子任务 scope --compact 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
   }
   throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
 }
 
 function renderHookContext(hookInput) {
   const quote = process.platform === "win32" ? quoteWindows : quotePosix;
-  return `项目知识脚本：${quote(SCRIPT_PATH)}\n${eventInstruction(hookInput.hook_event_name)}`;
+  return `脚本：${quote(SCRIPT_PATH)}\n${eventInstruction(hookInput.hook_event_name)}`;
 }
 
 function warningCommand(messages) {
@@ -585,12 +748,25 @@ function runHook() {
 
 function main() {
   const [command, ...args] = process.argv.slice(2);
-  if (!command) throw new KnowledgeError(["缺少子命令：validate-context、validate-rules、scope、load 或 hook"]);
+  if (command === "-h" || command === "--help") {
+    if (args.length) throw argumentError(`${command} 不接受参数`);
+    process.stdout.write(renderHelp());
+    return;
+  }
+  if (!command) throw argumentError("缺少子命令");
   if (command === "hook") {
-    if (args.length) throw new KnowledgeError(["hook 不接受参数"]);
+    if (args.length) throw argumentError("hook 不接受参数");
     runHook();
     return;
   }
+  if (!["validate-context", "validate-rules", "scope", "load"].includes(command)) {
+    throw argumentError(`未知子命令：${command}`);
+  }
+  if ((command === "validate-context" || command === "validate-rules") && args.length) {
+    throw argumentError(`${command} 不接受参数`);
+  }
+  const scopeSelection = command === "scope" ? parseScopeArguments(args) : null;
+  if (command === "load") parseLoadArguments(args);
   const knowledge = buildKnowledge();
 
   if (command === "validate-context") {
@@ -604,17 +780,14 @@ function main() {
     process.stdout.write(`RULE 校验通过（${knowledge.rules.length} 条）\n`);
     return;
   }
-  if (command !== "scope" && command !== "load") {
-    throw new KnowledgeError([`未知子命令：${command}`]);
-  }
   if (!knowledge.adopted) return;
   assertValid(knowledge);
   printWarnings(knowledge.cycles);
   if (command === "scope") {
-    if (args.length > 1 || (args.length === 1 && args[0] !== "--compact")) {
-      throw new KnowledgeError(["scope 只接受可选参数 --compact"]);
-    }
-    process.stdout.write(`${JSON.stringify(createScope(knowledge, args[0] === "--compact"))}\n`);
+    const output = scopeSelection.mode === "rules"
+      ? createRuleScope(knowledge, scopeSelection.scenes)
+      : createScope(knowledge, scopeSelection.mode === "compact");
+    process.stdout.write(`${JSON.stringify(output)}\n`);
     return;
   }
   process.stdout.write(renderLoad(knowledge, args));

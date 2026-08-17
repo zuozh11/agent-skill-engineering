@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。Hook 只注入延迟选择协议；Agent 需要加载时先运行 `scope --compact`，再根据当前任务一次加载所有可能相关的 Context 和 RULE 场景。
+为目标仓库部署项目知识基础设施。Hook 只注入延迟选择协议；Agent 运行 `scope --compact` 发现范围，按需用 `scope --rules` 下钻原子 RULE，最后只运行一次 `load --compact`。
 
 本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
 
@@ -34,8 +34,8 @@ disable-model-invocation: true
 
 - 创建或更新三份格式文档与 `project-knowledge.mjs`；
 - 需要补充或修正的 Context `description`、需要规范的 Map 链接；`description` 直接使用现有 Map 链接文本、Context 标题或项目既有服务名作为发现列表显示名，不把长业务职责搬入该字段；
-- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；每个 RULE 都补齐 Frontmatter，无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径；
-- 正文超过三句话、使用长清单或多章节的 RULE 需要压缩或拆分；先逐项记录原约束，拆出的每个原子 RULE 保持一到三句话并通过 `references` 保留关系，迁移前后语义不得遗漏；
+- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；每个场景从 `01` 连续重编号，在同一候选变更中同步全部入向引用；每个 RULE 都补齐 Frontmatter，无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径；
+- 正文超过三句话、同一行包含多句、单句跨行、使用长清单或多章节的 RULE 需要压缩、重排或拆分；先逐项记录原约束，拆出的每个原子 RULE 保持一到三句话、每句话独占一行，并通过 `references` 保留关系，迁移前后语义不得遗漏；
 - 旧 Agent 指令、`read-rules.py` 和旧 Hook 的去留；
 - 当前宿主需要新增或更新的三个 Hook。
 
@@ -58,7 +58,7 @@ disable-model-invocation: true
 在临时目录复制本次迁移涉及的知识文件，先生成完整候选结果，不直接改真实项目：
 
 1. 部署本 Skill 的三份文档和 `scripts/project-knowledge.mjs`。
-2. 保留 Context 正文、共享概念和 Relationships；按迁移清单压缩或拆分 RULE，并逐项核对原约束仍有对应落点；同时递归检查所有引用目标的 `references`，确认缺失、越界和循环均能被验证器明确处理。
+2. 保留 Context 正文、共享概念和 Relationships；按迁移清单压缩、拆分、连续重编号 RULE，并同步全部入向 `references`，逐项核对原约束仍有对应落点；同时递归检查所有引用目标，确认缺失、越界和循环均能被验证器明确处理。
 3. 在候选根运行：
 
    ```bash
@@ -66,9 +66,10 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs validate-rules
    node docs/agents/project-knowledge.mjs scope
    node docs/agents/project-knowledge.mjs scope --compact
+   node docs/agents/project-knowledge.mjs scope --rules <代表性场景码>
    ```
 
-4. 从 `scope` 选择一个代表性 Context 和 RULE 场景执行一次 `load`；项目没有 RULE 时只验证固定 Context 文档。
+4. 从 `scope` 选择一个代表性 Context，并从 `scope --rules` 选择原子 RULE，执行一次 `load --compact`；另执行一次完整 `load` 验证兼容输出。项目没有 RULE 时只验证固定 Context 文档。
 
 Node 不可用或候选验证失败时，给出直接错误和失败命令，删除临时快照，真实项目保持不变。
 
@@ -124,11 +125,11 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 
 三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入脚本位置和延迟选择协议：
 
-- `UserPromptSubmit`：同一任务且已加载范围完整覆盖时直接继续；否则先运行 `scope --compact`，重新选择完整范围并只运行一次 `load`。
-- `SessionStart(compact)`：根据压缩后保留的任务先运行 `scope --compact`，再只运行一次 `load`。
-- `SubagentStart`：根据当前子任务先运行 `scope --compact`，再只运行一次 `load`。
+- `UserPromptSubmit`：同一任务且已加载范围完整覆盖时继续；否则运行 `scope --compact`，按需用 `scope --rules` 下钻，最终只运行一次 `load --compact`。
+- `SessionStart(compact)`：根据压缩后保留的任务重新发现和下钻范围，最终只运行一次 `load --compact`。
+- `SubagentStart`：根据当前子任务独立发现和下钻范围，最终只运行一次 `load --compact`。
 
-完整 `scope` 仅用于诊断；运行时选择使用 `scope --compact`。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
+Hook 不要求标准流程先调用帮助。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，运行 `node docs/agents/project-knowledge.mjs --help`。完整 `scope` 与 `load` 仅用于诊断；Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
 
 ## 7. 切换 Agent 指令
 
@@ -154,11 +155,11 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 ## 8. 完成检查
 
 - 三份文档和 `project-knowledge.mjs` 已部署；
-- 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；每个 RULE 都有 Frontmatter且正文为一到三句话，Context `description` 是发现列表显示名；
+- 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；每个场景从 `01` 连续编号，每个 RULE 都有 Frontmatter且正文为一到三句话、每句话独占一行，Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
 - Agent 指令文件各有一个完整标记块，不再执行全量 RULE 读取；
-- 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope --compact` 足以构造一次 `load`，完整正文和递归引用仍由该次 `load` 返回；
+- 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope --compact` 与 `scope --rules` 足以构造一次 `load --compact`，完整正文和递归引用仍由该次加载返回；
 - 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
 - 用户原有改动和项目定制已保留。
 
-最后报告布局、创建或更新的文件、迁移前后 RULE 数量、超长 RULE 检查结果、跨目录递归加载证据、迁移的旧入口、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。
+最后报告布局、创建或更新的文件、迁移前后 RULE 数量、编号与正文检查、原子下钻和紧凑加载证据、跨目录递归加载证据、重复运行的幂等结果、迁移的旧入口、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。
