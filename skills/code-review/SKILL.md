@@ -51,7 +51,7 @@ snapshot 文件列表为空时立即停止并报告。只要存在用户指定�
 读取与评审范围相关的规范来源：
 
 - 当前范围生效的 `AGENTS.md`、`CLAUDE.md` 或等效 Agent 指令；
-- 按 `docs/agents/domain.md` 定位的 `CONTEXT.md`，以及全部项目 RULES；
+- 当前任务已经由 `project-knowledge load` 返回的 CONTEXT 与 RULE，不自行定位或重复读取领域文档；
 - 仓库内真实存在的编码规范、测试约定和模块约束；
 - [standards-baseline.md](./standards-baseline.md) 中的通用评审基线。
 
@@ -75,15 +75,15 @@ snapshot 文件列表为空时立即停止并报告。只要存在用户指定�
 
 如果没有需求来源，跳过 Spec Agent。diff 模式没有 diff，或 snapshot 模式没有有效文件时，两个维度都不执行；合法 snapshot 不得因为没有 diff 而跳过 Standards。
 
-### 5. 强制执行 RULES 终检
+### 5. 强制执行已加载 RULE 终检
 
-聚合前，主 Agent 必须亲自重新校验全部项目 RULES 的遵循情况，不能用 Standards Agent 的结论代替：
+聚合前，主 Agent 必须亲自重新校验本次 `load` 返回的全部 RULE，不能用 Standards Agent 的结论代替：
 
-1. 将每个评审文件映射到根目录及其目录层级内生效的 RULES 来源，确认没有遗漏作用域。
-2. 逐条对照所有生效规则与完整 diff 或 snapshot 文件内容，在内部检查表中标记为“符合”“不适用”或“违反”，并保留对应文件、行号或 diff 证据。
+1. 确认 Hook 提供的选择范围覆盖本次评审；若评审范围扩大，按当前完整范围重新执行一次 `load`。
+2. 逐条对照所有已加载规则与完整 diff 或 snapshot 文件内容，在内部检查表中标记为“符合”“不适用”或“违反”，并保留对应文件、行号或 diff 证据。
 3. Standards Agent 漏报的违反必须补入 Standards；判断不清时标为终检未完成并说明缺失信息，不得宣称 Standards 通过。
 
-最终报告必须列出本次覆盖的 RULES 文件，并明确终检是“通过”“存在上述违反”还是“未完成”。无需输出所有“符合”或“不适用”的中间检查项。
+最终报告必须列出本次覆盖的 RULE 文件，并明确终检是“通过”“存在上述违反”还是“未完成”。无需输出所有“符合”或“不适用”的中间检查项。
 
 ### 6. 聚合结果
 

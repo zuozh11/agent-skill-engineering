@@ -15,7 +15,7 @@ PRD 默认采用前后端同时交付视角。只有用户明确要求单端交�
 
 ### 1. 加载项目上下文
 
-按 `docs/agents/domain.md` 加载当前需求相关的 `CONTEXT.md`，并遵守所有项目规则。相关 `CONTEXT.md` 不存在则静默继续。
+使用当前任务已经由 `project-knowledge load` 返回的项目知识：用其中的 CONTEXT 术语命名，并遵守已加载的 RULE。不要在本 Skill 中自行定位领域文档或发起第二套读取流程；项目未采用知识结构或 Hook 已明确提醒知识不可用时继续执行并如实说明。
 
 ### 2. 自行查证可确认的问题
 
@@ -56,7 +56,7 @@ PRD 默认采用前后端同时交付视角。只有用户明确要求单端交�
 - User Stories 要覆盖面广（numbered list）
 - Requirements 按能力项组织，规则优先
 - Implementation Decisions 只记录已经锁定的模块边界、接口契约、Schema 变化和关键交互，不写具体文件路径或实现代码
-- 凡 Requirements 中受 `docs/rules/` 约束的口径，在锁定决策「来源」列标注依据规则的 `RULE-NN` 短号（格式见 `docs/agents/rules-format.md`）；若某需求与既有 RULES 冲突，不擅自覆盖，使用提问工具向用户确认。
+- 凡 Requirements 中受已加载 RULE 约束的口径，在锁定决策「来源」列标注规则完整文件名；若需求与已加载 RULE 冲突，不擅自覆盖，使用提问工具向用户确认。
 - 不写代码库能力缺口对比（留给 to-task 调研阶段）
 
 ### 7. 收敛关键决策

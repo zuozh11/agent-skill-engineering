@@ -7,7 +7,7 @@ description: 为模块形状提供共享设计词汇与判断准则，帮助决�
 
 把本 Skill 当作共享参考层，不当作独立流程运行。它不自行扫描代码库、不发起重构、不推进决策会话，也不产生固定产物；由 `to-task`、`grill-with-docs`、`impl`、`code-review` 或当前用户任务决定范围、步骤、副作用和停止条件。
 
-先按 `docs/agents/domain.md` 定位并使用相关 `CONTEXT.md`，并遵守全部项目 RULES。领域词汇负责命名业务概念，本 Skill 的词汇负责描述模块形状；真实代码标识、项目术语和已记录规则优先，不得为了统一词汇强行重命名已有 `Service`、`API`、`Component` 或业务边界。
+使用当前任务已经由 `project-knowledge load` 返回的项目知识，不自行定位领域文档或触发第二套读取流程。已加载的 CONTEXT 词汇负责命名业务概念，本 Skill 的词汇负责描述模块形状；遵守已加载的 RULE，真实代码标识和项目术语优先，不得为了统一词汇强行重命名已有 `Service`、`API`、`Component` 或业务边界。
 
 ## 共享词汇
 
