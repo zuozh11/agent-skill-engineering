@@ -147,7 +147,7 @@ npx skills@latest update --global
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。文件名帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 只注入脚本位置和延迟选择协议。Agent 先用默认紧凑、单行 JSON 的 `scope` 选择 Context 和可能相关场景，再按需下钻原子 RULE，最终只调用一次 `project-knowledge load --compact`；同一任务且既有范围足够时不重复选择和加载。`scope --pretty` 只美化相同候选数据，完整 `load` 仅用于诊断。
+`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入带完整脚本路径、可直接执行的延迟选择命令。Agent 先用默认紧凑、单行 JSON 的 `scope` 选择 Context 和所有可能相关场景，再按需下钻原子 RULE；选择时宁可多读 token，也不得漏读，最终只调用一次 `project-knowledge load --compact`。同一任务且既有范围足够时不重复选择和加载；`scope --pretty` 只美化相同候选数据，完整 `load` 仅用于诊断。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 

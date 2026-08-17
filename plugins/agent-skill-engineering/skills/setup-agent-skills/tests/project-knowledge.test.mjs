@@ -444,9 +444,9 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
 
   const expectations = new Map([
-    ["UserPromptSubmit", /同任务知识已覆盖则继续；否则/],
+    ["UserPromptSubmit", /同任务知识已完整覆盖则继续/],
     ["SessionStart", /压缩后/],
-    ["SubagentStart", /本子任务/],
+    ["SubagentStart", /当前子任务/],
   ]);
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
@@ -460,14 +460,19 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
 
     assert.equal(claudeContext, codexContext);
     assert.match(codexContext, expectations.get(event));
-    assert.match(codexContext, /scope 选 Context\/场景/);
+    const script = `'${fs.realpathSync(target.script)}'`;
+    assert.match(codexContext, /直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令/);
+    assert.ok(codexContext.includes(`node ${script} scope`));
+    assert.ok(codexContext.includes(`node ${script} scope --rules <code>`));
+    assert.ok(codexContext.includes(`node ${script} load --compact`));
+    assert.ok(codexContext.includes(`node ${script} --help`));
+    assert.match(codexContext, /宁可多选，不得漏选/);
+    assert.match(codexContext, /疑问或报错只允许先执行/);
+    assert.match(codexContext, /不要读取脚本源码/);
     assert.doesNotMatch(codexContext, /scope --compact/);
-    assert.match(codexContext, /scope --rules <code>/);
-    assert.match(codexContext, /一次 load --compact/);
-    assert.match(codexContext, /完整正文必须遵守/);
-    assert.match(codexContext, /疑问\/报错：--help/);
+    assert.match(codexContext, /完整返回正文必须遵守/);
     assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\//);
-    assert.ok(codexContext.length <= 380, `${event} Hook 文案 ${codexContext.length} 字符`);
+    assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
 });
 
@@ -500,8 +505,9 @@ test("Hook 命令正确引用带空格和特殊字符的脚本路径", (t) => {
   const result = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(output, /脚本：'\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs'/);
-  assert.match(output, /scope 选 Context\/场景/);
+  assert.match(output, /node '\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs' scope/);
+  assert.match(output, /node '\/.*space-\$-'"'"'quote\/docs\/agents\/project-knowledge\.mjs' --help/);
+  assert.match(output, /无需查找 Hook、读取脚本源码或搜索命令/);
   assert.doesNotMatch(output, /scope --compact/);
 });
 

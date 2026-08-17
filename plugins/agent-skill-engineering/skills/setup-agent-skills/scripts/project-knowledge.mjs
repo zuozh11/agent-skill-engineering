@@ -686,22 +686,28 @@ function renderHelp() {
 `;
 }
 
-function eventInstruction(eventName) {
+function eventInstruction(eventName, script) {
+  let lead;
   if (eventName === "UserPromptSubmit") {
-    return "同任务知识已覆盖则继续；否则 scope 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
+    lead = "同任务知识已完整覆盖则继续，否则按下列流程加载。";
+  } else if (eventName === "SessionStart") {
+    lead = "压缩后按保留任务重新选择并加载知识。";
+  } else if (eventName === "SubagentStart") {
+    lead = "按当前子任务独立选择并加载知识。";
+  } else {
+    throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
   }
-  if (eventName === "SessionStart") {
-    return "压缩后 scope 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
-  }
-  if (eventName === "SubagentStart") {
-    return "本子任务 scope 选 Context/场景；scope --rules <code> 选 ID（整场景跳过）；一次 load --compact（重复 --context/--rule ID|code）。完整正文必须遵守；疑问/报错：--help。";
-  }
-  throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
+  return `${lead}
+直接执行以下命令，无需查找 Hook、读取脚本源码或搜索命令：
+1. node ${script} scope
+2. 对所有可能相关场景执行 node ${script} scope --rules <code>（可重复；整场景可跳过下钻）
+3. 宁可多选，不得漏选；汇总后只执行一次 node ${script} load --compact [--context <path>]... [--rule <ID|code>]...
+完整返回正文必须遵守。疑问或报错只允许先执行 node ${script} --help；不要读取脚本源码。`;
 }
 
 function renderHookContext(hookInput) {
   const quote = process.platform === "win32" ? quoteWindows : quotePosix;
-  return `脚本：${quote(SCRIPT_PATH)}\n${eventInstruction(hookInput.hook_event_name)}`;
+  return eventInstruction(hookInput.hook_event_name, quote(SCRIPT_PATH));
 }
 
 function warningCommand(messages) {

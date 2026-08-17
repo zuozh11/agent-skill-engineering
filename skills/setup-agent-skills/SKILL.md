@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。Hook 只注入延迟选择协议；Agent 运行默认紧凑的 `scope` 发现范围，按需用 `scope --rules` 下钻原子 RULE，最后只运行一次 `load --compact`。
+为目标仓库部署项目知识基础设施。Hook 注入可直接执行的延迟选择协议；Agent 运行默认紧凑的 `scope` 发现范围，对所有可能相关场景按需用 `scope --rules` 下钻，宁可多选、不得漏选，最后只运行一次 `load --compact`。
 
 本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
 
@@ -131,7 +131,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - `SessionStart(compact)`：根据压缩后保留的任务重新发现和下钻范围，最终只运行一次 `load --compact`。
 - `SubagentStart`：根据当前子任务独立发现和下钻范围，最终只运行一次 `load --compact`。
 
-Hook 不要求标准流程先调用帮助。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，运行 `node docs/agents/project-knowledge.mjs --help`。`scope --compact` 作为紧凑输出兼容入口保留；`scope --pretty` 仅供人类阅读同一份候选数据。完整 `load` 仅用于诊断。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
+Hook 必须给出带正确引号脚本路径的完整 `scope`、`scope --rules`、`load --compact` 和 `--help` 命令，并明确要求直接执行，不先查找 Hook、搜索命令或读取脚本源码。选择时必须覆盖所有可能相关项，保留既有递归引用，宁可多读 token 也不得漏读。仅当参数或协议不清、宿主恢复后缺少协议信息或命令报错时，先运行完整 `--help` 命令，不读取源码。`scope --compact` 作为紧凑输出兼容入口保留；`scope --pretty` 仅供人类阅读同一份候选数据。完整 `load` 仅用于诊断。Codex 模板的 `additionalContextLimit` 设为 `1000`，它只负责截断保护，不代替 Hook 文案精简。
 
 ## 7. 切换 Agent 指令
 
