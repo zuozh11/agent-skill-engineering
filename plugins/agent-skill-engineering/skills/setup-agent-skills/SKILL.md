@@ -33,8 +33,9 @@ disable-model-invocation: true
 形成清楚的迁移清单：
 
 - 创建或更新三份格式文档与 `project-knowledge.mjs`；
-- 需要补充的 Context `description`、需要规范的 Map 链接；
-- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；
+- 需要补充或修正的 Context `description`、需要规范的 Map 链接；`description` 直接使用现有 Map 链接文本、Context 标题或项目既有服务名作为发现列表显示名，不把长业务职责搬入该字段；
+- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；每个 RULE 都补齐 Frontmatter，无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径；
+- 正文超过三句话、使用长清单或多章节的 RULE 需要压缩或拆分；先逐项记录原约束，拆出的每个原子 RULE 保持一到三句话并通过 `references` 保留关系，迁移前后语义不得遗漏；
 - 旧 Agent 指令、`read-rules.py` 和旧 Hook 的去留；
 - 当前宿主需要新增或更新的三个 Hook。
 
@@ -57,7 +58,7 @@ disable-model-invocation: true
 在临时目录复制本次迁移涉及的知识文件，先生成完整候选结果，不直接改真实项目：
 
 1. 部署本 Skill 的三份文档和 `scripts/project-knowledge.mjs`。
-2. 保留 Context 正文、共享概念、Relationships 和 RULE 正文，只应用迁移清单中的格式变更。
+2. 保留 Context 正文、共享概念和 Relationships；按迁移清单压缩或拆分 RULE，并逐项核对原约束仍有对应落点；同时递归检查所有引用目标的 `references`，确认缺失、越界和循环均能被验证器明确处理。
 3. 在候选根运行：
 
    ```bash
@@ -144,11 +145,11 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 ## 8. 完成检查
 
 - 三份文档和 `project-knowledge.mjs` 已部署；
-- 单/多 Context、Map、RULE 场景和引用通过对应 validator；
+- 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；每个 RULE 都有 Frontmatter且正文为一到三句话，Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
 - Agent 指令文件各有一个完整标记块，不再执行全量 RULE 读取；
 - 从项目根及一个子目录触发时，Hook 都能提供 scope；Agent 一次 `load` 能取得完整正文；
 - 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
 - 用户原有改动和项目定制已保留。
 
-最后报告布局、创建或更新的文件、迁移的旧入口、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。
+最后报告布局、创建或更新的文件、迁移前后 RULE 数量、超长 RULE 检查结果、跨目录递归加载证据、迁移的旧入口、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。

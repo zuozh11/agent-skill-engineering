@@ -8,7 +8,7 @@
 
 ```markdown
 ---
-description: 管理订单创建、履约与状态流转
+description: 订单服务
 ---
 # Ordering
 
@@ -41,7 +41,7 @@ _Avoid_: Purchase
 - **Ordering → Billing**: Ordering 提供已确认订单，Billing 据此结算
 ```
 
-`## Contexts` 中每项只放一个普通 Markdown 链接。链接文本用于识别，业务说明放在目标 `CONTEXT.md` 的 `description` 中；列表顺序就是 `scope` 的展示顺序。
+`## Contexts` 中每项只放一个普通 Markdown 链接。目标 `CONTEXT.md` 的 `description` 是 `scope` 发现列表中的显示名称；列表顺序就是 `scope` 的展示顺序。
 
 链接必须是指向 `CONTEXT.md` 的相对文件路径，目标真实存在且位于领域文档根目录内。`## 共享概念` 和 `## Relationships` 不参与 Context 注册。
 
@@ -51,11 +51,11 @@ _Avoid_: Purchase
 
 ```yaml
 ---
-description: 管理供应商注册、主数据、评价与状态等全生命周期业务
+description: 供应商服务
 ---
 ```
 
-`description` 使用非空单行普通文本，不重复文件路径、Context 名称或技术栈。当前不添加其他 Frontmatter 字段。
+`description` 使用非空单行普通文本，直接填写便于选择的简洁 Context 显示名称，例如“功能平移服务”“生产寻源服务”。不填写职责摘要、文件路径或技术栈。当前不添加其他 Frontmatter 字段。
 
 ## 术语写法
 

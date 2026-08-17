@@ -87,33 +87,100 @@ function parseContextDescription(raw, fileLabel, errors) {
   return description;
 }
 
-function parseRuleReferences(raw, fileLabel, errors) {
+function parseReferences(raw, fileLabel, errors, required = false) {
   const { lines } = splitFrontmatter(raw, fileLabel, errors);
   if (!lines) {
+    if (required) errors.push(`${fileLabel}：RULE 必须提供 references Frontmatter`);
+    return [];
+  }
+  if (lines.length === 1 && lines[0] === "references: []") {
     return [];
   }
   if (lines[0] !== "references:" || lines.length < 2) {
-    errors.push(`${fileLabel}：RULE Frontmatter 只接受非空 references 列表`);
+    errors.push(`${fileLabel}：Frontmatter 只接受 references 列表；无引用时使用 references: []`);
     return [];
   }
 
   const references = [];
   for (const line of lines.slice(1)) {
-    const match = /^  - ([^/\\]+\.md)$/.exec(line);
+    const match = /^  - (.+\.md)$/.exec(line);
     if (!match) {
-      errors.push(`${fileLabel}：references 必须使用“  - 完整文件名.md”`);
+      errors.push(`${fileLabel}：references 必须使用“  - 相对路径.md”`);
       continue;
     }
-    references.push(match[1]);
+    const reference = match[1];
+    if (path.isAbsolute(reference) || /^(?:[a-z]+:|#)/i.test(reference) || /[\\?#*]/.test(reference)) {
+      errors.push(`${fileLabel}：references 必须是使用 / 分隔的 Markdown 相对路径：${reference}`);
+      continue;
+    }
+    references.push(reference);
   }
   if (new Set(references).size !== references.length) {
     errors.push(`${fileLabel}：references 存在重复项`);
   }
   const sorted = [...references].sort(compareUtf8);
   if (references.some((value, index) => value !== sorted[index])) {
-    errors.push(`${fileLabel}：references 必须按完整文件名字节序排列`);
+    errors.push(`${fileLabel}：references 必须按相对路径字节序排列`);
   }
   return references;
+}
+
+function validateRuleBody(raw, fileLabel, errors) {
+  const normalized = raw.replaceAll("\r\n", "\n");
+  const frontmatterEnd = normalized.startsWith("---\n") ? normalized.indexOf("\n---\n", 4) : -1;
+  const body = frontmatterEnd >= 0 ? normalized.slice(frontmatterEnd + 5) : normalized;
+  const lines = body.split("\n");
+  const headings = lines.filter((line) => /^(#{1,6})\s+\S/.test(line));
+  if (headings.length > 1 || (headings.length === 1 && !/^#\s+\S/.test(headings[0]))) {
+    errors.push(`${fileLabel}：RULE 正文只允许一个一级标题，不得包含多章节`);
+  }
+
+  const contentLines = lines.filter((line) => !/^#{1,6}\s+/.test(line));
+  const listItems = contentLines.filter((line) => /^\s*(?:[-*+]|\d+[.)])\s+\S/.test(line));
+  if (listItems.length >= 3) {
+    errors.push(`${fileLabel}：RULE 正文不得使用长清单，请拆成多个原子 RULE`);
+  }
+  if (contentLines.some((line) => /[；;]/.test(line))) {
+    errors.push(`${fileLabel}：RULE 正文不得使用分号串联多个约束，请拆成多个原子 RULE`);
+  }
+
+  const blocks = [];
+  let paragraph = [];
+  function flushParagraph() {
+    if (paragraph.length) blocks.push(paragraph.join(" ").trim());
+    paragraph = [];
+  }
+  for (const line of contentLines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushParagraph();
+    } else if (/^(?:[-*+]|\d+[.)])\s+\S/.test(trimmed)) {
+      flushParagraph();
+      blocks.push(trimmed.replace(/^(?:[-*+]|\d+[.)])\s+/, ""));
+    } else {
+      paragraph.push(trimmed);
+    }
+  }
+  flushParagraph();
+
+  const sentences = blocks.flatMap((block) => block
+    .replace(/(?:[。！？!?]+|[.]+(?=\s|$))/g, "$&\n")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean));
+  if (sentences.length < 1 || sentences.length > 3) {
+    errors.push(`${fileLabel}：RULE 正文必须包含 1–3 句话，当前为 ${sentences.length} 句`);
+  }
+}
+
+function resolveReference(source, reference, errors) {
+  const declaredPath = path.resolve(path.dirname(source.absolutePath), reference);
+  const label = `${source.path}：references 目标 ${reference}`;
+  if (!isInside(ROOT, declaredPath)) {
+    errors.push(`${label}：路径逃出项目根目录`);
+    return null;
+  }
+  return resolveExistingFile(declaredPath, ROOT, label, errors);
 }
 
 function detectLayout(errors) {
@@ -175,7 +242,7 @@ function parseContextMap(mapPath, errors) {
 }
 
 function parseRules(errors) {
-  if (!fs.existsSync(RULES_DIR)) return [];
+  if (!fs.existsSync(RULES_DIR)) return { rules: [], documents: new Map() };
   let files;
   try {
     files = fs.readdirSync(RULES_DIR, { withFileTypes: true })
@@ -184,7 +251,7 @@ function parseRules(errors) {
       .sort(compareUtf8);
   } catch (error) {
     errors.push(`docs/rules：${error.message}`);
-    return [];
+    return { rules: [], documents: new Map() };
   }
 
   const rules = [];
@@ -212,6 +279,7 @@ function parseRules(errors) {
     nameToCode.set(sceneName, code);
     const absolutePath = path.join(RULES_DIR, filename);
     const raw = fs.readFileSync(absolutePath, "utf8");
+    validateRuleBody(raw, label, errors);
     rules.push({
       code,
       number: Number(number),
@@ -220,45 +288,72 @@ function parseRules(errors) {
       path: label,
       absolutePath,
       raw,
-      references: parseRuleReferences(raw, label, errors),
+      declaredReferences: parseReferences(raw, label, errors, true),
     });
   }
 
-  const byFilename = new Map(rules.map((rule) => [rule.filename, rule]));
-  for (const rule of rules) {
-    for (const reference of rule.references) {
-      if (!byFilename.has(reference)) {
-        errors.push(`${rule.path}：references 目标不存在：${reference}`);
+  const documents = new Map(rules.map((rule) => [fs.realpathSync(rule.absolutePath), {
+    path: rule.path,
+    absolutePath: fs.realpathSync(rule.absolutePath),
+    raw: rule.raw,
+    declaredReferences: rule.declaredReferences,
+    references: [],
+  }]));
+
+  function visit(document) {
+    if (document.resolved) return;
+    document.resolved = true;
+    const targets = new Set();
+    for (const reference of document.declaredReferences) {
+      const realPath = resolveReference(document, reference, errors);
+      if (!realPath) continue;
+      if (targets.has(realPath)) {
+        errors.push(`${document.path}：references 规范路径重复：${reference}`);
+        continue;
       }
+      targets.add(realPath);
+      let target = documents.get(realPath);
+      if (!target) {
+        const targetPath = relativeToRoot(realPath);
+        const raw = fs.readFileSync(realPath, "utf8");
+        target = {
+          path: targetPath,
+          absolutePath: realPath,
+          raw,
+          declaredReferences: parseReferences(raw, targetPath, errors),
+          references: [],
+        };
+        documents.set(realPath, target);
+      }
+      document.references.push(realPath);
+      visit(target);
     }
   }
-  return rules;
+
+  for (const document of documents.values()) visit(document);
+  return { rules, documents };
 }
 
-function findCycles(rules) {
-  const byFilename = new Map(rules.map((rule) => [rule.filename, rule]));
+function findCycles(documents) {
   const state = new Map();
   const stack = [];
   const cycles = new Set();
 
-  function visit(filename) {
-    if (state.get(filename) === 2) return;
-    if (state.get(filename) === 1) {
-      const start = stack.indexOf(filename);
-      cycles.add([...stack.slice(start), filename].join(" -> "));
+  function visit(realPath) {
+    if (state.get(realPath) === 2) return;
+    if (state.get(realPath) === 1) {
+      const start = stack.indexOf(realPath);
+      cycles.add([...stack.slice(start), realPath].map((item) => documents.get(item).path).join(" -> "));
       return;
     }
-    state.set(filename, 1);
-    stack.push(filename);
-    const rule = byFilename.get(filename);
-    for (const reference of rule?.references ?? []) {
-      if (byFilename.has(reference)) visit(reference);
-    }
+    state.set(realPath, 1);
+    stack.push(realPath);
+    for (const reference of documents.get(realPath)?.references ?? []) visit(reference);
     stack.pop();
-    state.set(filename, 2);
+    state.set(realPath, 2);
   }
 
-  for (const rule of rules) visit(rule.filename);
+  for (const realPath of documents.keys()) visit(realPath);
   return [...cycles].sort(compareUtf8);
 }
 
@@ -266,8 +361,9 @@ function buildKnowledge() {
   const contextErrors = [];
   const ruleErrors = [];
   const layout = detectLayout(contextErrors);
+  const { rules, documents } = parseRules(ruleErrors);
   if (!layout.adopted) {
-    return { adopted: false, contextErrors, ruleErrors, rules: [], cycles: [] };
+    return { adopted: false, contextErrors, ruleErrors, rules, documents, cycles: findCycles(documents) };
   }
 
   const fixedRealPath = resolveExistingFile(layout.fixedPath, ROOT, relativeToRoot(layout.fixedPath), contextErrors);
@@ -282,14 +378,14 @@ function buildKnowledge() {
     }));
   }
 
-  const rules = parseRules(ruleErrors);
   return {
     adopted: true,
     mode: layout.mode,
     fixedPath: fixedRealPath,
     contexts,
     rules,
-    cycles: findCycles(rules),
+    documents,
+    cycles: findCycles(documents),
     contextErrors,
     ruleErrors,
   };
@@ -364,37 +460,42 @@ function renderLoad(knowledge, args) {
   }
   if (errors.length) throw new KnowledgeError(errors);
 
-  const selectedRules = new Set(knowledge.rules.filter((rule) => selection.rules.includes(rule.code)).map((rule) => rule.filename));
-  const byFilename = new Map(knowledge.rules.map((rule) => [rule.filename, rule]));
-  const pending = [...selectedRules];
+  const selectedDocuments = new Set(knowledge.rules
+    .filter((rule) => selection.rules.includes(rule.code))
+    .map((rule) => fs.realpathSync(rule.absolutePath)));
+  const pending = [...selectedDocuments];
   while (pending.length) {
-    const filename = pending.pop();
-    for (const reference of byFilename.get(filename).references) {
-      if (!selectedRules.has(reference)) {
-        selectedRules.add(reference);
+    const realPath = pending.pop();
+    for (const reference of knowledge.documents.get(realPath).references) {
+      if (!selectedDocuments.has(reference)) {
+        selectedDocuments.add(reference);
         pending.push(reference);
       }
     }
   }
 
-  const documents = [{ path: relativeToRoot(knowledge.fixedPath), absolutePath: knowledge.fixedPath }];
+  const documents = new Map();
+  function addDocument(document) {
+    documents.set(fs.realpathSync(document.absolutePath), document);
+  }
+  addDocument({ path: relativeToRoot(knowledge.fixedPath), absolutePath: knowledge.fixedPath });
   if (knowledge.mode === "multiple") {
     for (const context of knowledge.contexts) {
-      if (selection.contexts.includes(context.path)) documents.push({ path: context.path, absolutePath: context.realPath });
+      if (selection.contexts.includes(context.path)) addDocument({ path: context.path, absolutePath: context.realPath });
     }
   }
-  for (const rule of knowledge.rules.filter((candidate) => selectedRules.has(candidate.filename)).sort((a, b) => compareUtf8(a.path, b.path))) {
-    documents.push({ path: rule.path, absolutePath: rule.absolutePath });
+  for (const realPath of [...selectedDocuments].sort((left, right) => compareUtf8(relativeToRoot(left), relativeToRoot(right)))) {
+    addDocument(knowledge.documents.get(realPath));
   }
 
-  return documents.map((document) => {
+  return [...documents.values()].map((document) => {
     const raw = fs.readFileSync(document.absolutePath, "utf8");
     return `===== ${document.path} =====\n${raw.replace(/[\r\n]+$/u, "")}`;
   }).join("\n\n") + "\n";
 }
 
 function printWarnings(cycles) {
-  for (const cycle of cycles) process.stderr.write(`warning: RULE 引用环：${cycle}\n`);
+  for (const cycle of cycles) process.stderr.write(`warning: references 引用环：${cycle}\n`);
 }
 
 function quotePosix(value) {
