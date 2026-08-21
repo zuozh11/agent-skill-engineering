@@ -1,6 +1,6 @@
 # 项目知识维护
 
-本文件只说明哪些项目知识值得记录、写到哪里以及发生冲突时怎样处理。运行时选择和加载由项目 Hook 与 `docs/agents/project-knowledge.mjs` 负责。
+本文件说明项目知识的使用和维护边界。运行时选择和加载由项目 Hook 与 `docs/agents/project-knowledge.mjs` 负责。
 
 ## 维护判断
 
@@ -24,12 +24,15 @@
 - 规则统一写入领域文档根目录的 `docs/rules/`，不按 Context 分目录。
 <!-- layout:multiple:end -->
 
+## 格式参考
+
 <!-- layout:single:start -->
-CONTEXT 的格式见 `docs/agents/context-format.md`，RULE 的格式和场景命名见 `docs/agents/rules-format.md`。
+- 编写或修改 CONTEXT 前，读取 [CONTEXT 格式](./context-format.md)。
 <!-- layout:single:end -->
 <!-- layout:multiple:start -->
-CONTEXT 与 CONTEXT-MAP 的格式见 `docs/agents/context-format.md`，RULE 的格式和场景命名见 `docs/agents/rules-format.md`。
+- 编写或修改 CONTEXT、CONTEXT-MAP 或 Context 关系前，读取 [CONTEXT 格式](./context-format.md)。
 <!-- layout:multiple:end -->
+- 编写、拆分、重命名或删除 RULE 前，读取 [RULE 格式](./rules-format.md)。
 
 ## 提议与落盘
 
@@ -51,3 +54,13 @@ CONTEXT 与 CONTEXT-MAP 的格式见 `docs/agents/context-format.md`，RULE 的�
 ## 冲突处理
 
 候选内容与现有文档或代码冲突时，展示具体冲突并交给用户决定，不静默覆盖。已加载的 RULE 之间或 RULE 与当前需求冲突时同样先说明冲突；用户决定前不擅自选择一边。
+
+## 领域感知
+
+自行查证和追问时，使用当前任务已经由 `project-knowledge load` 返回的 CONTEXT 术语并遵守已加载的 RULE，不自行定位或重复读取领域文档。
+
+- 后端仓库重点检查状态流转、持久化边界、查询隔离和流程回写；前端仓库重点检查页面流转、组件状态、表单校验和接口调用契约。
+- 用户用词与 CONTEXT 冲突时立即指出；术语含糊或多义时提出精确的规范术语并要求确认。
+- 讨论领域关系时使用具体场景压力测试边界。
+- 用户陈述的现状与代码不一致时展示证据并要求对齐。
+- 方案触及已加载 RULE 时检查冲突；发现违反时要求在修改方案与更新规则之间明确选择，不静默偏离。

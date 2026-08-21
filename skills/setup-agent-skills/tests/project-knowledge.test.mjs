@@ -620,6 +620,10 @@ test("布局文档部署结果只保留已选择样式", (t) => {
       assert.doesNotMatch(content, /<!-- layout:/);
       assert.doesNotMatch(content, /--compact|--pretty|--debug/);
     }
+    assert.match(domain, /\[CONTEXT 格式\]\(\.\/context-format\.md\)/);
+    assert.match(domain, /\[RULE 格式\]\(\.\/rules-format\.md\)/);
+    assert.equal(fs.existsSync(path.join(output, "context-format.md")), true);
+    assert.equal(fs.existsSync(path.join(output, "rules-format.md")), true);
     if (layout === "single") {
       assert.match(domain, /术语写入 `docs\/CONTEXT\.md`/);
       assert.doesNotMatch(domain, /CONTEXT-MAP/);

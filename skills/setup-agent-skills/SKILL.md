@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 为目标仓库部署项目知识基础设施。Hook 注入延迟选择协议；Agent 运行 `scope`，根据返回的 Context 与按编号排序的 RULE 场景、原子规则自主选择，再按需运行 `load`。
 
-本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；格式说明分别由 `domain.md`、`context-format.md`、`rules-format.md` 负责。
+本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`；项目知识使用与维护由 `domain.md` 负责，格式说明分别由 `context-format.md`、`rules-format.md` 负责。
 
 ## 1. 探索项目
 

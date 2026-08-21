@@ -159,7 +159,7 @@ npx skills@latest update --global
 docs/
 ├── CONTEXT.md                ← 项目术语和命名约定
 ├── agents/
-│   ├── domain.md             ← 项目知识维护判断与落点
+│   ├── domain.md             ← 项目知识使用与维护
 │   ├── context-format.md     ← CONTEXT 与 CONTEXT-MAP 格式
 │   ├── rules-format.md       ← RULE 场景、命名与 references
 │   └── project-knowledge.mjs ← scope、load、hook 与 validator
@@ -194,7 +194,7 @@ docs/
 
 ### 关键辅助
 
-[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：通过“设计树 → 当前前沿 → 批量提问”的对话压力测试方案，挑战术语一致性，主动挖掘和确认领域文档候选知识。
+[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：它完整内联 `grilling` 的设计树、当前前沿和分轮追问流程，并读取 `docs/agents/domain.md`，用项目术语、代码事实和已加载规则压力测试方案。
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 
