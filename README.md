@@ -86,7 +86,7 @@ npx skills@latest update --global
 共享参考: codebase-design（模块职责、接口、接缝与测试面的设计语言）
 ```
 
-其他辅助 skill（按需调用）：`diagnosing-bugs`、`zoom-out`、`resolving-merge-conflicts`、`commit`。
+其他辅助 skill（按需调用）：`diagnosing-bugs`、`zoom-out`、`resolving-merge-conflicts`、`atomic-commit`。
 
 ## 为什么要这套流程
 
@@ -208,7 +208,7 @@ docs/
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
 | **[resolving-merge-conflicts](./skills/resolving-merge-conflicts/SKILL.md)** | 查明双方改动意图，解决并完成正在进行的 merge/rebase 冲突 |
-| **[commit](./skills/commit/SKILL.md)** | 按可独立理解、验证和回滚的原子边界拆分变更，并完成约定式本地提交 |
+| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 按可独立理解、验证和回滚的原子边界拆分变更，并完成约定式本地提交 |
 
 ### 配置
 

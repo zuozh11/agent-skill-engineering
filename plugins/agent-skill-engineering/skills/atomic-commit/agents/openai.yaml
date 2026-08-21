@@ -1,3 +1,3 @@
 interface:
-  display_name: "Commit"
+  display_name: "Atomic Commit"
   short_description: "按可理解、验证和回滚的原子边界拆分变更并完成约定式本地提交"
