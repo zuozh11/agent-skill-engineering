@@ -118,7 +118,7 @@ npx skills@latest update --global
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁任务卡必须在彼此隔离的执行上下文中实施；可以使用独立 Agent、fork Agent、独立任务或宿主提供的等效机制，不要求从空白上下文启动。上下文隔离不决定 worktree、执行者或串并行策略。执行时根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要强制使用 worktree 时调用 `/impl -w`，需要强制使用子 Agent 编排时调用 `/impl -a`，两者可以组合为 `/impl -a -w`。完成验证并检查 staged diff 后原子提交；需要代码评审时单独调用 `/code-review`。
+**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁任务卡必须在彼此隔离的执行上下文中实施；可以使用独立 Agent、fork Agent、workflow、独立任务或宿主提供的等效机制，不要求从空白上下文启动。上下文隔离不决定 worktree、执行者或串并行策略。执行时根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要强制使用 worktree 时调用 `/impl -w`，需要强制使用子 Agent 或 workflow 编排时调用 `/impl -a`，两者可以组合为 `/impl -a -w`。完成验证后调用 `/atomic-commit` 提交；需要代码评审时单独调用 `/code-review`。
 
 ---
 
@@ -189,7 +189,7 @@ docs/
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，按实际交付单元组织需求并沿用项目既有名称，如前端、后端或其他系统边界** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成业务可评审、方案可实施的 vertical slice 或 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，可强制使用子 Agent 编排，完成验证并检查 staged diff 后原子提交** |
+| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，可强制使用子 Agent 或 workflow 编排，完成验证后调用 `atomic-commit` 提交** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
 
 ### 关键辅助
@@ -225,7 +225,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按项目实际交付单元组织需求 |
 | `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择当前工作区或 worktree，完成验证后原子提交；代码评审按需独立调用 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择当前工作区或 worktree，完成验证后调用 `/atomic-commit` 提交；代码评审按需独立调用 |
 | `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
 | 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
 
