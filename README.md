@@ -110,7 +110,7 @@ npx skills@latest update --global
 
 > _把一整个模块完整的需求直接交给 agent，它都会试图一次性搞定所有事情，任务边界、提交边界和验证路径都会变模糊。_
 
-**解法**：`/to-task` 把普通需求拆成 vertical slice，把宽范围重构拆成 expand-contract。每张卡前置完成必要调研、主要入口定位和方案选择，明确边界、依赖与验收，使执行者拿到即可直接动手，同时不在任务卡里提前编写实现代码。
+**解法**：`/to-task` 把普通需求拆成 vertical slice，把宽范围重构拆成 expand-contract。每张卡先用可评审的业务语言说清本次做什么、实现规则和验收标准，再单独列出已确认事实和实现方案；人工可以先评审功能，执行者也能拿到即可直接动手。
 
 ---
 
@@ -188,7 +188,7 @@ docs/
 | Skill | 用途 |
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，并自动判断以前端或后端视角组织需求** |
-| **[to-task](./skills/to-task/SKILL.md)** | **将普通需求拆成 vertical slice 任务卡，将宽范围重构拆成 expand-contract 任务卡** |
+| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成业务可评审、方案可实施的 vertical slice 或 expand-contract 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，可强制使用子 Agent 编排，完成验证并检查 staged diff 后原子提交** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
 
