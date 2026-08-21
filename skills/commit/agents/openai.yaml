@@ -1,3 +1,3 @@
 interface:
   display_name: "Commit"
-  short_description: "生成约定式提交消息并按需完成本地提交"
+  short_description: "按可理解、验证和回滚的原子边界拆分变更并完成约定式本地提交"
