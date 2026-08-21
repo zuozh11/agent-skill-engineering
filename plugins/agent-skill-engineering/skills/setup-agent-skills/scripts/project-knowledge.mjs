@@ -125,14 +125,6 @@ function parseReferences(raw, fileLabel, errors, required = false) {
   return references;
 }
 
-function splitSentences(value) {
-  return value
-    .replace(/(?:[。！？!?]+|[.]+(?=\s|$))/g, "$&\n")
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
 function validateRuleBody(raw, fileLabel, errors) {
   const normalized = raw.replaceAll("\r\n", "\n");
   const frontmatterEnd = normalized.startsWith("---\n") ? normalized.indexOf("\n---\n", 4) : -1;
@@ -143,27 +135,9 @@ function validateRuleBody(raw, fileLabel, errors) {
     errors.push(`${fileLabel}：RULE 正文只允许一个一级标题，不得包含多章节`);
   }
 
-  const contentLines = lines.filter((line) => !/^#{1,6}\s+/.test(line));
-  const listItems = contentLines.filter((line) => /^\s*(?:[-*+]|\d+[.)])\s+\S/.test(line));
-  if (listItems.length >= 3) {
-    errors.push(`${fileLabel}：RULE 正文不得使用长清单，请拆成多个原子 RULE`);
-  }
-  if (contentLines.some((line) => /[；;]/.test(line))) {
-    errors.push(`${fileLabel}：RULE 正文不得使用分号串联多个约束，请拆成多个原子 RULE`);
-  }
-
-  const proseLines = contentLines
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.replace(/^(?:[-*+]|\d+[.)])\s+/, ""));
-  const sentenceLines = proseLines.map((line) => splitSentences(line));
-  if (sentenceLines.some((sentences) => sentences.length !== 1)
-      || proseLines.some((line) => !/(?:[。！？!?]|[.])$/.test(line))) {
-    errors.push(`${fileLabel}：RULE 正文每句话必须独占一个非空行并以句末标点结束`);
-  }
-  const sentences = sentenceLines.flat();
-  if (sentences.length < 1 || sentences.length > 3) {
-    errors.push(`${fileLabel}：RULE 正文必须包含 1–3 句话，当前为 ${sentences.length} 句`);
+  const contentLines = lines.filter((line) => !/^#{1,6}\s+/.test(line) && line.trim());
+  if (contentLines.length === 0) {
+    errors.push(`${fileLabel}：RULE 正文不能为空`);
   }
 }
 

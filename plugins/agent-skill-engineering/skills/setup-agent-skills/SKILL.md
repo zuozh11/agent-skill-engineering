@@ -34,8 +34,8 @@ disable-model-invocation: true
 
 - 创建或更新三份格式文档与 `project-knowledge.mjs`；
 - 需要补充或修正的 Context `description`、需要规范的 Map 链接；`description` 直接使用现有 Map 链接文本、Context 标题或项目既有服务名作为发现列表显示名，不把长业务职责搬入该字段；
-- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；每个场景从 `01` 连续重编号，在同一候选变更中同步全部入向引用；每个 RULE 都补齐 Frontmatter，无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径；
-- 正文超过三句话、同一行包含多句、单句跨行、使用长清单或多章节的 RULE 需要压缩、重排或拆分；先逐项记录原约束，拆出的每个原子 RULE 保持一到三句话、每句话独占一行，并通过 `references` 保留关系，迁移前后语义不得遗漏；
+- 旧 RULE 文件名、短号或正文引用需要迁移到场景文件名和 `references` 的位置；场景编码按重要程度排列，每个场景从 `01` 连续重编号且场景内序号同样按重要程度排列，在同一候选变更中同步全部入向引用；每个 RULE 都补齐 Frontmatter，无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径；
+- 正文包含多个可独立判断的约束或多章节的 RULE 需要压缩、重排或拆分；先逐项记录原约束，拆出的每个文件保持原子约束，并通过 `references` 保留关系，迁移前后语义不得遗漏；
 - 旧 Agent 指令、`read-rules.py` 和旧 Hook 的去留；
 - 当前宿主需要新增或更新的三个 Hook。
 
@@ -159,7 +159,7 @@ Hook 使用相对于项目根的 `node docs/agents/project-knowledge.mjs` 命令
 ## 8. 完成检查
 
 - 三份文档和 `project-knowledge.mjs` 已部署；
-- 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；每个场景从 `01` 连续编号，每个 RULE 都有 Frontmatter且正文为一到三句话、每句话独占一行，Context `description` 是发现列表显示名；
+- 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；场景编码及场景内序号按重要程度排列，每个场景从 `01` 连续编号，每个 RULE 都有 Frontmatter、非空正文且只表达一个可独立判断的原子约束，Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
 - Agent 指令文件各有一个完整标记块，不再执行全量 RULE 读取；
 - 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope` 返回的 Context、`sceneId` 与 `ruleId` 足以构造 `load`，完整正文和递归引用由加载结果返回；

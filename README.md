@@ -164,8 +164,8 @@ docs/
 │   ├── rules-format.md       ← RULE 场景、命名与 references
 │   └── project-knowledge.mjs ← scope、load、hook 与 validator
 ├── rules/                    ← 项目规则（RULES）
-│   ├── A01-通用约束-需求范围只做明确要求的最小改动.md
-│   └── C01-保存接口-结构性入参优先使用BeanValidation.md
+│   ├── A01-通用约束-优先改造现有骨架.md
+│   └── C01-校验规则-字段校验用BeanValidation.md
 └── scratch/
     └── <NN>-<中文需求名称>/     ← NN 按需求进入仓库的顺序递增
         ├── PRD.md            ← /to-prd 产出

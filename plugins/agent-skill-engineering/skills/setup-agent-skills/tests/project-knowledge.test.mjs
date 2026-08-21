@@ -94,32 +94,34 @@ test("单 Context scope 和 load 按场景展开引用且不自动加入通用�
   assert.doesNotMatch(loadResult.stdout, /## RULE A01/);
 });
 
-test("RULE 必须有 Frontmatter，正文接受一到三句并拒绝四句", (t) => {
+test("RULE 必须有 Frontmatter 且正文不能为空", (t) => {
   const target = fixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
   write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
-  write(target.root, "docs/rules/A01-通用约束-一句规则.md", rule("# 一句规则\n\n只做明确要求。\n"));
-  write(target.root, "docs/rules/A02-通用约束-三句规则.md", rule("# 三句规则\n\n先确认范围。\n再实施修改。\n最后完成验证。\n"));
+  write(target.root, "docs/rules/A01-通用约束-有效规则.md", rule("# 有效规则\n\n只做明确要求。\n"));
 
   const valid = run(target, ["validate-rules"]);
   assert.equal(valid.status, 0, valid.stderr);
 
-  write(target.root, "docs/rules/A03-通用约束-四句规则.md", rule("# 四句规则\n\n第一句。\n第二句。\n第三句。\n第四句。\n"));
-  const tooMany = run(target, ["validate-rules"]);
-  assert.notEqual(tooMany.status, 0);
-  assert.match(tooMany.stderr, /必须包含 1–3 句话，当前为 4 句/);
-
-  fs.rmSync(path.join(target.root, "docs/rules/A03-通用约束-四句规则.md"));
-  write(target.root, "docs/rules/A03-通用约束-缺少Frontmatter.md", "# 缺少 Frontmatter\n\n这条规则缺少元数据。\n");
+  write(target.root, "docs/rules/A02-通用约束-缺少Frontmatter.md", "# 缺少 Frontmatter\n\n这条规则缺少元数据。\n");
   const missing = run(target, ["validate-rules"]);
   assert.notEqual(missing.status, 0);
   assert.match(missing.stderr, /RULE 必须提供 references Frontmatter/);
+
+  fs.rmSync(path.join(target.root, "docs/rules/A02-通用约束-缺少Frontmatter.md"));
+  write(target.root, "docs/rules/A02-通用约束-空正文.md", rule("# 空正文\n"));
+  const empty = run(target, ["validate-rules"]);
+  assert.notEqual(empty.status, 0);
+  assert.match(empty.stderr, /RULE 正文不能为空/);
 });
 
-test("RULE 正文拒绝同一行多句和单句跨行", (t) => {
+test("RULE 正文接受多句同行、跨行、无句末标点、分号和清单", (t) => {
   const cases = [
     ["同一行多句", "# 同一行多句\n\n第一句。第二句。\n"],
-    ["单句跨行", "# 单句跨行\n\n这句话被错误地\n拆成两行。\n"],
+    ["跨行正文", "# 跨行正文\n\n第一行内容\n第二行内容。\n"],
+    ["无句末标点", "# 无句末标点\n\n保持目标行为清晰\n"],
+    ["分号串联", "# 分号串联\n\n先做甲；再做乙。\n"],
+    ["清单", "# 清单\n\n- 第一项。\n- 第二项。\n- 第三项。\n"],
   ];
   for (const [name, body] of cases) {
     const target = fixture();
@@ -127,8 +129,7 @@ test("RULE 正文拒绝同一行多句和单句跨行", (t) => {
     write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
     write(target.root, `docs/rules/A01-通用约束-${name}.md`, rule(body));
     const result = run(target, ["validate-rules"]);
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /每句话必须独占一个非空行/);
+    assert.equal(result.status, 0, result.stderr);
   }
 });
 
@@ -158,21 +159,15 @@ test("RULE 每个场景必须从 01 连续编号", (t) => {
   assert.match(zero.stderr, /sceneId A 的 ruleId 编号必须从 01 连续，当前为 00、02/);
 });
 
-test("RULE 正文拒绝分号串联、长清单和多章节", (t) => {
-  const cases = [
-    ["分号串联", "# 分号串联\n\n先做甲；再做乙。\n", /不得使用分号/],
-    ["长清单", "# 长清单\n\n- 第一项。\n- 第二项。\n- 第三项。\n", /不得使用长清单/],
-    ["多章节", "# 多章节\n\n## 规则\n\n必须执行。\n", /不得包含多章节/],
-  ];
-  for (const [name, body, expected] of cases) {
-    const target = fixture();
-    t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
-    write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
-    write(target.root, `docs/rules/A01-通用约束-${name}.md`, rule(body));
-    const result = run(target, ["validate-rules"]);
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, expected);
-  }
+test("RULE 正文拒绝多章节", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+  write(target.root, "docs/rules/A01-通用约束-多章节.md", rule("# 多章节\n\n## 规则\n\n必须执行。\n"));
+
+  const result = run(target, ["validate-rules"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /不得包含多章节/);
 });
 
 test("跨目录普通文件按相对路径递归并以稳定顺序加载", (t) => {
