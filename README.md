@@ -189,7 +189,7 @@ docs/
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，按实际交付单元组织需求并沿用项目既有名称，如前端、后端或其他系统边界** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成一卡一交付目的的 vertical slice 或 expand-contract 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **按任务卡边界完成实现、验证和原子提交，可选 worktree、子 Agent 或 workflow** |
-| **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
+| **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；默认关注架构摩擦，仅在用户限定只看需求符合度时跳过** |
 
 ### 关键辅助
 
@@ -197,7 +197,7 @@ docs/
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 每次默认加载，`impl` 按需加载，用户发起 `code-review` 时默认加载。
+[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 每次默认加载，`impl` 按需加载，`code-review` 默认加载、仅在用户限定只看需求符合度时跳过。
 
 ### 其他辅助 Skill
 
