@@ -1,6 +1,6 @@
 ---
 name: zoom-out
-description: 从当前代码上升一层，给出相关模块和调用者的地图。当用户要求 zoom-out、全局视角或模块地图时使用。
+description: 从当前代码上升一层，给出相关模块和调用者的地图。当用户要求 zoom-out 或模块地图时使用。
 ---
 
 # Zoom Out

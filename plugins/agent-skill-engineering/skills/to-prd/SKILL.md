@@ -1,6 +1,6 @@
 ---
 name: to-prd
-description: 将当前对话上下文转化为 PRD。适用于用户要求产出 PRD、需求文档、功能方案，或说「写个 PRD」「出需求文档」「to-prd」等场景。
+description: 将当前对话上下文转化为 PRD。适用于用户要求产出 PRD、需求文档，或说「写个 PRD」「出需求文档」「to-prd」等场景。
 ---
 
 # To PRD
@@ -58,7 +58,7 @@ PRD 按实际交付单元组织，不预设数量或类型。交付单元使用�
 - Solution 用一个段落从用户视角概括整体解决方案
 - User Stories 覆盖面广，使用 numbered list
 - Requirements 按能力项组织，规则优先
-- Implementation Decisions 只记录已经锁定的模块边界、接口契约、Schema 变化和关键交互，不写具体文件路径或实现代码
+- Implementation Decisions 只记录已经锁定的交付契约：交付单元之间的接口、数据或 Schema，以及关键交互。不写具体文件路径、模块形状或实现代码
 - Requirements 中受已加载 RULE 约束的口径，在锁定决策「来源」列标注规则完整文件名；若需求与已加载 RULE 冲突，不擅自覆盖，提问确认
 - 不写代码库能力缺口对比（留给 `to-task` 调研阶段）
 
@@ -122,5 +122,5 @@ PRD 按实际交付单元组织，不预设数量或类型。交付单元使用�
 
 - Requirements 规则优先；字段、日期、状态、编号有明确时机和值
 - 不伪造已确认事实；影响交付且无法确认的必须先追问
-- 不写实现流水账、技术建议或改造建议
+- Requirements 不写实现流水账；Implementation Decisions 只记已锁定的交付契约，不写模块形状或改造建议
 - 使用 CONTEXT.md 中的术语，不漂移到同义词

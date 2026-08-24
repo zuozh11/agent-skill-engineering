@@ -41,10 +41,11 @@ description: 从项目规范与需求符合度两个独立维度只读评审代�
 
 ### 3. 加载项目规范
 
+使用已加载的 CONTEXT 术语与 RULE。尚未加载则按项目知识协议执行；知识不可用时继续并如实说明。
+
 读取与评审范围相关的规范来源：
 
 - 当前范围生效的 `AGENTS.md`、`CLAUDE.md` 或等效 Agent 指令；
-- 已加载的 CONTEXT 与 RULE；尚未加载则按项目知识协议执行；知识不可用时继续并如实说明；
 - 仓库内真实存在的编码规范、测试约定和模块约束；
 - [standards-baseline.md](./standards-baseline.md) 中的通用评审基线。
 

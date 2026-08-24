@@ -118,7 +118,7 @@ npx skills@latest update --global
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁任务卡必须在彼此隔离的执行上下文中实施；可以使用独立 Agent、fork Agent、workflow、独立任务或宿主提供的等效机制，不要求从空白上下文启动。上下文隔离不决定 worktree、执行者或串并行策略。执行时根据实现范围、工作区状态和隔离收益自动选择当前工作区或独立 worktree；需要强制使用 worktree 时调用 `/impl -w`，需要强制使用子 Agent 或 workflow 编排时调用 `/impl -a`，两者可以组合为 `/impl -a -w`。完成验证后调用 `/atomic-commit` 提交；需要代码评审时单独调用 `/code-review`。
+**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁卡在独立执行上下文中实施；并行才用独立 worktree。细节见 [impl](./skills/impl/SKILL.md)。需要强制 worktree 时用 `/impl -w`，强制子 Agent 或 workflow 时用 `/impl -a`。完成验证后调用 `/atomic-commit`；代码评审按需单独调用 `/code-review`。
 
 ---
 
@@ -134,7 +134,7 @@ npx skills@latest update --global
 
 > _数据权限怎么做、用户信息怎么取，这类长期决策不能只留在对话里，否则后续实现很容易绕开它。_
 
-**解法**：`RULES` 按场景记录长期规则和关键决策。`scope` 一次返回按 `sceneId`、`ruleId` 排序的场景和原子规则名称；Agent 按任务相关性选择 `sceneId` 或 `ruleId` 并加载，需要时可继续补充知识，避免机械塞入全部规则正文。
+**解法**：`RULE` 按场景记录长期规则和关键决策。`scope` 一次返回按 `sceneId`、`ruleId` 排序的场景和原子规则名称；Agent 按任务相关性选择 `sceneId` 或 `ruleId` 并加载，需要时可继续补充知识，避免机械塞入全部规则正文。
 
 ---
 
@@ -144,8 +144,8 @@ npx skills@latest update --global
 
 工作流通过 `项目知识协议 → scope → 按需 load` 使用两类项目知识；需要落盘长期知识时再运行 `maintain`：
 
-- **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
-- **`RULES`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
+- **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。走项目知识协议的 skill 使用这里的词汇。
+- **`RULE`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
 `AGENTS.md` / `CLAUDE.md` 标记块内联同一套协议，无 Hook 的宿主按该块执行。Codex / Claude Code 在 `UserPromptSubmit`、上下文压缩和子 Agent 启动时由项目 Hook 再注入一次；本轮已有同等协议则不必重复执行。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要时可继续执行 `load`。出现项目特有术语或长期规则时运行 `maintain`，按其返回的确认流程和格式落盘，不必再打开这些文件。一次性结论和能从代码确认的事实不记录。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
 
@@ -162,7 +162,7 @@ docs/
 │   ├── context-format.md     ← CONTEXT 与 CONTEXT-MAP 格式
 │   ├── rules-format.md       ← RULE 场景、命名与 references
 │   └── project-knowledge.mjs ← scope、load、maintain、protocol、hook 与 validator
-├── rules/                    ← 项目规则（RULES）
+├── rules/                    ← 项目规则（RULE）
 │   ├── A01-通用约束-优先改造现有骨架.md
 │   └── C01-校验规则-字段校验用BeanValidation.md
 └── scratch/
@@ -205,7 +205,7 @@ docs/
 |-------|------|
 | **[research](./skills/research/SKILL.md)** | 调度后台 Agent 查阅一手来源，并把带引用的结论写入单一 Markdown 文件 |
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
-| **[zoom-out](./skills/zoom-out/SKILL.md)** | 让 agent 跳出当前代码，给出更高层次的全局视角 |
+| **[zoom-out](./skills/zoom-out/SKILL.md)** | 从当前代码上升一层，给出相关模块和调用者的地图 |
 | **[resolving-merge-conflicts](./skills/resolving-merge-conflicts/SKILL.md)** | 查明双方改动意图，解决并完成正在进行的 merge/rebase 冲突 |
 | **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 按可独立理解、验证和回滚的原子边界拆分变更，并完成约定式本地提交 |
 
@@ -221,7 +221,7 @@ docs/
 
 | 原版 (mattpocock/skills) | 本仓库                                              |
 |--------------------------|--------------------------------------------------|
-| 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULES`                |
+| 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULE`                |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按项目实际交付单元组织需求 |
 | `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
 | `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择当前工作区或 worktree，完成验证后调用 `/atomic-commit` 提交；代码评审按需独立调用 |

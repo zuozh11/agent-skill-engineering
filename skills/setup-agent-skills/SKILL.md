@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。`AGENTS.md` / `CLAUDE.md` 标记块与 Codex / Claude Code 项目 Hook 注入同一套协议；无 Hook 宿主按标记块执行。本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`。`maintain` 返回确认流程与已部署的两份格式文档；`protocol` 返回标记块正文。
+为目标仓库部署项目知识基础设施。本 Skill 是唯一安装和升级入口。项目运行时依赖 `AGENTS.md` / `CLAUDE.md` 标记块与 `docs/agents/project-knowledge.mjs`；无 Hook 宿主按标记块执行，Codex / Claude Code 的项目 Hook 再注入同一套协议。`maintain` 返回确认流程与已部署的两份格式文档；`protocol` 返回标记块正文。
 
 ## 1. 探索项目
 
