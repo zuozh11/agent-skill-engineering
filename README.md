@@ -188,8 +188,8 @@ docs/
 | Skill | 用途 |
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，按实际交付单元组织需求并沿用项目既有名称，如前端、后端或其他系统边界** |
-| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成业务可评审、方案可实施的 vertical slice 或 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **自动选择当前工作区或 worktree，可强制使用子 Agent 或 workflow 编排，完成验证后调用 `atomic-commit` 提交** |
+| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成一卡一交付目的的 vertical slice 或 expand-contract 任务卡** |
+| **[impl](./skills/impl/SKILL.md)** | **按任务卡边界完成实现、验证和原子提交，可选 worktree、子 Agent 或 workflow** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；手动评审默认关注架构摩擦与重构机会** |
 
 ### 关键辅助
