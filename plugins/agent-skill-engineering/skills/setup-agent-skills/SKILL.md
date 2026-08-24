@@ -26,7 +26,7 @@ disable-model-invocation: true
 
 - 已存在且有效的单/多 Context 布局保持不变。
 - 两个入口都不存在时：仓库只有一个主要业务边界或无法确认多个独立边界，使用 `docs/CONTEXT.md`；确有多个可独立描述的业务 Context，使用 `docs/CONTEXT-MAP.md`。
-- 两个入口同时存在，或不同选择会明显改变知识归属时，使用提问工具确认。
+- 两个入口同时存在，或不同选择会明显改变知识归属时，提问确认。
 
 先确定本次部署采用单 Context 或多 Context，再形成清楚的迁移清单：
 

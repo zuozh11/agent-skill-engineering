@@ -21,7 +21,7 @@ description: 从项目规范与需求符合度两个独立维度只读评审代�
 - 用户指定 commit、branch、tag 或 range 时，直接使用并先验证引用真实存在。
 - 用户指定 PR 编号或 URL 时，优先使用可用的代码托管连接器或 CLI 只读解析其 base/head 与 patch；当前宿主无法读取时明确报告，不根据编号猜测范围。
 - 用户明确要求评审未提交改动时，同时读取 `git diff`、`git diff --staged` 与 `git status --short`。对未被忽略的未跟踪文件，使用 `git ls-files --others --exclude-standard` 固定清单，并把当前完整文件内容作为该 diff 范围的补充 snapshot 纳入评审；二进制或无法读取的文件必须说明原因，不得静默遗漏。用户同时指定路径时，三类输入都使用相同 pathspec 限制。
-- 用户要求评审当前分支但未指定基点时，先检查当前分支、上游分支和默认分支；能够明确确定基点时使用 merge-base，不能明确确定时使用提问工具确认。
+- 用户要求评审当前分支但未指定基点时，先检查当前分支、上游分支和默认分支；能够明确确定基点时使用 merge-base，不能明确确定时提问确认。
 - 用户同时指定 Git 范围与文件或目录时，使用 pathspec 将 diff 限制到这些路径，不额外评审范围外文件。
 
 分支范围默认使用 `git diff <fixed-point>...HEAD`，并记录 `git log <fixed-point>..HEAD --oneline`。引用无效或 diff 为空时立即停止并报告，不启动后续评审。
