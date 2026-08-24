@@ -492,6 +492,7 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.match(short.stdout, /sceneId\/sceneName\/rules/);
   assert.match(short.stdout, /ruleId\/ruleName/);
   assert.match(short.stdout, /load \[--debug\]/);
+  assert.match(short.stdout, /maintain\s+输出确认流程/);
   assert.match(short.stdout, /load\s+输出紧凑语义标题/);
   assert.match(short.stdout, /load --debug\s+输出带文件边界的完整原文/);
   assert.match(short.stdout, /--context\s+多 Context 项目可选且可重复/);
@@ -520,6 +521,7 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
   const commonProtocol = `1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
 2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
 3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
+4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
 完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
   const tails = [];
 
@@ -539,7 +541,7 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     assert.doesNotMatch(codexContext, /只执行一次|最终只|原子.*优先|场景.*兜底|references/);
     assert.doesNotMatch(codexContext, /直接执行以下命令|查找 Hook|读取脚本源码|搜索命令/);
     assert.doesNotMatch(codexContext, /--compact|--pretty|--debug|context_options|rule_scene_options|docs\/rules\/|\bcode\b|\bfiles\b|filename|basename|ruleName/);
-    assert.ok(codexContext.length <= 700, `${event} Hook 文案 ${codexContext.length} 字符`);
+    assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
   assert.equal(new Set(tails).size, 1);
 
@@ -605,6 +607,38 @@ test("Hook 命令不泄露带空格和特殊字符的绝对脚本路径", (t) =>
   assert.doesNotMatch(output, /--compact|--pretty|--debug/);
 });
 
+test("maintain 返回确认流程和格式文档", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+  write(target.root, "docs/CONTEXT.md", context("单一业务领域"));
+  write(target.root, "docs/agents/context-format.md", "# CONTEXT 格式\n\n入口为 `docs/CONTEXT.md`。\n");
+  write(target.root, "docs/agents/rules-format.md", "# RULE 格式\n\nRULE 统一存放。\n");
+
+  const result = run(target, ["maintain"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /先检查现有 CONTEXT/);
+  assert.match(result.stdout, /不静默覆盖/);
+  assert.match(result.stdout, /validate-context/);
+  assert.match(result.stdout, /# CONTEXT 格式/);
+  assert.match(result.stdout, /# RULE 格式/);
+  assert.doesNotMatch(result.stdout, /# 项目知识维护/);
+
+  const extra = run(target, ["maintain", "--unknown"]);
+  assert.notEqual(extra.status, 0);
+  assert.match(extra.stderr, /-h 查看用法/);
+
+  fs.rmSync(path.join(target.root, "docs", "agents", "rules-format.md"));
+  const missing = run(target, ["maintain"]);
+  assert.notEqual(missing.status, 0);
+  assert.match(missing.stderr, /docs\/agents\/rules-format\.md/);
+  assert.equal(missing.stdout, "");
+
+  fs.rmSync(path.join(target.root, "docs", "CONTEXT.md"));
+  const silent = run(target, ["maintain"]);
+  assert.equal(silent.status, 0, silent.stderr);
+  assert.equal(silent.stdout, "");
+});
+
 test("布局文档部署结果只保留已选择样式", (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "project-knowledge-layout-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -613,25 +647,20 @@ test("布局文档部署结果只保留已选择样式", (t) => {
     const output = path.join(root, layout);
     const result = spawnSync(process.execPath, [LAYOUT_SCRIPT, layout, output], { encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
-    const domain = fs.readFileSync(path.join(output, "domain.md"), "utf8");
     const contextFormat = fs.readFileSync(path.join(output, "context-format.md"), "utf8");
     const rulesFormat = fs.readFileSync(path.join(output, "rules-format.md"), "utf8");
-    for (const content of [domain, contextFormat, rulesFormat]) {
+    for (const content of [contextFormat, rulesFormat]) {
       assert.doesNotMatch(content, /<!-- layout:/);
       assert.doesNotMatch(content, /--compact|--pretty|--debug/);
     }
-    assert.match(domain, /\[CONTEXT 格式\]\(\.\/context-format\.md\)/);
-    assert.match(domain, /\[RULE 格式\]\(\.\/rules-format\.md\)/);
+    assert.equal(fs.existsSync(path.join(output, "domain.md")), false);
+    assert.equal(fs.existsSync(path.join(output, "maintenance.md")), false);
     assert.equal(fs.existsSync(path.join(output, "context-format.md")), true);
     assert.equal(fs.existsSync(path.join(output, "rules-format.md")), true);
     if (layout === "single") {
-      assert.match(domain, /术语写入 `docs\/CONTEXT\.md`/);
-      assert.doesNotMatch(domain, /CONTEXT-MAP/);
       assert.match(contextFormat, /入口为 `docs\/CONTEXT\.md`/);
       assert.doesNotMatch(contextFormat, /CONTEXT-MAP/);
     } else {
-      assert.match(domain, /docs\/CONTEXT-MAP\.md/);
-      assert.doesNotMatch(domain, /术语写入 `docs\/CONTEXT\.md`/);
       assert.match(contextFormat, /入口为 `docs\/CONTEXT-MAP\.md`/);
       assert.doesNotMatch(contextFormat, /入口为 `docs\/CONTEXT\.md`/);
     }

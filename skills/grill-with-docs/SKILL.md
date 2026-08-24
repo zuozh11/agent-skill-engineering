@@ -5,7 +5,15 @@ description: 对方案、决策或想法进行不留情面的追问，并使用�
 
 # Grill with Docs
 
-开始前完整读取 `docs/agents/domain.md`，并按其中的领域感知与项目知识维护规则执行。
+使用当前任务已经由 `project-knowledge load` 返回的 CONTEXT 术语与 RULE，不自行定位或再读领域文档。项目未采用知识结构或 Hook 已提醒知识不可用时，继续执行并如实说明。
+
+- 后端仓库重点检查状态流转、持久化边界、查询隔离和流程回写；前端仓库重点检查页面流转、组件状态、表单校验和接口调用契约。
+- 用户用词与 CONTEXT 冲突时立即指出；术语含糊或多义时提出精确的规范术语并要求确认。
+- 讨论领域关系时使用具体场景压力测试边界。
+- 用户陈述的现状与代码不一致时展示证据并要求对齐。
+- 方案触及已加载 RULE 时检查冲突；发现违反时要求在修改方案与更新规则之间明确选择，不静默偏离。
+
+出现需要长期记录的术语、Context 关系或规则时，执行 `node docs/agents/project-knowledge.mjs maintain` 并按其返回执行。
 
 对用户进行不留情面的追问，直到达成共识。将其绘制为一棵**设计树（design tree）**：每个决策都会分支衍生出依赖它的后续决策。
 
@@ -13,16 +21,16 @@ description: 对方案、决策或想法进行不留情面的追问，并使用�
 
 按以下格式进行一轮：
 
-```
-❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+```text
+❓ **Q1** - **<问题标题>**: <问题正文，可多段，可含选项>
 
-➡️ <your recommended answer>
+➡️ <推荐答案>
 
 ---
 
-❓ **Q2** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+❓ **Q2** - **<问题标题>**: <问题正文，可多段，可含选项>
 
-➡️ <your recommended answer>
+➡️ <推荐答案>
 ```
 
 用户回答的每一轮都会重塑决策树：已敲定的决策将前沿向外推进，并解锁依赖它们的问题。重新计算前沿并进行下一轮提问。如果某个问题的答案依赖于本轮中尚未解决的另一个问题，那么它属于_后续_轮次，而不是本轮。

@@ -142,12 +142,12 @@ npx skills@latest update --global
 
 ### 项目知识
 
-工作流通过 `Hook 延迟协议 → scope → 按需 load` 使用两类项目知识：
+工作流通过 `Hook 延迟协议 → scope → 按需 load` 使用两类项目知识；需要落盘长期知识时再运行 `maintain`：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入以项目根为工作目录的延迟选择命令。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要时可继续执行 `load`。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
+`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入以项目根为工作目录的延迟选择命令。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要时可继续执行 `load`。出现项目特有术语或长期规则时运行 `maintain`，按其返回的确认流程和格式落盘，不必再打开这些文件。一次性结论和能从代码确认的事实不记录。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 
@@ -159,7 +159,6 @@ npx skills@latest update --global
 docs/
 ├── CONTEXT.md                ← 项目术语和命名约定
 ├── agents/
-│   ├── domain.md             ← 项目知识使用与维护
 │   ├── context-format.md     ← CONTEXT 与 CONTEXT-MAP 格式
 │   ├── rules-format.md       ← RULE 场景、命名与 references
 │   └── project-knowledge.mjs ← scope、load、hook 与 validator
@@ -194,7 +193,7 @@ docs/
 
 ### 关键辅助
 
-[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：它完整内联 `grilling` 的设计树、当前前沿和分轮追问流程，并读取 `docs/agents/domain.md`，用项目术语、代码事实和已加载规则压力测试方案。
+[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：它完整内联 `grilling` 的设计树、当前前沿和分轮追问流程，用已加载的项目术语、代码事实和规则压力测试方案；出现需要长期记录的知识时运行 `maintain`。
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 

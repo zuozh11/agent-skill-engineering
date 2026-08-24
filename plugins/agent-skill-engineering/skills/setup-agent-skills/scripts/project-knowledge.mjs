@@ -612,6 +612,25 @@ function quoteWindows(value) {
   return result + "\\".repeat(backslashes * 2) + '"';
 }
 
+function renderMaintain() {
+  const names = ["context-format.md", "rules-format.md"];
+  const missing = names.filter((name) => !fs.existsSync(path.join(AGENTS_DIR, name)));
+  if (missing.length) {
+    throw new KnowledgeError([`缺少 ${missing.map((name) => `docs/agents/${name}`).join("、")}`]);
+  }
+  const prefix = `先检查现有 CONTEXT、CONTEXT-MAP（如有）和 RULE，确认候选没有被覆盖。向用户说明候选内容、依据和预计落点。只有用户确认且当前任务允许修改项目文档时才写入；只读任务只报告候选项。冲突交给用户决定，不静默覆盖。修改后运行：
+
+node docs/agents/project-knowledge.mjs validate-context
+node docs/agents/project-knowledge.mjs validate-rules
+
+落点与写法见下方格式。
+
+`;
+  return prefix + names
+    .map((name) => fs.readFileSync(path.join(AGENTS_DIR, name), "utf8").replace(/\s*$/u, "\n"))
+    .join("\n");
+}
+
 function renderHelp() {
   const quote = process.platform === "win32" ? quoteWindows : quotePosix;
   const script = quote(SCRIPT_PATH);
@@ -624,6 +643,7 @@ function renderHelp() {
   node ${script} scope --compact
   node ${script} scope --pretty
   node ${script} load [--debug] [--context <path>]... [--rule <sceneId|ruleId>]...
+  node ${script} maintain
   node ${script} hook
 
 选择：
@@ -637,6 +657,9 @@ function renderHelp() {
   --context          多 Context 项目可选且可重复，值来自 scope 的 context_options[].path。
   --rule             可重复；sceneId 加载整个场景，ruleId 加载单条原子 RULE；可混合，重复选择按真实路径去重。
   references         自动递归展开；缺失、越界或未知选择时退出 1 且不输出部分正文，引用环告警后去重终止。
+
+维护：
+  maintain           输出确认流程与 CONTEXT/RULE 格式，无需再读这些文件。
 
 示例：
   node ${script} load --context services/order/CONTEXT.md --rule A03 --rule H
@@ -658,6 +681,7 @@ function eventInstruction(eventName) {
 1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
 2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
 3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
+4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
 完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
 }
 
@@ -721,10 +745,10 @@ function main() {
     runHook();
     return;
   }
-  if (!["validate-context", "validate-rules", "scope", "load"].includes(command)) {
+  if (!["validate-context", "validate-rules", "scope", "load", "maintain"].includes(command)) {
     throw argumentError(`未知子命令：${command}`);
   }
-  if ((command === "validate-context" || command === "validate-rules") && args.length) {
+  if ((command === "validate-context" || command === "validate-rules" || command === "maintain") && args.length) {
     throw argumentError(`${command} 不接受参数`);
   }
   const scopeSelection = command === "scope" ? parseScopeArguments(args) : null;
@@ -744,6 +768,10 @@ function main() {
   }
   if (!knowledge.adopted) return;
   assertValid(knowledge);
+  if (command === "maintain") {
+    process.stdout.write(renderMaintain());
+    return;
+  }
   printWarnings(knowledge.cycles);
   if (command === "scope") {
     const output = createScope(knowledge);

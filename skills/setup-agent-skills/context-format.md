@@ -54,7 +54,7 @@ description: 供应商服务
 ---
 ```
 
-`description` 使用非空单行普通文本，直接填写便于选择的简洁 Context 显示名称，例如“功能平移服务”“生产寻源服务”。不填写职责摘要、文件路径或技术栈。当前不添加其他 Frontmatter 字段。
+`description` 使用非空单行普通文本，直接填写便于选择的简洁 Context 显示名称，例如「功能平移服务」「生产寻源服务」。不填写职责摘要、文件路径或技术栈。当前不添加其他 Frontmatter 字段。
 
 <!-- layout:single:start -->
 运行时 `scope` 以单行 JSON 返回单 Context 模式和 RULE 候选；`load` 自动加载 `docs/CONTEXT.md`，不能传 `--context`。

@@ -6,7 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const LAYOUT_FILES = ["domain.md", "context-format.md"];
+const LAYOUT_FILES = ["context-format.md"];
 const COMMON_FILES = ["rules-format.md"];
 
 function usage() {
