@@ -147,7 +147,7 @@ npx skills@latest update --global
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`UserPromptSubmit`、上下文压缩和子 Agent 启动时，项目 Hook 注入以项目根为工作目录的延迟选择命令。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要时可继续执行 `load`。出现项目特有术语或长期规则时运行 `maintain`，按其返回的确认流程和格式落盘，不必再打开这些文件。一次性结论和能从代码确认的事实不记录。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
+`AGENTS.md` / `CLAUDE.md` 标记块内联同一套协议，无 Hook 的宿主按该块执行。Codex / Claude Code 在 `UserPromptSubmit`、上下文压缩和子 Agent 启动时由项目 Hook 再注入一次；本轮已有同等协议则不必重复执行。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要时可继续执行 `load`。出现项目特有术语或长期规则时运行 `maintain`，按其返回的确认流程和格式落盘，不必再打开这些文件。一次性结论和能从代码确认的事实不记录。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 
