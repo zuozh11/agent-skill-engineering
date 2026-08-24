@@ -142,7 +142,7 @@ npx skills@latest update --global
 
 ### 项目知识
 
-工作流通过 `Hook 延迟协议 → scope → 按需 load` 使用两类项目知识；需要落盘长期知识时再运行 `maintain`：
+工作流通过 `项目知识协议 → scope → 按需 load` 使用两类项目知识；需要落盘长期知识时再运行 `maintain`：
 
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。所有 skill 输出都使用这里的词汇。
 - **`RULES`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
@@ -161,7 +161,7 @@ docs/
 ├── agents/
 │   ├── context-format.md     ← CONTEXT 与 CONTEXT-MAP 格式
 │   ├── rules-format.md       ← RULE 场景、命名与 references
-│   └── project-knowledge.mjs ← scope、load、hook 与 validator
+│   └── project-knowledge.mjs ← scope、load、maintain、protocol、hook 与 validator
 ├── rules/                    ← 项目规则（RULES）
 │   ├── A01-通用约束-优先改造现有骨架.md
 │   └── C01-校验规则-字段校验用BeanValidation.md
@@ -193,7 +193,7 @@ docs/
 
 ### 关键辅助
 
-[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：它完整内联 `grilling` 的设计树、当前前沿和分轮追问流程，用已加载的项目术语、代码事实和规则压力测试方案；出现需要长期记录的知识时运行 `maintain`。
+[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：它完整内联 `grilling` 的设计树、当前前沿和分轮追问流程，用已加载的项目术语、代码事实和规则压力测试方案。
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 

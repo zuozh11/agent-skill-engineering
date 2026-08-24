@@ -51,7 +51,7 @@ snapshot 文件列表为空时立即停止并报告。只要存在用户指定�
 读取与评审范围相关的规范来源：
 
 - 当前范围生效的 `AGENTS.md`、`CLAUDE.md` 或等效 Agent 指令；
-- 当前任务已经由 `project-knowledge load` 返回的 CONTEXT 与 RULE，不自行定位或再读领域文档；
+- 已加载的 CONTEXT 与 RULE；尚未加载则按项目知识协议执行；知识不可用时继续并如实说明；
 - 仓库内真实存在的编码规范、测试约定和模块约束；
 - [standards-baseline.md](./standards-baseline.md) 中的通用评审基线。
 
@@ -92,7 +92,7 @@ snapshot 文件列表为空时立即停止并报告。只要存在用户指定�
 
 聚合前，主 Agent 必须亲自重新校验本次 `load` 返回的全部 RULE，不能用 Standards Agent 的结论代替：
 
-1. 确认 Hook 提供的选择范围覆盖本次评审；若评审范围扩大，按当前完整范围重新执行一次 `load`。
+1. 确认已加载范围覆盖本次评审；若评审范围扩大，按当前完整范围重新执行一次 `load`。
 2. 逐条对照所有已加载规则与完整 diff 或 snapshot 文件内容，在内部检查表中标记为「符合」「不适用」或「违反」，并保留对应文件、行号或 diff 证据。
 3. Standards Agent 漏报的违反必须补入 Standards；判断不清时标为终检未完成并说明缺失信息，不得宣称 Standards 通过。
 

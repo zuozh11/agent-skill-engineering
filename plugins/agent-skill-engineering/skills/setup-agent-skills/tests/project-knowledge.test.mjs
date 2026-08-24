@@ -493,6 +493,7 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   assert.match(short.stdout, /ruleId\/ruleName/);
   assert.match(short.stdout, /load \[--debug\]/);
   assert.match(short.stdout, /maintain\s+输出确认流程/);
+  assert.match(short.stdout, /protocol\s+输出 AGENTS\.md \/ CLAUDE\.md 标记块内协议正文/);
   assert.match(short.stdout, /load\s+输出紧凑语义标题/);
   assert.match(short.stdout, /load --debug\s+输出带文件边界的完整原文/);
   assert.match(short.stdout, /--context\s+多 Context 项目可选且可重复/);
@@ -544,6 +545,11 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
   assert.equal(new Set(tails).size, 1);
+  const protocol = run(target, ["protocol"]);
+  assert.equal(protocol.status, 0, protocol.stderr);
+  assert.equal(protocol.stdout, `执行项目任务时，按下列协议选择、加载与维护项目知识。加载结果中的项目术语用于当前任务命名，项目规则必须遵守。本轮上下文若已有同等协议，直接使用，不必重复执行。
+${commonProtocol}\n`);
+  assert.equal(tails[0], commonProtocol);
 
   const relativeScope = spawnSync(process.execPath, ["docs/agents/project-knowledge.mjs", "scope"], {
     cwd: target.root,
@@ -605,6 +611,23 @@ test("Hook 命令不泄露带空格和特殊字符的绝对脚本路径", (t) =>
   assert.match(output, /node docs\/agents\/project-knowledge\.mjs -h/);
   assert.doesNotMatch(output, /space-\$|quote\/docs\/agents/);
   assert.doesNotMatch(output, /--compact|--pretty|--debug/);
+});
+
+test("protocol 不依赖项目布局且拒绝多余参数", (t) => {
+  const target = fixture();
+  t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
+
+  const result = run(target, ["protocol"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^执行项目任务时，按下列协议选择、加载与维护项目知识/);
+  assert.match(result.stdout, /本轮上下文若已有同等协议，直接使用/);
+  assert.match(result.stdout, /node docs\/agents\/project-knowledge\.mjs scope/);
+  assert.match(result.stdout, /node docs\/agents\/project-knowledge\.mjs maintain/);
+  assert.doesNotMatch(result.stdout, /<!-- project-knowledge:/);
+
+  const extra = run(target, ["protocol", "--unknown"]);
+  assert.notEqual(extra.status, 0);
+  assert.match(extra.stderr, /-h 查看用法/);
 });
 
 test("maintain 返回确认流程和格式文档", (t) => {
@@ -672,6 +695,8 @@ test("setup 仅在新入口验证成功后迁移未定制 read-rules.py", () => 
   const instructions = fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf8");
   assert.match(instructions, /新脚本、当前 Hook、两个 validator、`scope` 和代表性 `load` 都验证成功后，删除未定制的旧 `read-rules\.py`/);
   assert.match(instructions, /定制旧脚本未经用户确认不删除/);
+  assert.match(instructions, /project-knowledge\.mjs protocol/);
+  assert.doesNotMatch(instructions, /以项目根为工作目录，执行：`?node docs\/agents\/project-knowledge\.mjs scope`?/);
 });
 
 test("Hook 模板覆盖三个事件并保持项目根定位", () => {

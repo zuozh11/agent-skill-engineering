@@ -631,6 +631,17 @@ node docs/agents/project-knowledge.mjs validate-rules
     .join("\n");
 }
 
+const PROTOCOL_LEAD = "执行项目任务时，按下列协议选择、加载与维护项目知识。加载结果中的项目术语用于当前任务命名，项目规则必须遵守。本轮上下文若已有同等协议，直接使用，不必重复执行。";
+const PROTOCOL_STEPS = `1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
+2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
+3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
+4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
+完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
+
+function renderProtocol() {
+  return `${PROTOCOL_LEAD}\n${PROTOCOL_STEPS}\n`;
+}
+
 function renderHelp() {
   const quote = process.platform === "win32" ? quoteWindows : quotePosix;
   const script = quote(SCRIPT_PATH);
@@ -644,6 +655,7 @@ function renderHelp() {
   node ${script} scope --pretty
   node ${script} load [--debug] [--context <path>]... [--rule <sceneId|ruleId>]...
   node ${script} maintain
+  node ${script} protocol
   node ${script} hook
 
 选择：
@@ -660,6 +672,7 @@ function renderHelp() {
 
 维护：
   maintain           输出确认流程与 CONTEXT/RULE 格式，无需再读这些文件。
+  protocol           输出 AGENTS.md / CLAUDE.md 标记块内协议正文。
 
 示例：
   node ${script} load --context services/order/CONTEXT.md --rule A03 --rule H
@@ -677,12 +690,7 @@ function eventInstruction(eventName) {
   } else {
     throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
   }
-  return `${lead}
-1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
-2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
-4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
-完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
+  return `${lead}\n${PROTOCOL_STEPS}`;
 }
 
 function renderHookContext(hookInput) {
@@ -740,6 +748,11 @@ function main() {
     return;
   }
   if (!command) throw argumentError("缺少子命令");
+  if (command === "protocol") {
+    if (args.length) throw argumentError("protocol 不接受参数");
+    process.stdout.write(renderProtocol());
+    return;
+  }
   if (command === "hook") {
     if (args.length) throw argumentError("hook 不接受参数");
     runHook();

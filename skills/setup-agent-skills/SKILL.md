@@ -6,9 +6,7 @@ disable-model-invocation: true
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。`AGENTS.md` / `CLAUDE.md` 标记块内联选择、加载与维护协议，无 Hook 的宿主按该块执行；Codex / Claude Code 的项目 Hook 注入同一协议。Agent 运行 `scope`，根据返回的 Context 与按编号排序的 RULE 场景、原子规则自主选择，再按需运行 `load`；出现需要长期记录的知识时运行 `maintain`。
-
-本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`。`maintain` 返回确认流程与已部署的两份格式文档。
+为目标仓库部署项目知识基础设施。`AGENTS.md` / `CLAUDE.md` 标记块与 Codex / Claude Code 项目 Hook 注入同一套协议；无 Hook 宿主按标记块执行。本 Skill 是唯一安装和升级入口。项目运行时只依赖 `docs/agents/project-knowledge.mjs`。`maintain` 返回确认流程与已部署的两份格式文档；`protocol` 返回标记块正文。
 
 ## 1. 探索项目
 
@@ -72,9 +70,10 @@ disable-model-invocation: true
    node docs/agents/project-knowledge.mjs validate-rules
    node docs/agents/project-knowledge.mjs scope
    node docs/agents/project-knowledge.mjs maintain
+   node docs/agents/project-knowledge.mjs protocol
    ```
 
-4. 检查 `scope.rule_scene_options` 按 `sceneId` 排序，每项只含 `sceneId`、`sceneName`、`rules`，其中 `rules` 按 `ruleId` 排序且每项只含 `ruleId`、`ruleName`；从返回结果选择代表性 RULE 执行不带 `--context` 的 `load`，多 Context 布局再选择代表性 Context 验证带 `--context` 的加载。项目没有 RULE 时只验证固定 Context 文档。`maintain` 返回确认流程与当前布局的两份格式，无需再读这些文件。
+4. 检查 `scope.rule_scene_options` 按 `sceneId` 排序，每项只含 `sceneId`、`sceneName`、`rules`，其中 `rules` 按 `ruleId` 排序且每项只含 `ruleId`、`ruleName`；从返回结果选择代表性 RULE 执行不带 `--context` 的 `load`，多 Context 布局再选择代表性 Context 验证带 `--context` 的加载。项目没有 RULE 时只验证固定 Context 文档。`maintain` 返回确认流程与当前布局的两份格式，无需再读这些文件。`protocol` 返回标记块正文，按原样写入第 7 节标记块。
 
 Node 不可用或候选验证失败时，给出直接错误和失败命令，删除临时快照，真实项目保持不变。
 
@@ -116,32 +115,25 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 
 安装后检查当前项目配置中每个事件只有一个自有 Hook。信任只做提醒：能在当前宿主真实触发就验证三个事件，不能自动确认时如实报告「Hook 待信任」，不维护额外状态文件。
 
-三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入延迟选择协议。三个事件仅首句按任务来源变化，其余正文保持一致：
+三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入延迟选择协议。三个事件仅首句按任务来源变化，其余正文与 `protocol` 的步骤相同：
 
 - `UserPromptSubmit`：同任务知识已完整覆盖则继续，否则按流程加载。
 - `SessionStart(compact)`：压缩后按保留任务重新选择并加载知识。
 - `SubagentStart`：按当前子任务独立选择并加载知识。
 
-Hook 命令以项目根为工作目录。Agent 根据当前任务与 `scope` 返回结果，自主选择 Context、`sceneId` 或 `ruleId`；`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要补充知识时可继续执行 `load`。出现需要长期记录的术语或规则时执行 `maintain`。疑问或报错时执行 `node docs/agents/project-knowledge.mjs -h`。模板中的 `additionalContextLimit` 只负责截断保护，不代替 Hook 文案精简。
+模板中的 `additionalContextLimit` 只负责截断保护，不代替 Hook 文案精简。
 
 ## 7. 切换 Agent 指令
 
-在根 `AGENTS.md`、`CLAUDE.md` 中维护以下唯一标记块；两个文件都存在时都更新，但 Hook 仍只安装当前宿主：
+在根 `AGENTS.md`、`CLAUDE.md` 中维护以下唯一标记块；两个文件都存在时都更新，但 Hook 仍只安装当前宿主。块内正文必须等于 `node docs/agents/project-knowledge.mjs protocol` 的完整输出：
 
-```markdown
+````markdown
 <!-- project-knowledge:start -->
 ## 项目知识
 
-执行项目任务时，按下列协议选择、加载与维护项目知识。加载结果中的项目术语用于当前任务命名，项目规则必须遵守。本轮上下文若已有同等协议，直接使用，不必重复执行。
-
-1. 以项目根为工作目录，执行：`node docs/agents/project-knowledge.mjs scope`
-2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：`node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...`
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
-4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：`node docs/agents/project-knowledge.mjs maintain`。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
-
-完整返回正文必须遵守；疑问或报错执行 `node docs/agents/project-knowledge.mjs -h`。
+<protocol 输出>
 <!-- project-knowledge:end -->
-```
+````
 
 - 已有完整标记块：只替换块内文本。
 - 明确匹配旧官方 `## 领域文档` 模板：在原位置迁移为标记块。
@@ -156,7 +148,7 @@ Hook 命令以项目根为工作目录。Agent 根据当前任务与 `scope` 返
 - 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；
 - 场景编码及场景内序号按重要程度排列，每个场景从 `01` 连续编号；每个 RULE 都有 Frontmatter、非空正文且只表达一个可独立判断的原子约束；Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
-- Agent 指令文件各有一个完整标记块，内联可执行协议且不依赖 Hook 才能加载，不再执行全量 RULE 读取；
+- Agent 指令文件各有一个完整标记块，正文等于 `protocol` 输出，不依赖 Hook 才能加载，不再执行全量 RULE 读取；
 - 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope` 返回的 Context、`sceneId` 与 `ruleId` 足以构造 `load`，完整正文和递归引用由加载结果返回；`maintain` 返回确认流程与当前布局格式；
 - 部署后的 `context-format.md` 只描述当前选定的单 Context 或多 Context 布局；候选结果不含 `domain.md`、`maintenance.md`；
 - 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
