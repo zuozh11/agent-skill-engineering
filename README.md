@@ -118,7 +118,7 @@ npx skills@latest update --global
 
 > _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
 
-**解法**：`/impl` 按依赖和写集拆分多张任务卡，每张已解锁卡在独立执行上下文中实施；并行才用独立 worktree。细节见 [impl](./skills/impl/SKILL.md)。需要强制 worktree 时用 `/impl -w`，强制子 Agent 或 workflow 时用 `/impl -a`。完成验证后调用 `/atomic-commit`；代码评审按需单独调用 `/code-review`。
+**解法**：`/impl` 按依赖和写集拆分多张任务卡，并行才用独立 worktree。需要强制 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。完成验证后调用 `/atomic-commit`；代码评审按需单独调用 `/code-review`。
 
 ---
 
