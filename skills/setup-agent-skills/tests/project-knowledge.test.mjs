@@ -690,11 +690,14 @@ test("布局文档部署结果只保留已选择样式", (t) => {
   }
 });
 
-test("setup 仅在新入口验证成功后迁移未定制 read-rules.py", () => {
+test("setup 不处理历史入口，标记块正文来自 protocol", () => {
   const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const instructions = fs.readFileSync(path.join(skillRoot, "SKILL.md"), "utf8");
-  assert.match(instructions, /新脚本、当前 Hook、两个 validator、`scope` 和代表性 `load` 都验证成功后，删除未定制的旧 `read-rules\.py`/);
-  assert.match(instructions, /定制旧脚本未经用户确认不删除/);
+  assert.doesNotMatch(instructions, /read-rules\.py/);
+  assert.doesNotMatch(instructions, /domain\.md/);
+  assert.doesNotMatch(instructions, /maintenance\.md/);
+  assert.doesNotMatch(instructions, /## 领域文档/);
+  assert.doesNotMatch(instructions, /同任务知识已完整覆盖则继续/);
   assert.match(instructions, /project-knowledge\.mjs protocol/);
   assert.doesNotMatch(instructions, /以项目根为工作目录，执行：`?node docs\/agents\/project-knowledge\.mjs scope`?/);
 });

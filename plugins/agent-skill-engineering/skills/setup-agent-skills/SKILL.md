@@ -1,6 +1,6 @@
 ---
 name: setup-agent-skills
-description: 为仓库初始化或升级 Agent 项目知识基础设施。部署 CONTEXT/RULE 格式、按需加载脚本和当前宿主的项目级 Hook，并迁移旧的全量 RULE 读取入口。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查漂移时重新运行。
+description: 为仓库初始化或升级 Agent 项目知识基础设施。部署 CONTEXT/RULE 格式、按需加载脚本和当前宿主的项目级 Hook。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查漂移时重新运行。
 disable-model-invocation: true
 ---
 
@@ -12,9 +12,9 @@ disable-model-invocation: true
 
 先读取并保留目标项目真实状态：
 
-- 根 `AGENTS.md`、`CLAUDE.md` 及其中已有的项目知识或领域文档段落；
+- 根 `AGENTS.md`、`CLAUDE.md` 及其中已有的项目知识段落；
 - `docs/CONTEXT.md`、`docs/CONTEXT-MAP.md`、地图声明的 Context 文件和 `docs/rules/`；
-- `docs/agents/` 下已有文档、`read-rules.py` 和 `project-knowledge.mjs`；
+- `docs/agents/` 下已有文档和 `project-knowledge.mjs`；
 - 当前宿主的项目配置：Codex 使用 `.codex/hooks.json` 或 `.codex/config.toml`，Claude Code 使用 `.claude/settings.json`；
 - 本次运行前的 Git 状态。已有用户改动不得覆盖、暂存或提交。
 
@@ -22,19 +22,18 @@ disable-model-invocation: true
 
 根据当前正在执行 Skill 的宿主选择 Codex 或 Claude Code，不根据项目中存在什么指令文件猜测，也不顺带修改另一个宿主的配置。
 
-## 2. 确定布局与迁移内容
+## 2. 确定布局与变更内容
 
 - 已存在且有效的单/多 Context 布局保持不变。
 - 两个入口都不存在时：仓库只有一个主要业务边界或无法确认多个独立边界，使用 `docs/CONTEXT.md`；确有多个可独立描述的业务 Context，使用 `docs/CONTEXT-MAP.md`。
 - 两个入口同时存在，或不同选择会明显改变知识归属时，提问确认。
 
-先确定本次部署采用单 Context 或多 Context，再形成清楚的迁移清单：
+先确定本次部署采用单 Context 或多 Context，再形成清楚的变更清单：
 
-- 创建或更新两份格式文档与 `project-knowledge.mjs`；旧 `docs/agents/domain.md`、`maintenance.md` 的去留；
+- 创建或更新两份格式文档与 `project-knowledge.mjs`；
 - 需要补充或修正的 Context `description`、需要规范的 Map 链接。`description` 直接使用现有 Map 链接文本、Context 标题或项目既有服务名作为发现列表显示名，不把长业务职责搬入该字段。
-- 旧 RULE 文件名、短号或正文引用迁移到场景文件名和 `references`。场景编码按重要程度排列；每个场景从 `01` 连续重编号，场景内序号同样按重要程度排列；在同一候选变更中同步全部入向引用。每个 RULE 都补齐 Frontmatter；无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径。
+- RULE 文件名与 `references` 按当前场景格式整理。场景编码按重要程度排列；每个场景从 `01` 连续重编号，场景内序号同样按重要程度排列；在同一候选变更中同步全部入向引用。每个 RULE 都补齐 Frontmatter；无直接引用时使用 `references: []`，已有引用按声明文件所在目录改为相对路径。
 - 正文包含多个可独立判断的约束或多章节的 RULE 时，压缩、重排或拆分：先逐项记录原约束，拆出的每个文件保持原子约束，并通过 `references` 保留关系，迁移前后语义不得遗漏。
-- 旧 Agent 指令、`read-rules.py` 和旧 Hook 的去留；
 - 当前宿主需要新增或更新的三个 Hook。
 
 能从文件名和现有规则内容明确判断场景时直接整理；场景划分或项目定制存在多种合理结果时，展示建议后再询问用户。
@@ -53,7 +52,7 @@ disable-model-invocation: true
 
 ## 4. 生成并验证候选快照
 
-在临时目录复制本次迁移涉及的知识文件，先生成完整候选结果，不直接改真实项目：
+在临时目录复制本次变更涉及的知识文件，先生成完整候选结果，不直接改真实项目：
 
 1. 根据已确定的布局生成两份格式文档，并部署 `scripts/project-knowledge.mjs`。必须运行以下命令生成文档，不得把同时介绍两种布局的源种子直接复制到项目：
 
@@ -62,7 +61,7 @@ disable-model-invocation: true
    ```
 
    生成的 `context-format.md` 只能包含所选布局；`rules-format.md` 为两种布局共用。
-2. 保留 Context 正文、共享概念和 Relationships；按迁移清单压缩、拆分、连续重编号 RULE，并同步全部入向 `references`，逐项核对原约束仍有对应落点；同时递归检查所有引用目标，确认缺失、越界和循环均能被验证器明确处理。
+2. 保留 Context 正文、共享概念和 Relationships；按变更清单压缩、拆分、连续重编号 RULE，并同步全部入向 `references`，逐项核对原约束仍有对应落点；同时递归检查所有引用目标，确认缺失、越界和循环均能被验证器明确处理。
 3. 在候选根运行：
 
    ```bash
@@ -86,8 +85,6 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - `context-format.md` → `docs/agents/context-format.md`
 - `rules-format.md` → `docs/agents/rules-format.md`
 - `scripts/project-knowledge.mjs` → `docs/agents/project-knowledge.mjs`
-
-未定制的 `docs/agents/domain.md`、`maintenance.md` 在部署后删除；有定制则展示后由用户确认。
 
 任一步失败时恢复本轮已修改文件，并报告仍需人工处理的内容。
 
@@ -115,11 +112,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 
 安装后检查当前项目配置中每个事件只有一个自有 Hook。信任只做提醒：能在当前宿主真实触发就验证三个事件，不能自动确认时如实报告「Hook 待信任」，不维护额外状态文件。
 
-三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入延迟选择协议。三个事件仅首句按任务来源变化，其余正文与 `protocol` 的步骤相同：
-
-- `UserPromptSubmit`：同任务知识已完整覆盖则继续，否则按流程加载。
-- `SessionStart(compact)`：压缩后按保留任务重新选择并加载知识。
-- `SubagentStart`：按当前子任务独立选择并加载知识。
+三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入延迟选择协议。首句以 `hook` 输出为准，其余正文与 `protocol` 的步骤相同。
 
 模板中的 `additionalContextLimit` 只负责截断保护，不代替 Hook 文案精简。
 
@@ -136,11 +129,8 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 ````
 
 - 已有完整标记块：只替换块内文本。
-- 明确匹配旧官方 `## 领域文档` 模板：在原位置迁移为标记块。
-- 旧段落包含项目定制：展示保留内容和建议结果，用户确认后合并。
-- 没有新旧入口：在文件末尾追加一次。
-
-新脚本、当前 Hook、两个 validator、`scope` 和代表性 `load` 都验证成功后，删除未定制的旧 `read-rules.py` 和旧全量读取入口。定制旧脚本未经用户确认不删除，也不得宣称迁移完成。
+- 标记块外已有项目定制的项目知识段落：展示保留内容和建议结果，用户确认后合并。
+- 没有标记块：在文件末尾追加一次。
 
 ## 8. 完成检查
 
@@ -148,10 +138,10 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - 单/多 Context、Map、RULE 场景和跨目录递归引用通过对应 validator；
 - 场景编码及场景内序号按重要程度排列，每个场景从 `01` 连续编号；每个 RULE 都有 Frontmatter、非空正文且只表达一个可独立判断的原子约束；Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
-- Agent 指令文件各有一个完整标记块，正文等于 `protocol` 输出，不依赖 Hook 才能加载，不再执行全量 RULE 读取；
+- Agent 指令文件各有一个完整标记块，正文等于 `protocol` 输出，不依赖 Hook 才能加载；
 - 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope` 返回的 Context、`sceneId` 与 `ruleId` 足以构造 `load`，完整正文和递归引用由加载结果返回；`maintain` 返回确认流程与当前布局格式；
-- 部署后的 `context-format.md` 只描述当前选定的单 Context 或多 Context 布局；候选结果不含 `domain.md`、`maintenance.md`；
+- 部署后的 `context-format.md` 只描述当前选定的单 Context 或多 Context 布局；
 - 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
 - 用户原有改动和项目定制已保留。
 
-最后报告布局、创建或更新的文件、迁移前后 RULE 数量、编号与正文检查、`scope` 结构化发现和紧凑加载证据、跨目录递归加载证据、重复运行的幂等结果、迁移的旧入口、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。
+最后报告布局、创建或更新的文件、RULE 数量、编号与正文检查、`scope` 结构化发现和紧凑加载证据、跨目录递归加载证据、重复运行的幂等结果、当前宿主 Hook 验证结果，以及仍需用户处理的冲突或信任提醒。

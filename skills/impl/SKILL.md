@@ -1,6 +1,6 @@
 ---
 name: impl
-description: 实现任务卡或当前对话中的代码变更，按范围、工作区状态和隔离收益选择当前工作区或独立 worktree，完成验证后调用 `atomic-commit` 提交；`impl -w` 强制使用 worktree，`impl -a` 强制使用子 Agent 或 workflow 编排。适用于实现或开发代码任务。
+description: 实现任务卡或当前对话中的代码变更。适用于实现或开发代码任务。
 ---
 
 # Impl

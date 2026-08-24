@@ -1,6 +1,6 @@
 # CONTEXT 格式
 
-本文件只定义项目采用的 Context 布局应怎样编写。任务运行时如何选择 Context 由项目 Hook 说明。
+本文件只定义项目采用的 Context 布局应怎样编写。任务运行时如何选择 Context 由项目知识协议说明。
 
 <!-- layout:single:start -->
 入口为 `docs/CONTEXT.md`：
