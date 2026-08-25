@@ -197,7 +197,7 @@ docs/
 
 > `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 每次默认加载，`impl` 按需加载，`code-review` 默认加载、仅在用户限定只看需求符合度时跳过。
+[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 和 `impl` 在涉及模块形状时按需加载，`code-review` 默认加载、仅在用户限定只看需求符合度时跳过。
 
 ### 其他辅助 Skill
 
