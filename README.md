@@ -207,7 +207,7 @@ docs/
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[zoom-out](./skills/zoom-out/SKILL.md)** | 从当前代码上升一层，给出相关模块和调用者的地图 |
 | **[resolving-merge-conflicts](./skills/resolving-merge-conflicts/SKILL.md)** | 查明双方改动意图，解决并完成正在进行的 merge/rebase 冲突 |
-| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 按可独立理解、验证和回滚的原子边界拆分变更，并完成约定式本地提交 |
+| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将完整交付单元整理为可直接回滚的约定式本地提交，不追求最小、最细 |
 
 ### 配置
 
