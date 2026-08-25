@@ -1,6 +1,6 @@
 # Agent Skills — Engineering
 
-面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 拆解 → 实现 → 评审**的完整工程管线。
+面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 接口规划 → 拆解 → 实现 → 评审**的完整工程管线。
 
 与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪，并按需求类型使用 vertical slice 或 expand-contract，更适合实际企业项目。
 
@@ -75,8 +75,8 @@ npx skills@latest update --global
 ## 工作流管线
 
 ```
-主工作流:  to-prd → to-task → impl
-          (PRD)   (拆任务)   (实现)
+主工作流:  to-prd → to-api → to-task → impl
+          (PRD)  (接口规划)  (拆任务)   (实现)
 
 按需评审:  code-review
 
@@ -168,6 +168,7 @@ docs/
 └── scratch/
     └── <NN>-<中文需求名称>/     ← NN 按需求进入仓库的顺序递增
         ├── PRD.md            ← /to-prd 产出
+        ├── API清单.md        ← /to-api 产出
         └── tasks/
             ├── 01-创建数据表.md       ← /to-task 产出
             ├── 02-新增查询接口.md
@@ -187,6 +188,7 @@ docs/
 | Skill | 用途 |
 |-------|------|
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，按实际交付单元组织需求并沿用项目既有名称，如前端、后端或其他系统边界** |
+| **[to-api](./skills/to-api/SKILL.md)** | **将锁定 PRD 规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
 | **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成一卡一交付目的的 vertical slice 或 expand-contract 任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **按任务卡边界完成实现、验证和原子提交，可选 worktree、子 Agent 或 workflow** |
 | **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；默认关注架构摩擦，仅在用户限定只看需求符合度时跳过** |
