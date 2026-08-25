@@ -1,8 +1,8 @@
 # Agent Skills — Engineering
 
-面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，专注于**需求收敛 → 接口规划 → 拆解 → 实现 → 评审**的完整工程管线。
+面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，覆盖需求收敛、接口规划、任务切分、实现提交、缺陷诊断、架构改进和代码评审。
 
-与原版的区别：去掉了 GitHub Issues / Linear 集成和 TDD 流程，改为本地 Markdown 任务追踪，并按需求类型使用 vertical slice 或 expand-contract，更适合实际企业项目。
+本仓库去掉外部 Issue Tracker 依赖，使用项目内 `CONTEXT`、`RULE`、PRD、API 清单和轻量任务卡保存上下文；实现阶段按具有业务意义的完整交付单元提交。
 
 ## 快速开始
 
@@ -75,18 +75,17 @@ npx skills@latest update --global
 ## 工作流管线
 
 ```
-主工作流:  to-prd → to-api → to-task → impl
-          (PRD)  (接口规划)  (拆任务)   (实现)
+需求产物:  to-prd | to-api | to-task（均可基于当前需求上下文独立调用）
+实现提交:  impl → atomic-commit
 
-按需评审:  code-review
+质量流程:  diagnosing-bugs | code-review | improve-codebase-architecture
 
-辅助:  grill-with-docs        research
-     （分轮批量追问）       （一手来源调研）
+决策追问:  ask-me
 
-共享参考: codebase-design（模块职责、接口、接缝与测试面的设计语言）
+共享设计语言: codebase-design
 ```
 
-其他辅助 skill（按需调用）：`diagnosing-bugs`、`zoom-out`、`resolving-merge-conflicts`、`atomic-commit`。
+`improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
 
 ## 为什么要这套流程
 
@@ -94,7 +93,7 @@ npx skills@latest update --global
 
 > _不知道怎么和 agent 讲需求，很难一次性把所有逻辑讲清楚。目标、限制、边界和取舍没说完，agent 就会用自己的假设补空白。_
 
-**解法**：`/grill-with-docs` 把决策组织成设计树，按依赖分轮批量逼问，把模糊想法、边界条件和关键取舍都定义清楚。
+**解法**：`/ask-me` 把决策组织成设计树，按依赖分轮批量逼问，把模糊想法、边界条件和关键取舍都定义清楚。
 
 ---
 
@@ -106,19 +105,19 @@ npx skills@latest update --global
 
 ---
 
-### 问题 3：需求太大，不能一次实现
+### 问题 3：需求太大，边界说不清
 
-> _把一整个模块完整的需求直接交给 agent，它都会试图一次性搞定所有事情，任务边界、提交边界和验证路径都会变模糊。_
+> _需求横跨多个业务结果时，直接进入实现会让任务边界和验收范围变得模糊。_
 
-**解法**：`/to-task` 把普通需求拆成 vertical slice，把宽范围重构拆成 expand-contract。每张卡先用可评审的业务语言说清本次做什么、实现规则和验收标准，再单独列出已确认事实和实现方案；人工可以先评审功能，执行者也能拿到即可直接动手。
+**解法**：`/to-task` 按完整业务结果生成轻量任务卡。每张卡只写需求来源、本次做什么、功能规则和验收标准，不预设技术方案、依赖或实施顺序。
 
 ---
 
-### 问题 4：多任务实现容易互相污染
+### 问题 4：实现和提交缺少业务边界
 
-> _一次实现多个任务时，依赖顺序、写集冲突、上下文长度和提交边界都会叠在一起，最后很难追踪每个 task 到底改了什么。_
+> _按文件、技术层或改动类型拆分实现，容易产生没有独立业务意义、无法整笔回滚的提交。_
 
-**解法**：`/impl` 按依赖和写集拆分多张任务卡，并行才用独立 worktree。需要强制 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。完成验证后调用 `/atomic-commit`；代码评审按需单独调用 `/code-review`。
+**解法**：`/impl` 根据需求分解具有业务意义的提交单元，逐个实现后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。代码评审按需单独调用 `/code-review`。
 
 ---
 
@@ -167,12 +166,11 @@ docs/
 │   └── C01-校验规则-字段校验用BeanValidation.md
 └── scratch/
     └── <NN>-<中文需求名称>/     ← NN 按需求进入仓库的顺序递增
-        ├── PRD.md            ← /to-prd 产出
-        ├── API清单.md        ← /to-api 产出
+        ├── PRD.md            ← /to-prd 按需产出
+        ├── API清单.md        ← /to-api 按需产出
         └── tasks/
-            ├── 01-创建数据表.md       ← /to-task 产出
-            ├── 02-新增查询接口.md
-            └── 03-新增查询页面.md     ← /impl 按依赖实现
+            ├── 01-完成业务结果A.md    ← /to-task 按需产出
+            └── 02-完成业务结果B.md
 ```
 
 `<NN>-<中文需求名称>` 的编号表示需求工作目录在 `docs/scratch/` 下的创建顺序；中文需求名称和任务卡名称使用 `CONTEXT.md` 中的统一术语，目录内的任务卡使用独立编号。
@@ -187,29 +185,27 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **[to-prd](./skills/to-prd/SKILL.md)** | **将对话上下文合成为 `PRD` 文档，按实际交付单元组织需求并沿用项目既有名称，如前端、后端或其他系统边界** |
-| **[to-api](./skills/to-api/SKILL.md)** | **将锁定 PRD 规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
-| **[to-task](./skills/to-task/SKILL.md)** | **将需求拆成一卡一交付目的的 vertical slice 或 expand-contract 任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按任务卡边界完成实现、验证和原子提交，可选 worktree、子 Agent 或 workflow** |
-| **[code-review](./skills/code-review/SKILL.md)** | **从项目规范与需求符合度两个维度评审 diff 或文件目录快照；默认关注架构摩擦，仅在用户限定只看需求符合度时跳过** |
+| **[to-prd](./skills/to-prd/SKILL.md)** | **将需求上下文整理为可独立评审的 `PRD.md`** |
+| **[to-api](./skills/to-api/SKILL.md)** | **将需求上下文规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
+| **[to-task](./skills/to-task/SKILL.md)** | **按完整业务结果将需求上下文切分为轻量任务卡** |
+| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解提交单元并实现；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
+| **[code-review](./skills/code-review/SKILL.md)** | **从 Standards 与 Spec 两个独立维度评审 diff、工作区改动或文件目录 snapshot** |
 
 ### 关键辅助
 
-[grill-with-docs](./skills/grill-with-docs/SKILL.md) 是主管线之外最重要的辅助 skill：它完整内联 `grilling` 的设计树、当前前沿和分轮追问流程，用已加载的项目术语、代码事实和规则压力测试方案。
+[ask-me](./skills/ask-me/SKILL.md) 使用设计树、当前前沿和分轮追问收口决策，最终输出完整决策树。
 
-> `to-task`、`impl` 在上下文不足时会自动触发它的追问流程；`to-prd` 首次合成 PRD 前默认必跑一轮（本轮已执行过则跳过）。
+`to-prd` 使用它收口需求；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。`to-task` 只切分已有需求上下文，不依赖它。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 是模块形状的共享参考层：统一模块、接口、深度、接缝、adapter、杠杆与局部性的设计语言。它不自行扫描代码库或推进流程；`to-task` 和 `impl` 在涉及模块形状时按需加载，`code-review` 默认加载、仅在用户限定只看需求符合度时跳过。
+[codebase-design](./skills/codebase-design/SKILL.md) 提供模块、接口、深度、接缝、adapter、杠杆与局部性的共享设计语言；`impl` 和 `code-review` 在当前范围涉及模块形状时按需加载。
 
 ### 其他辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
-| **[research](./skills/research/SKILL.md)** | 调度后台 Agent 查阅一手来源，并把带引用的结论写入单一 Markdown 文件 |
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
-| **[zoom-out](./skills/zoom-out/SKILL.md)** | 从当前代码上升一层，给出相关模块和调用者的地图 |
-| **[resolving-merge-conflicts](./skills/resolving-merge-conflicts/SKILL.md)** | 查明双方改动意图，解决并完成正在进行的 merge/rebase 冲突 |
-| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将完整交付单元整理为可直接回滚的约定式本地提交，不追求最小、最细 |
+| **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 扫描模块深化机会，生成可视化 HTML 报告，并围绕选中候选收口决策 |
+| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整交付单元整理为可直接回滚的本地提交 |
 
 ### 配置
 
@@ -223,12 +219,12 @@ docs/
 
 | 原版 (mattpocock/skills) | 本仓库                                              |
 |--------------------------|--------------------------------------------------|
-| 依赖 Issue Tracker 和 triage labels | 不接外部任务系统，只配置 `CONTEXT.md` + `RULE`                |
-| `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 写入本地 PRD 文件，并按项目实际交付单元组织需求 |
-| `/to-tickets` 发布轻量 tracer-bullet tickets | `/to-task` 生成详细方案任务卡，并为宽范围重构提供 expand-contract 拆法 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 自动选择当前工作区或 worktree，完成验证后调用 `/atomic-commit` 提交；代码评审按需独立调用 |
-| `/triage` 管理 Issue 分诊状态机 | 移除（本地 Markdown 工作流无需 Issue 分诊）                   |
-| 英文 skill 描述和交互 | 中文 skill 描述和交互                                   |
+| 依赖 Issue Tracker 和 triage labels | 使用项目内 `CONTEXT`、`RULE` 和 Markdown 需求材料 |
+| `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 在本地生成 PRD |
+| `/to-tickets` 发布 tracer-bullet tickets | `/to-task` 生成只描述需求的轻量任务卡 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义实现并调用 `/atomic-commit`；评审保持独立 |
+| `/triage` 管理 Issue 分诊状态机 | 移除，本地工作流不维护分诊状态机 |
+| 英文 Skill | 翻译核心方法，并接入项目知识与本地授权边界 |
 
 ## 通用工作流工具
 
@@ -236,7 +232,6 @@ docs/
 
 | Skill | 用途 |
 |-------|------|
-| **grill-me** | 针对计划或设计进行严苛的面试，直到决策树的每一个分支都得到解决 |
 | **handoff** | 将当前对话压缩为一份交接文档，以便其他 agent 可以继续后续工作 |
 | **writing-great-skills** | 创建和改进可预测、边界清晰的 Skill |
 
@@ -244,14 +239,13 @@ docs/
 
 ```bash
 npx skills@latest add mattpocock/skills \
-  -s grill-me \
   -s handoff \
   -s writing-great-skills
 ```
 
 ## 致谢
 
-基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造。核心理念——共享语言、vertical slice、深模块——来自 Eric Evans 的 DDD、John Ousterhout 的 A Philosophy of Software Design、以及 The Pragmatic Programmer。
+基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造。项目知识、业务意义提交和深模块设计分别吸收了 DDD、A Philosophy of Software Design 与 The Pragmatic Programmer 的思想。
 
 ## 许可证
 

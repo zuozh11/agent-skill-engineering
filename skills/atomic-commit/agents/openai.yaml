@@ -1,3 +1,3 @@
 interface:
   display_name: "Atomic Commit"
-  short_description: "将完整交付单元整理为可直接回滚的本地提交"
+  short_description: "提交具有业务意义且可直接回滚的完整交付单元"

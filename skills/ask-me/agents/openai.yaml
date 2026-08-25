@@ -1,0 +1,3 @@
+interface:
+  display_name: "Ask Me"
+  short_description: "分轮追问并输出完整决策树"

@@ -1,22 +1,20 @@
 {
   "name": "agent-skill-engineering",
-  "description": "面向开发工程师的 Agent Skill 集合，覆盖调研、需求收敛、模块设计、PRD、接口规划、任务拆解、实现和代码评审。",
+  "description": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、模块设计、PRD、接口规划、任务拆解、实现和代码评审。",
   "author": {
     "name": "zuozhi"
   },
   "skills": [
     "./skills/diagnosing-bugs",
-    "./skills/grill-with-docs",
+    "./skills/ask-me",
     "./skills/codebase-design",
-    "./skills/research",
+    "./skills/improve-codebase-architecture",
     "./skills/impl",
     "./skills/code-review",
     "./skills/setup-agent-skills",
     "./skills/to-prd",
     "./skills/to-api",
     "./skills/to-task",
-    "./skills/zoom-out",
-    "./skills/resolving-merge-conflicts",
     "./skills/atomic-commit"
   ]
 }

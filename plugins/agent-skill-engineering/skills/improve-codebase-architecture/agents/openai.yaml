@@ -1,0 +1,5 @@
+interface:
+  display_name: "Improve Codebase Architecture"
+  short_description: "扫描代码库中的模块深化机会并生成可视化架构评审报告"
+policy:
+  allow_implicit_invocation: false

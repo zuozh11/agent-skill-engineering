@@ -1,3 +1,0 @@
-interface:
-  display_name: "Zoom Out"
-  short_description: "从当前代码上升一层，给出相关模块和调用者的地图"

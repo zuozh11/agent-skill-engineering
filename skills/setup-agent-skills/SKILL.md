@@ -1,7 +1,6 @@
 ---
 name: setup-agent-skills
 description: 为仓库初始化或升级 Agent 项目知识基础设施。部署 CONTEXT/RULE 格式、按需加载脚本和当前宿主的项目级 Hook。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查漂移时重新运行。
-disable-model-invocation: true
 ---
 
 # Setup Agent Skills
