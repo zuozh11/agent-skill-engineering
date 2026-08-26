@@ -1,0 +1,5 @@
+interface:
+  display_name: "Wayfinder"
+  short_description: "把大型模糊事项规划为本地决策地图"
+policy:
+  allow_implicit_invocation: false

@@ -1,6 +1,6 @@
 # Agent Skills — Engineering
 
-面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，覆盖需求收敛、接口规划、任务切分、实现提交、缺陷诊断、架构改进和代码评审。
+面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，覆盖大型事项寻路、需求收敛、接口规划、任务切分、实现提交、缺陷诊断、架构改进和代码评审。
 
 本仓库去掉外部 Issue Tracker 依赖，使用项目内 `CONTEXT`、`RULE`、PRD、API 清单和轻量任务卡保存上下文；实现阶段按具有业务意义的完整交付单元提交。
 
@@ -75,6 +75,8 @@ npx skills@latest update --global
 ## 工作流管线
 
 ```
+大型模糊事项: wayfinder → 决策路线清晰
+
 需求产物:  to-prd | to-api | to-task（均可基于当前需求上下文独立调用）
 实现提交:  impl → atomic-commit
 
@@ -85,7 +87,7 @@ npx skills@latest update --global
 共享设计语言: codebase-design
 ```
 
-`improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
+`wayfinder` 和 `improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
 
 ## 为什么要这套流程
 
@@ -181,6 +183,10 @@ docs/
 
 ## Skill 参考
 
+### 大型事项寻路
+
+[wayfinder](./skills/wayfinder/SKILL.md) 把超过单次 Agent 会话容量、推进路线仍不清晰的事项记录为本地 Markdown 决策地图。它逐张解决决策票，直到迷雾和前沿清空，再按实际需要进入 PRD、API、任务或实现工作流。
+
 ### 主管线
 
 | Skill | 用途 |
@@ -219,6 +225,7 @@ docs/
 
 | 原版 (mattpocock/skills) | 本仓库                                              |
 |--------------------------|--------------------------------------------------|
+| `/wayfinder` 使用 Issue Tracker 保存地图和决策票 | 使用 `docs/scratch/<需求>/WAYFINDER.md` 与 `wayfinder/` 本地 Markdown 文件 |
 | 依赖 Issue Tracker 和 triage labels | 使用项目内 `CONTEXT`、`RULE` 和 Markdown 需求材料 |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 在本地生成 PRD |
 | `/to-tickets` 发布 tracer-bullet tickets | `/to-task` 生成只描述需求的轻量任务卡 |

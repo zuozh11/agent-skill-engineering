@@ -1,7 +1,7 @@
 {
   "name": "agent-skill-engineering",
-  "version": "1.2.7",
-  "description": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、模块设计、PRD、接口规划、任务拆解、实现和代码评审。",
+  "version": "1.2.8",
+  "description": "面向开发工程师的 Agent Skill 集合，覆盖大型事项寻路、需求收敛、模块设计、PRD、接口规划、任务拆解、实现和代码评审。",
   "author": {
     "name": "zuozhi"
   },
@@ -11,6 +11,7 @@
   "keywords": [
     "agent-skills",
     "engineering",
+    "wayfinder",
     "prd",
     "tasks",
     "codebase-design",
@@ -22,7 +23,7 @@
   "interface": {
     "displayName": "Agent Skills Engineering",
     "shortDescription": "工程化 Agent Skill 工作流",
-    "longDescription": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、模块形状设计、PRD、接口规划、任务拆解、实现和代码评审，使用本地 Markdown 沉淀需求与任务。",
+    "longDescription": "面向开发工程师的 Agent Skill 集合，覆盖大型事项寻路、需求收敛、模块形状设计、PRD、接口规划、任务拆解、实现和代码评审，使用本地 Markdown 沉淀决策、需求与任务。",
     "developerName": "zuozhi",
     "category": "Engineering",
     "capabilities": [
@@ -31,6 +32,7 @@
     ],
     "websiteURL": "https://github.com/zuozh11/agent-skill-engineering",
     "defaultPrompt": [
+      "把这个大型模糊事项规划成决策地图",
       "把这个需求整理成 PRD",
       "把这个需求规划成 API 清单",
       "扫描当前代码库并生成架构改进报告",

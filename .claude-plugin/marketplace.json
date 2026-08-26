@@ -3,12 +3,12 @@
   "owner": {
     "name": "zuozhi"
   },
-  "description": "面向开发工程师的 Agent Skill 工作流插件。",
+  "description": "面向开发工程师的 Agent Skill 工作流插件，支持大型事项寻路。",
   "plugins": [
     {
       "name": "agent-skill-engineering",
       "source": "./",
-      "description": "面向开发工程师的 Agent Skill 集合，覆盖需求收敛、模块设计、PRD、接口规划、任务拆解、实现和代码评审。"
+      "description": "面向开发工程师的 Agent Skill 集合，覆盖大型事项寻路、需求收敛、模块设计、PRD、接口规划、任务拆解、实现和代码评审。"
     }
   ]
 }
