@@ -80,4 +80,4 @@ If the user asks to combine findings from another branch, pull request, task, or
 
 For a survey, report coverage, ranked proof records, rejected or unresolved high-value leads, and the next fact needed for each uncertainty.
 
-For a change, complete the validation and operation receipt defined in [execution-and-recovery.md](references/execution-and-recovery.md). Report each validation layer separately; a narrow green check does not establish broader runtime, deployment, or user acceptance.
+For a change, complete the validation and operation receipt defined in [execution-and-recovery.md](references/execution-and-recovery.md). When the requested simplification is complete, invoke `atomic-commit` and commit only this run's changes locally; do not push. Report each validation layer separately; a narrow green check does not establish broader runtime, deployment, or user acceptance.
