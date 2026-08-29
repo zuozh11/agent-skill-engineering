@@ -1,6 +1,6 @@
 # Agent Skills — Engineering
 
-面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，覆盖大型事项寻路、需求收敛、接口规划、任务切分、实现提交、缺陷诊断、架构改进和代码评审。
+面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，覆盖大型事项寻路、需求收敛、接口规划、任务切分、实现提交、缺陷诊断、架构改进、代码简化和代码评审。
 
 本仓库去掉外部 Issue Tracker 依赖，使用项目内 `CONTEXT`、`RULE`、PRD、API 清单和轻量任务卡保存上下文；实现阶段按具有业务意义的完整交付单元提交。
 
@@ -80,7 +80,7 @@ npx skills@latest update --global
 需求产物:  to-prd | to-api | to-task（均可基于当前需求上下文独立调用）
 实现提交:  impl → atomic-commit
 
-质量流程:  diagnosing-bugs | code-review | improve-codebase-architecture
+质量流程:  diagnosing-bugs | code-review | improve-codebase-architecture | simplify-codebase
 
 决策追问:  ask-me
 
@@ -211,6 +211,7 @@ docs/
 |-------|------|
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 扫描模块深化机会，生成可视化 HTML 报告，并围绕选中候选收口决策 |
+| **[simplify-codebase](./skills/simplify-codebase/SKILL.md)** | 用契约和消费者证据审计或实施代码简化，安全删除偶然复杂度 |
 | **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整交付单元整理为可直接回滚的本地提交 |
 
 ### 配置
@@ -252,7 +253,7 @@ npx skills@latest add mattpocock/skills \
 
 ## 致谢
 
-基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造。项目知识、业务意义提交和深模块设计分别吸收了 DDD、A Philosophy of Software Design 与 The Pragmatic Programmer 的思想。
+基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造；`simplify-codebase` 引自 [tt-a1i/simplify-codebase](https://github.com/tt-a1i/simplify-codebase)。项目知识、业务意义提交和深模块设计分别吸收了 DDD、A Philosophy of Software Design 与 The Pragmatic Programmer 的思想。
 
 ## 许可证
 
