@@ -1,4 +1,4 @@
 interface:
   display_name: "Code Review"
-  short_description: "按 Standards、Spec 或两个维度评审固定代码范围"
-  default_prompt: "从 Standards 和 Spec 两个独立维度评审当前代码范围。"
+  short_description: "Standards 只查项目规范，Spec 只查业务规则"
+  default_prompt: "分别从项目工程规范和业务规则两个互不串用的维度评审当前代码范围。"

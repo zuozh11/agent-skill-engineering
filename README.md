@@ -119,7 +119,7 @@ npx skills@latest update --global
 
 > _按文件、技术层或改动类型拆分实现，容易产生没有独立业务意义、无法整笔回滚的提交。_
 
-**解法**：`/impl` 根据需求分解具有业务意义的提交单元，逐个实现后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`，需要提交前 Standards 评审和一次问题修复时用 `/impl -r`。代码评审可用 `/code-review --std` 或 `/code-review --spec` 单独选择维度，不传参数时评审两个维度。
+**解法**：`/impl` 根据需求分解具有业务意义的提交单元，逐个实现后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`，需要提交前 Standards 评审和一次问题修复时用 `/impl -r`。代码评审可用 `/code-review --std` 只检查项目工程规范，或用 `/code-review --spec` 只检查业务规则；不传参数时评审两个互不串用的维度。
 
 ---
 
@@ -195,7 +195,7 @@ docs/
 | **[to-api](./skills/to-api/SKILL.md)** | **将需求上下文规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
 | **[to-task](./skills/to-task/SKILL.md)** | **按完整业务结果将需求上下文切分为轻量任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **按业务意义分解提交单元并实现；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow，`-r` 提交前评审** |
-| **[code-review](./skills/code-review/SKILL.md)** | **从 Standards 与 Spec 维度评审固定范围；`--std`、`--spec` 可单独选择** |
+| **[code-review](./skills/code-review/SKILL.md)** | **评审固定范围；`--std` 只查项目工程规范，`--spec` 只查业务规则** |
 
 ### 关键辅助
 
