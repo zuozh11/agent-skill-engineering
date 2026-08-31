@@ -62,7 +62,7 @@ docs/scratch/<NN>-<中文需求名称>/
 ```markdown
 # <问题名称>
 
-- Type: research | prototype | grilling | task
+- Type: research | prototype | ask-me | task
 - Status: open | claimed | resolved
 - Blocked by: <相对链接列表；无依赖时写 none>
 
@@ -85,7 +85,7 @@ docs/scratch/<NN>-<中文需求名称>/
 
 - **research（AFK）**：读取代码、项目知识、官方文档或外部资料，补齐某个决策依赖的事实。结论必须附可复核的文件位置或来源。
 - **prototype（HITL）**：制作便宜、粗糙、可反应的原型，用于回答“应该长什么样”或“行为是否合适”。把原型路径链接到 Resolution，用户反馈后才解决本票。
-- **grilling（HITL）**：通过 `ask-me` 围绕本票的问题完成决策树。Agent 不替用户回答需要用户作出的决定。
+- **ask-me（HITL）**：通过 `ask-me` 围绕本票的问题完成决策树。Agent 不替用户回答需要用户作出的决定。
 - **task（HITL 或 AFK）**：在决策前必须先完成、但本身没有要决定内容的手工事项，例如取得访问权限或迁移一份样本数据。它只为解除决策阻塞，不交付目的地。
 
 ## 迷雾与范围
@@ -108,7 +108,7 @@ docs/scratch/<NN>-<中文需求名称>/
 2. **广度优先扫描**：横向发现当前已经能够精确提问的决策、依赖关系和仍无法提问的迷雾，不深入解决任何一张票。若路线已经完全清晰且单次会话足以容纳，停止建图并说明可以直接进入相应工作流。
 3. **创建地图**：写入 Destination、Notes、Not yet specified 和 Out of scope，保持 Decisions so far 为空。
 4. **创建当前可描述的票**：先创建全部文件，再写入 `Blocked by`，得到可工作的前沿。
-5. **停止**：建图会话不顺手解决 grilling、prototype 或 task 票。
+5. **停止**：建图会话不顺手解决 ask-me、prototype 或 task 票。
 
 ### 推进地图
 
