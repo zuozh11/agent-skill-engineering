@@ -169,7 +169,7 @@ npx skills@latest update --global
 
 > _按文件、技术层或改动类型拆分实现，容易产生没有独立业务意义、无法整笔回滚的提交。_
 
-**解法**：`/impl` 根据需求分解具有业务意义的提交单元，按无需新增、复用现有能力、标准库、平台原生、已安装依赖、最小正确实现的顺序选择方案，固定完成一次 Standards 评审后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。代码评审可用 `/code-review --std` 检查项目工程规范与最小实现，或用 `/code-review --spec` 只检查业务规则；不传参数时评审两个互不串用的维度。
+**解法**：`/impl` 根据需求分解具有业务意义的提交单元，按无需新增、复用现有能力、标准库、平台原生、已安装依赖、最小正确实现的顺序选择方案，并根据任务决定不评审、执行 `/code-review --std` 或执行完整 `/code-review`，然后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。代码评审可用 `/code-review --std` 检查项目工程规范与最小实现，或用 `/code-review --spec` 只检查业务规则；不传参数时评审两个互不串用的维度。
 
 ---
 
@@ -244,7 +244,7 @@ docs/
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将需求上下文整理为可独立评审的 `PRD.md`** |
 | **[to-api](./skills/to-api/SKILL.md)** | **将需求上下文规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
 | **[to-task](./skills/to-task/SKILL.md)** | **按完整业务结果将需求上下文切分为轻量任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解提交单元，选择最小正确实现并固定完成 Standards 评审；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
+| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解提交单元，选择最小正确实现，并按任务决定是否评审及执行 Standards 或完整评审；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
 | **[code-review](./skills/code-review/SKILL.md)** | **快速评审固定范围；`--std` 用项目规范和最小实现阶梯快速检查，`--spec` 只查业务规则** |
 
 ### 关键辅助
@@ -279,7 +279,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 使用项目内 `CONTEXT`、`RULE` 和 Markdown 需求材料 |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 在本地生成 PRD |
 | `/to-tickets` 发布 tracer-bullet tickets | `/to-task` 生成只描述需求的轻量任务卡 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义选择最小正确实现，固定完成 Standards 评审后调用 `/atomic-commit` |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义选择最小正确实现，按任务决定是否及如何评审后调用 `/atomic-commit` |
 | `/triage` 管理 Issue 分诊状态机 | 移除，本地工作流不维护分诊状态机 |
 | 英文 Skill | 翻译核心方法，并接入项目知识与本地授权边界 |
 
