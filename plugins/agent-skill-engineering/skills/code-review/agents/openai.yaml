@@ -1,4 +1,4 @@
 interface:
   display_name: "Code Review"
-  short_description: "Standards 只查项目规范，Spec 只查业务规则"
-  default_prompt: "分别从项目工程规范和业务规则两个互不串用的维度评审当前代码范围。"
+  short_description: "Standards 检查工程规范与最小实现，Spec 检查业务规则"
+  default_prompt: "分别从项目工程规范与最小正确实现、业务规则两个互不串用的维度评审当前代码范围。"

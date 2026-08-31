@@ -80,14 +80,14 @@ npx skills@latest update --global
 需求产物:  to-prd | to-api | to-task（均可基于当前需求上下文独立调用）
 实现提交:  impl → atomic-commit
 
-质量流程:  diagnosing-bugs | code-review | improve-codebase-architecture | simplify-codebase
+质量流程:  diagnosing-bugs | code-review | improve-codebase
 
 决策追问:  ask-me
 
 共享设计语言: codebase-design
 ```
 
-`wayfinder` 和 `improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
+`wayfinder` 和 `improve-codebase` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
 
 ## 为什么要这套流程
 
@@ -119,7 +119,7 @@ npx skills@latest update --global
 
 > _按文件、技术层或改动类型拆分实现，容易产生没有独立业务意义、无法整笔回滚的提交。_
 
-**解法**：`/impl` 根据需求分解具有业务意义的提交单元，逐个实现后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`，需要提交前 Standards 评审和一次问题修复时用 `/impl -r`。代码评审可用 `/code-review --std` 只检查项目工程规范，或用 `/code-review --spec` 只检查业务规则；不传参数时评审两个互不串用的维度。
+**解法**：`/impl` 根据需求分解具有业务意义的提交单元，按无需新增、复用现有能力、标准库、平台原生、已安装依赖、最小正确实现的顺序选择方案，固定完成一次 Standards 评审后调用 `/atomic-commit`。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。代码评审可用 `/code-review --std` 检查项目工程规范与最小实现，或用 `/code-review --spec` 只检查业务规则；不传参数时评审两个互不串用的维度。
 
 ---
 
@@ -194,8 +194,8 @@ docs/
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将需求上下文整理为可独立评审的 `PRD.md`** |
 | **[to-api](./skills/to-api/SKILL.md)** | **将需求上下文规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
 | **[to-task](./skills/to-task/SKILL.md)** | **按完整业务结果将需求上下文切分为轻量任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解提交单元并实现；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow，`-r` 提交前评审** |
-| **[code-review](./skills/code-review/SKILL.md)** | **评审固定范围；`--std` 只查项目工程规范，`--spec` 只查业务规则** |
+| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解提交单元，选择最小正确实现并固定完成 Standards 评审；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
+| **[code-review](./skills/code-review/SKILL.md)** | **快速评审固定范围；`--std` 用项目规范和最小实现阶梯快速检查，`--spec` 只查业务规则** |
 
 ### 关键辅助
 
@@ -203,15 +203,14 @@ docs/
 
 `to-prd` 使用它收口需求；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。`to-task` 只切分已有需求上下文，不依赖它。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 提供模块、接口、深度、接缝、adapter、杠杆与局部性的共享设计语言；`impl` 和 `code-review` 在当前范围涉及模块形状时按需加载。
+[codebase-design](./skills/codebase-design/SKILL.md) 先删除能够消失的复杂度；无法消失时收回现有所有者；没有合适所有者时才创建最小所有者和必要接口。`impl`、`code-review` 和 `improve-codebase` 共用这套所有权判断。
 
 ### 其他辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
-| **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 扫描模块深化机会，生成可视化 HTML 报告，并围绕选中候选收口决策 |
-| **[simplify-codebase](./skills/simplify-codebase/SKILL.md)** | 用契约和消费者证据审计或实施代码简化，安全删除偶然复杂度 |
+| **[improve-codebase](./skills/improve-codebase/SKILL.md)** | 只读扫描过度设计，按收益排序输出删除、复用或替换清单 |
 | **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整交付单元整理为可直接回滚的本地提交 |
 
 ### 配置
@@ -230,7 +229,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 使用项目内 `CONTEXT`、`RULE` 和 Markdown 需求材料 |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 在本地生成 PRD |
 | `/to-tickets` 发布 tracer-bullet tickets | `/to-task` 生成只描述需求的轻量任务卡 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义实现并调用 `/atomic-commit`；仅 `-r` 显式衔接 Standards 评审 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义选择最小正确实现，固定完成 Standards 评审后调用 `/atomic-commit` |
 | `/triage` 管理 Issue 分诊状态机 | 移除，本地工作流不维护分诊状态机 |
 | 英文 Skill | 翻译核心方法，并接入项目知识与本地授权边界 |
 
@@ -253,7 +252,7 @@ npx skills@latest add mattpocock/skills \
 
 ## 致谢
 
-基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造；`simplify-codebase` 引自 [tt-a1i/simplify-codebase](https://github.com/tt-a1i/simplify-codebase)。项目知识、业务意义提交和深模块设计分别吸收了 DDD、A Philosophy of Software Design 与 The Pragmatic Programmer 的思想。
+基于 [Matt Pocock](https://github.com/mattpocock) 的 [skills](https://github.com/mattpocock/skills) 仓库改造；最小实现、代码评审与架构改进中的简化原则融合自 Dietrich Gebert 的 [Ponytail](https://github.com/DietrichGebert/ponytail)。项目知识、业务意义提交和代码所有权设计分别吸收了 DDD、A Philosophy of Software Design 与 The Pragmatic Programmer 的思想。
 
 ## 许可证
 
