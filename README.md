@@ -6,7 +6,7 @@
 
 ## 快速开始
 
-1. 选择下方任一方式安装。Codex、Claude Code 用户优先使用对应插件；需要跨宿主或只安装 Skill 时使用独立 Skill 安装。
+1. 优先使用对应宿主的插件安装。Codex 和 Grok 推荐项目级插件，Claude Code 使用 marketplace 插件；只在宿主不支持插件时使用独立 Skill 安装。
 
 2. 在目标仓库中运行 `/setup-agent-skills`。
 
@@ -16,7 +16,22 @@
 
 ### Codex 插件
 
-#### 全局安装
+#### 项目级安装（推荐）
+
+在目标项目的 `.codex/config.toml` 中声明远程 marketplace 并启用插件：
+
+```toml
+[marketplaces.agent-skill-engineering]
+source_type = "git"
+source = "https://github.com/zuozh11/agent-skill-engineering.git"
+
+[plugins."agent-skill-engineering@agent-skill-engineering"]
+enabled = true
+```
+
+新建 Codex 任务后，该项目会加载插件中的全部 Skill，不需要再写入 `.agents/skills/` 或 `skills-lock.json`。
+
+#### 用户级安装
 
 注册仓库 marketplace，并安装插件：
 
@@ -29,6 +44,39 @@ codex plugin add agent-skill-engineering@agent-skill-engineering
 
 ```bash
 codex plugin marketplace upgrade agent-skill-engineering
+```
+
+### Grok 插件
+
+#### 项目级安装（推荐）
+
+从本仓库根目录将插件复制到目标项目：
+
+```bash
+mkdir -p <target-project>/.grok/plugins
+cp -R plugins/agent-skill-engineering <target-project>/.grok/plugins/
+```
+
+在目标项目的 `.grok/config.toml` 中启用插件：
+
+```toml
+[plugins]
+enabled = ["agent-skill-engineering"]
+```
+
+Grok 会以 `project` 作用域加载 `.grok/plugins/` 下的插件。首次加载时按 Grok 提示信任项目插件，然后新建 Session 或在插件页重新加载。
+
+#### 用户级安装
+
+```bash
+grok plugin install zuozh11/agent-skill-engineering#plugins/agent-skill-engineering --trust
+grok plugin enable agent-skill-engineering
+```
+
+更新：
+
+```bash
+grok plugin update agent-skill-engineering
 ```
 
 ### Claude Code 插件
@@ -47,9 +95,11 @@ claude plugin marketplace update agent-skill-engineering
 claude plugin update agent-skill-engineering@agent-skill-engineering --scope user
 ```
 
-### 独立 Skill
+### 独立 Skill（兼容方式）
 
-项目级安装（默认）：
+当宿主不支持插件或只需要单独 Skill 时使用：
+
+项目级安装：
 
 ```bash
 npx skills@latest add zuozh11/agent-skill-engineering
@@ -68,7 +118,7 @@ npx skills@latest update --project
 npx skills@latest update --global
 ```
 
-参考：[Codex 插件文档](https://developers.openai.com/codex/plugins/build)、[Claude Code 插件 marketplace 文档](https://docs.anthropic.com/en/docs/claude-code/plugin-marketplaces)。
+参考：[Codex 插件文档](https://developers.openai.com/codex/plugins/build)、[Grok 插件文档](https://docs.x.ai/build/features/skills-plugins-marketplaces)、[Claude Code 插件 marketplace 文档](https://docs.anthropic.com/en/docs/claude-code/plugin-marketplaces)。
 
 ---
 
