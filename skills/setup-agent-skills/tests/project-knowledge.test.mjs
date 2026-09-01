@@ -92,6 +92,11 @@ test("单 Context scope 和 load 按场景展开引用且不自动加入通用�
   assert.match(loadResult.stdout, /## RULE C01 · 保存约束/);
   assert.match(loadResult.stdout, /## RULE F01 · 平台约束/);
   assert.doesNotMatch(loadResult.stdout, /## RULE A01/);
+
+  const wrongContext = run(target, ["load", "--context", "docs/CONTEXT.md", "--rule", "C"]);
+  assert.notEqual(wrongContext.status, 0);
+  assert.equal(wrongContext.stdout, "");
+  assert.equal(wrongContext.stderr, "load：单 Context 项目不能传入 --context\n");
 });
 
 test("RULE 必须有 Frontmatter 且正文不能为空", (t) => {

@@ -525,8 +525,10 @@ function renderLoad(knowledge, args) {
   if (knowledge.mode === "multiple" && !selection.contexts.length && !selection.rules.length) {
     errors.push("load：多 Context 项目至少选择一个 --context 或 --rule");
   }
-  for (const contextPath of selection.contexts) {
-    if (!contextByPath.has(contextPath)) errors.push(`load：未知 Context ${contextPath}`);
+  if (knowledge.mode !== "single") {
+    for (const contextPath of selection.contexts) {
+      if (!contextByPath.has(contextPath)) errors.push(`load：未知 Context ${contextPath}`);
+    }
   }
   const selectedRules = new Set();
   for (const value of selection.rules) {
