@@ -130,14 +130,14 @@ npx skills@latest update --global
 需求产物:  to-prd | to-api | to-task（均可基于当前需求上下文独立调用）
 实现提交:  impl → atomic-commit
 
-质量流程:  diagnosing-bugs | code-review | improve-codebase
+质量流程:  diagnosing-bugs | code-review | improve-codebase-architecture
 
 决策追问:  ask-me
 
 共享设计语言: codebase-design
 ```
 
-`wayfinder` 和 `improve-codebase` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
+`wayfinder` 和 `improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
 
 ## 为什么要这套流程
 
@@ -253,14 +253,14 @@ docs/
 
 `to-prd` 使用它收口需求；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。`to-task` 只切分已有需求上下文，不依赖它。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 先删除能够消失的复杂度；无法消失时收回现有所有者；没有合适所有者时才创建最小所有者和必要接口。`impl`、`code-review` 和 `improve-codebase` 共用这套所有权判断。
+[codebase-design](./skills/codebase-design/SKILL.md) 提供所有权、接口、接缝、适配器与局部性的共享设计语言；`impl` 和 `code-review` 在当前范围涉及模块形状时按需加载，`improve-codebase-architecture` 用它评估模块深化机会。
 
 ### 其他辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
-| **[improve-codebase](./skills/improve-codebase/SKILL.md)** | 只读扫描过度设计，按收益排序输出删除、复用或替换清单 |
+| **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 扫描模块深化机会，生成可视化 HTML 报告，并围绕选中候选收口决策 |
 | **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整交付单元整理为可直接回滚的本地提交 |
 
 ### 配置

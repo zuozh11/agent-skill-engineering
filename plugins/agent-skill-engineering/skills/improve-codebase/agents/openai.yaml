@@ -1,6 +1,0 @@
-interface:
-  display_name: "Improve Codebase"
-  short_description: "只读扫描并排序可删除或替换的复杂度"
-  default_prompt: "审计当前代码库中的过度设计，按收益排序输出最小删除或替换清单。"
-policy:
-  allow_implicit_invocation: false
