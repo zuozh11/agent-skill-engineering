@@ -1,3 +1,3 @@
 interface:
   display_name: "Diagnosing Bugs"
-  short_description: "用结构化循环诊断缺陷与性能回退"
+  short_description: "按现有证据选择调查方法，区分已证实根因与待验证判断"

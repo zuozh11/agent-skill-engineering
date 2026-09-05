@@ -620,7 +620,7 @@ function renderMaintain() {
   if (missing.length) {
     throw new KnowledgeError([`缺少 ${missing.map((name) => `docs/agents/${name}`).join("、")}`]);
   }
-  const prefix = `先检查现有 CONTEXT、CONTEXT-MAP（如有）和 RULE，确认候选没有被覆盖。向用户说明候选内容、依据和预计落点。只有用户确认且当前任务允许修改项目文档时才写入；只读任务只报告候选项。冲突交给用户决定，不静默覆盖。修改后运行：
+  const prefix = `先检查现有 CONTEXT、CONTEXT-MAP（如有）和 RULE，确认候选尚未记录。当前任务已授权记录这些内容时直接写入；否则先说明候选、依据和落点，取得确认后写入。只读任务只报告候选项。冲突交给用户决定，不静默覆盖。修改后运行：
 
 node docs/agents/project-knowledge.mjs validate-context
 node docs/agents/project-knowledge.mjs validate-rules
@@ -633,12 +633,12 @@ node docs/agents/project-knowledge.mjs validate-rules
     .join("\n");
 }
 
-const PROTOCOL_LEAD = "执行项目任务时，按下列协议选择、加载与维护项目知识。加载结果中的项目术语用于当前任务命名，项目规则必须遵守。本轮上下文若已有同等协议，直接使用，不必重复执行。";
-const PROTOCOL_STEPS = `1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
+const PROTOCOL_LEAD = "执行项目任务时，按下列协议选择、加载与维护项目知识。同一任务已有知识足够时复用，范围变化或知识缺失时补充。";
+const PROTOCOL_STEPS = `1. 需要项目知识时，以项目根为工作目录执行：node docs/agents/project-knowledge.mjs scope
 2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
-4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
-完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
+3. sceneId 加载整个场景，ruleId 加载单条原子 RULE。加载内容提供事实和候选约束；只遵守与当前任务直接适用、仍有效且未被本次明确要求取代的规则。需要时可补充 load。
+4. 发现值得长期保留且尚未记录的项目知识时，执行：node docs/agents/project-knowledge.mjs maintain，按当前任务授权维护。一次性结论、局部实现和能从代码确认的事实不记录。
+疑问或报错执行 node docs/agents/project-knowledge.mjs -h；知识不可用时说明缺口并继续可完成的工作。`;
 
 function renderProtocol() {
   return `${PROTOCOL_LEAD}\n${PROTOCOL_STEPS}\n`;
@@ -686,9 +686,9 @@ function eventInstruction(eventName) {
   if (eventName === "UserPromptSubmit") {
     lead = "同任务知识已完整覆盖则继续，否则按以下流程加载。";
   } else if (eventName === "SessionStart") {
-    lead = "压缩后按保留任务重新选择并加载知识。";
+    lead = "压缩后沿用保留任务和已有知识，只补充缺失部分。";
   } else if (eventName === "SubagentStart") {
-    lead = "按当前子任务独立选择并加载知识。";
+    lead = "按当前子任务选择知识；已传入且适用的内容直接复用。";
   } else {
     throw new KnowledgeError([`hook：不支持事件 ${eventName}`]);
   }

@@ -4,6 +4,8 @@
 
 本仓库去掉外部 Issue Tracker 依赖，使用项目内 `CONTEXT`、`RULE`、PRD、API 清单和轻量任务卡保存上下文；实现阶段按具有业务意义的完整交付单元提交。
 
+Skill 定义交付结果、项目约定和必要边界，常规实现选择由 Agent 完成。共享流程保持模型通用；项目规则按当前任务适用性采用，已有授权和已确认决策直接复用，验证与改动规模相称。
+
 ## 快速开始
 
 1. 优先使用对应宿主的插件安装。Codex 和 Grok 推荐项目级插件，Claude Code 使用 marketplace 插件；只在宿主不支持插件时使用独立 Skill 安装。
@@ -137,7 +139,7 @@ npx skills@latest update --global
 共享设计语言: codebase-design
 ```
 
-`wayfinder` 和 `improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
+`wayfinder`、`improve-codebase-architecture` 和 `setup-agent-skills` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
 
 ## 为什么要这套流程
 
@@ -145,7 +147,7 @@ npx skills@latest update --global
 
 > _不知道怎么和 agent 讲需求，很难一次性把所有逻辑讲清楚。目标、限制、边界和取舍没说完，agent 就会用自己的假设补空白。_
 
-**解法**：`/ask-me` 把决策组织成设计树，按依赖分轮批量逼问，把模糊想法、边界条件和关键取舍都定义清楚。
+**解法**：`/ask-me` 按依赖分轮追问关键取舍，保留 `❓ Q1`、`➡️ 推荐答案` 和分隔线格式。事实由 Agent 查证，常规实现选择自行判断；关键决策足以支持交付时结束，用户明确要求时再完整遍历约定范围。
 
 ---
 
@@ -153,7 +155,7 @@ npx skills@latest update --global
 
 > _口头描述散在对话里，缺少整体视图，人工很难回看、评审和发现遗漏。_
 
-**解法**：`/to-prd` 生成 `PRD.md`，把需求固化成可回看、可评审的文档。
+**解法**：`/to-prd` 生成 `PRD.md`，把需求固化成可回看、可评审的文档。信息足够时直接成稿；影响业务范围、规则或验收结果的缺口才进入提问。
 
 ---
 
@@ -169,7 +171,9 @@ npx skills@latest update --global
 
 > _按文件、技术层或改动类型拆分实现，容易产生没有独立业务意义、无法整笔回滚的提交。_
 
-**解法**：`/impl` 根据需求分解具有业务意义的提交单元，按无需新增、复用现有能力、标准库、平台原生、已安装依赖、最小正确实现的顺序选择方案，调用 `/atomic-commit` 后根据适用的 RULE 与 PRD 决定不评审、执行 `/code-review --std`、执行 `/code-review --spec` 或执行完整 `/code-review`，并将确认必要的修复 amend 到当前提交。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。代码评审可用 `/code-review --std` 检查项目工程规范与最小实现，或用 `/code-review --spec` 只检查业务规则；不传参数时评审两个互不串用的维度。
+**解法**：`/impl` 根据完整业务结果组织提交，遵循项目惯用法并复用现有能力，完成最小正确实现与必要验证。普通实现路径不可行时在既定目标内调整并继续；改变业务目标、外部契约、授权范围或用户锁定选择时才提问。
+
+调用 `/atomic-commit` 后，适用的 RULE（工程规范）触发 `code-review --std`，直接作为需求依据的 PRD、任务卡等需求材料触发 `--spec`；两类都有时完整评审，都没有时跳过。RULE 属于 Standards，需求材料属于 Spec；已明确目标与实施方案的改动跳过自动评审，用户显式要求评审时按其要求执行。只修复真实且必要的问题并 amend，不重复评审。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。
 
 ---
 
@@ -198,7 +202,13 @@ npx skills@latest update --global
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。走项目知识协议的 skill 使用这里的词汇。
 - **`RULE`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`AGENTS.md` / `CLAUDE.md` 标记块内联同一套协议，无 Hook 的宿主按该块执行。Codex / Claude Code 在 `UserPromptSubmit`、上下文压缩和子 Agent 启动时由项目 Hook 再注入一次；本轮已有同等协议则不必重复执行。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE，需要时可继续执行 `load`。出现项目特有术语或长期规则时运行 `maintain`，按其返回的确认流程和格式落盘，不必再打开这些文件。一次性结论和能从代码确认的事实不记录。同一任务且既有范围足够时直接继续；参数不清或命令报错时运行 `project-knowledge -h`。
+`AGENTS.md` / `CLAUDE.md` 标记块内联同一套协议，无 Hook 的宿主按该块执行。Codex / Claude Code 在 `UserPromptSubmit`、上下文压缩和子 Agent 启动时由项目 Hook 提示按需加载；同一任务已有知识足够时复用，包括压缩后保留或传入子 Agent 的适用知识。
+
+需要补充时执行默认输出单行 JSON 的 `scope`，根据当前任务选择 Context、`sceneId` 或 `ruleId`，再执行 `load`。多 Context 项目可只选择 RULE。加载内容提供事实和候选约束；只有与当前任务直接适用、仍有效且未被本次明确要求取代的规则构成约束。RULE 正文保留简短的适用条件和必要例外。
+
+发现值得长期保留且尚未记录的项目知识时运行 `maintain`，按当前任务授权和返回格式落盘。一次性结论和能从代码确认的事实不记录。参数不清或命令报错时运行 `project-knowledge -h`，知识不可用时说明缺口并继续可完成的工作。
+
+`to-api` 的路由风格、平台复用和入口停用约定由目标项目决定。原有 SRM 专属条款保留在 [项目 RULE 迁移材料](./docs/project-rules/srm-api-planning.md)，供适用项目采用，不随通用 Skill 自动生效。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 
@@ -245,21 +255,21 @@ docs/
 | **[to-api](./skills/to-api/SKILL.md)** | **将需求上下文规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
 | **[to-task](./skills/to-task/SKILL.md)** | **按完整业务结果将需求上下文切分为轻量任务卡** |
 | **[impl](./skills/impl/SKILL.md)** | **按业务意义分解并提交最小正确实现，再按适用的 RULE 与 PRD 决定是否评审并 amend 必要修复；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
-| **[code-review](./skills/code-review/SKILL.md)** | **快速评审固定范围；`--std` 用项目规范和最小实现阶梯快速检查，`--spec` 只查业务规则** |
+| **[code-review](./skills/code-review/SKILL.md)** | **只读评审固定范围；`--std` 检查工程规范与最小实现，`--spec` 检查需求符合度** |
 
 ### 关键辅助
 
-[ask-me](./skills/ask-me/SKILL.md) 使用设计树、当前前沿和分轮追问收口决策，最终输出完整决策树。
+[ask-me](./skills/ask-me/SKILL.md) 使用分轮追问收口关键取舍，沿用编号和推荐答案格式，输出已确认决策及依赖。
 
-`to-prd` 使用它收口需求；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。`to-task` 只切分已有需求上下文，不依赖它。
+`to-prd`、`to-api` 和 `impl` 对明确需求直接推进；关键取舍需要用户决定且相互依赖时才围绕具体问题调用它。`to-task` 只切分已有需求上下文，不依赖它。
 
-[codebase-design](./skills/codebase-design/SKILL.md) 提供所有权、接口、接缝、适配器与局部性的共享设计语言；`impl` 和 `code-review` 在当前范围涉及模块形状时按需加载，`improve-codebase-architecture` 用它评估模块深化机会。
+[codebase-design](./skills/codebase-design/SKILL.md) 提供职责归属、必要接口与局部性判断；`impl` 和 `code-review` 遇到复杂边界取舍时按需加载，`improve-codebase-architecture` 用它评估模块深化机会。
 
 ### 其他辅助 Skill
 
 | Skill | 用途 |
 |-------|------|
-| **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 结构化调试循环：复现 → 最小化 → 假设 → 插桩 → 修复 → 回归测试 |
+| **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 根据代码、数据和必要实验诊断原因；复现、最小化与插桩按需使用 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 扫描模块深化机会，生成可视化 HTML 报告，并围绕选中候选收口决策 |
 | **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整交付单元整理为可直接回滚的本地提交 |
 

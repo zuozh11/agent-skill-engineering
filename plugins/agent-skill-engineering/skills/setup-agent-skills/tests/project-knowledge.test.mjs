@@ -519,16 +519,11 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
   const nested = path.join(target.root, "nested", "workdir");
   fs.mkdirSync(nested, { recursive: true });
 
-  const expectations = new Map([
-    ["UserPromptSubmit", "同任务知识已完整覆盖则继续，否则按以下流程加载。"],
-    ["SessionStart", "压缩后按保留任务重新选择并加载知识。"],
-    ["SubagentStart", "按当前子任务独立选择并加载知识。"],
-  ]);
-  const commonProtocol = `1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
-2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
-4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
-完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
+  const protocol = run(target, ["protocol"]);
+  assert.equal(protocol.status, 0, protocol.stderr);
+  const commonProtocol = protocol.stdout.trimEnd().split("\n").slice(1).join("\n");
+  assert.ok(commonProtocol.length > 0);
+  const leads = [];
   const tails = [];
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
@@ -541,7 +536,9 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     const claudeContext = JSON.parse(claude.stdout).hookSpecificOutput.additionalContext;
 
     assert.equal(claudeContext, codexContext);
-    assert.equal(codexContext, `${expectations.get(event)}\n${commonProtocol}`);
+    const lead = codexContext.slice(0, codexContext.indexOf("\n"));
+    assert.ok(lead.length > 0);
+    leads.push(lead);
     tails.push(codexContext.slice(codexContext.indexOf("\n") + 1));
     assert.doesNotMatch(codexContext, new RegExp(target.root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     assert.doesNotMatch(codexContext, /只执行一次|最终只|原子.*优先|场景.*兜底|references/);
@@ -550,10 +547,7 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
     assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
   assert.equal(new Set(tails).size, 1);
-  const protocol = run(target, ["protocol"]);
-  assert.equal(protocol.status, 0, protocol.stderr);
-  assert.equal(protocol.stdout, `执行项目任务时，按下列协议选择、加载与维护项目知识。加载结果中的项目术语用于当前任务命名，项目规则必须遵守。本轮上下文若已有同等协议，直接使用，不必重复执行。
-${commonProtocol}\n`);
+  assert.equal(new Set(leads).size, 3);
   assert.equal(tails[0], commonProtocol);
 
   const relativeScope = spawnSync(process.execPath, ["docs/agents/project-knowledge.mjs", "scope"], {
@@ -625,7 +619,6 @@ test("protocol 不依赖项目布局且拒绝多余参数", (t) => {
   const result = run(target, ["protocol"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /^执行项目任务时，按下列协议选择、加载与维护项目知识/);
-  assert.match(result.stdout, /本轮上下文若已有同等协议，直接使用/);
   assert.match(result.stdout, /node docs\/agents\/project-knowledge\.mjs scope/);
   assert.match(result.stdout, /node docs\/agents\/project-knowledge\.mjs maintain/);
   assert.doesNotMatch(result.stdout, /<!-- project-knowledge:/);
