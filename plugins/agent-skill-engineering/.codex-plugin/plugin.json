@@ -1,7 +1,7 @@
 {
   "name": "agent-skill-engineering",
-  "version": "1.3.0",
-  "description": "面向开发工程师的 Agent Skill 集合，覆盖大型事项寻路、需求收敛、模块设计、PRD、接口规划、任务拆解、最小实现、架构改进和代码评审。",
+  "version": "1.3.0+codex.20260905013223",
+  "description": "\u9762\u5411\u5f00\u53d1\u5de5\u7a0b\u5e08\u7684 Agent Skill \u96c6\u5408\uff0c\u8986\u76d6\u5927\u578b\u4e8b\u9879\u5bfb\u8def\u3001\u9700\u6c42\u6536\u655b\u3001\u6a21\u5757\u8bbe\u8ba1\u3001PRD\u3001\u63a5\u53e3\u89c4\u5212\u3001\u4efb\u52a1\u62c6\u89e3\u3001\u6700\u5c0f\u5b9e\u73b0\u3001\u67b6\u6784\u6539\u8fdb\u548c\u4ee3\u7801\u8bc4\u5ba1\u3002",
   "author": {
     "name": "zuozhi"
   },
@@ -23,8 +23,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Agent Skills Engineering",
-    "shortDescription": "工程化 Agent Skill 工作流",
-    "longDescription": "面向开发工程师的 Agent Skill 集合，覆盖大型事项寻路、需求收敛、模块形状设计、PRD、接口规划、任务拆解、最小实现、架构改进和代码评审，使用本地 Markdown 沉淀决策、需求与任务。",
+    "shortDescription": "\u5de5\u7a0b\u5316 Agent Skill \u5de5\u4f5c\u6d41",
+    "longDescription": "\u9762\u5411\u5f00\u53d1\u5de5\u7a0b\u5e08\u7684 Agent Skill \u96c6\u5408\uff0c\u8986\u76d6\u5927\u578b\u4e8b\u9879\u5bfb\u8def\u3001\u9700\u6c42\u6536\u655b\u3001\u6a21\u5757\u5f62\u72b6\u8bbe\u8ba1\u3001PRD\u3001\u63a5\u53e3\u89c4\u5212\u3001\u4efb\u52a1\u62c6\u89e3\u3001\u6700\u5c0f\u5b9e\u73b0\u3001\u67b6\u6784\u6539\u8fdb\u548c\u4ee3\u7801\u8bc4\u5ba1\uff0c\u4f7f\u7528\u672c\u5730 Markdown \u6c89\u6dc0\u51b3\u7b56\u3001\u9700\u6c42\u4e0e\u4efb\u52a1\u3002",
     "developerName": "zuozhi",
     "category": "Engineering",
     "capabilities": [
@@ -33,13 +33,13 @@
     ],
     "websiteURL": "https://github.com/zuozh11/agent-skill-engineering",
     "defaultPrompt": [
-      "把这个大型模糊事项规划成决策地图",
-      "把这个需求整理成 PRD",
-      "把这个需求规划成 API 清单",
-      "扫描当前代码库并生成架构改进报告",
-      "把 PRD 拆成 vertical slice 任务",
-      "按任务卡选择最小正确方案并实现下一个切片",
-      "用项目工程规范和需求依据评审这次改动"
+      "\u628a\u8fd9\u4e2a\u5927\u578b\u6a21\u7cca\u4e8b\u9879\u89c4\u5212\u6210\u51b3\u7b56\u5730\u56fe",
+      "\u628a\u8fd9\u4e2a\u9700\u6c42\u6574\u7406\u6210 PRD",
+      "\u628a\u8fd9\u4e2a\u9700\u6c42\u89c4\u5212\u6210 API \u6e05\u5355",
+      "\u626b\u63cf\u5f53\u524d\u4ee3\u7801\u5e93\u5e76\u751f\u6210\u67b6\u6784\u6539\u8fdb\u62a5\u544a",
+      "\u628a PRD \u62c6\u6210 vertical slice \u4efb\u52a1",
+      "\u6309\u4efb\u52a1\u5361\u9009\u62e9\u6700\u5c0f\u6b63\u786e\u65b9\u6848\u5e76\u5b9e\u73b0\u4e0b\u4e00\u4e2a\u5207\u7247",
+      "\u7528\u9879\u76ee\u5de5\u7a0b\u89c4\u8303\u548c\u9700\u6c42\u4f9d\u636e\u8bc4\u5ba1\u8fd9\u6b21\u6539\u52a8"
     ],
     "brandColor": "#2563EB",
     "screenshots": []
