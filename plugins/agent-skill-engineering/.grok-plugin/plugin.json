@@ -9,7 +9,7 @@
     "./skills/wayfinder",
     "./skills/ask-me",
     "./skills/codebase-design",
-    "./skills/improve-codebase",
+    "./skills/improve-codebase-architecture",
     "./skills/impl",
     "./skills/code-review",
     "./skills/setup-agent-skills",
