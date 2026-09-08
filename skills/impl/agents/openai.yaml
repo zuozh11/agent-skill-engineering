@@ -1,3 +1,3 @@
 interface:
   display_name: "Impl"
-  short_description: "选择最小正确实现并按适用依据决定是否评审"
+  short_description: "按适用 RULE 与需求材料决定评审，完成最小正确实现与本地提交"

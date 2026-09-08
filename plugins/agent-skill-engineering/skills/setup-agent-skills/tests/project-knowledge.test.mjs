@@ -521,14 +521,14 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
 
   const expectations = new Map([
     ["UserPromptSubmit", "同任务知识已完整覆盖则继续，否则按以下流程加载。"],
-    ["SessionStart", "压缩后按保留任务重新选择并加载知识。"],
-    ["SubagentStart", "按当前子任务独立选择并加载知识。"],
+    ["SessionStart", "压缩后沿用保留任务和已有知识，只补充缺失部分。"],
+    ["SubagentStart", "按当前子任务选择知识；已传入且适用的内容直接复用。"],
   ]);
-  const commonProtocol = `1. 以项目根为工作目录，执行：node docs/agents/project-knowledge.mjs scope
+  const commonProtocol = `1. 需要项目知识时，以项目根为工作目录执行：node docs/agents/project-knowledge.mjs scope
 2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE；需要补充知识时可以继续执行 load。
-4. 出现项目特有术语、实体关系、规范命名，或长期有效、不遵守就会跑偏的规则时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现、能从代码确认的事实和已有文档不记录。
-完整返回正文必须遵守；疑问或报错执行 node docs/agents/project-knowledge.mjs -h。`;
+3. sceneId 加载整个场景，ruleId 加载单条原子 RULE。加载内容提供事实和候选约束；只遵守与当前任务直接适用、仍有效且未被本次明确要求取代的规则。需要时可补充 load。
+4. 发现值得长期保留且尚未记录的项目知识时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现和能从代码确认的事实不记录。
+疑问或报错执行 node docs/agents/project-knowledge.mjs -h；知识不可用时说明缺口并继续可完成的工作。`;
   const tails = [];
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
@@ -552,7 +552,7 @@ test("三个 Hook 只返回小型延迟选择协议", (t) => {
   assert.equal(new Set(tails).size, 1);
   const protocol = run(target, ["protocol"]);
   assert.equal(protocol.status, 0, protocol.stderr);
-  assert.equal(protocol.stdout, `执行项目任务时，按下列协议选择、加载与维护项目知识。加载结果中的项目术语用于当前任务命名，项目规则必须遵守。本轮上下文若已有同等协议，直接使用，不必重复执行。
+  assert.equal(protocol.stdout, `执行项目任务时，按下列协议选择、加载与维护项目知识。同一任务已有知识足够时复用，范围变化或知识缺失时补充。
 ${commonProtocol}\n`);
   assert.equal(tails[0], commonProtocol);
 
@@ -625,7 +625,7 @@ test("protocol 不依赖项目布局且拒绝多余参数", (t) => {
   const result = run(target, ["protocol"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /^执行项目任务时，按下列协议选择、加载与维护项目知识/);
-  assert.match(result.stdout, /本轮上下文若已有同等协议，直接使用/);
+  assert.match(result.stdout, /同一任务已有知识足够时复用/);
   assert.match(result.stdout, /node docs\/agents\/project-knowledge\.mjs scope/);
   assert.match(result.stdout, /node docs\/agents\/project-knowledge\.mjs maintain/);
   assert.doesNotMatch(result.stdout, /<!-- project-knowledge:/);
