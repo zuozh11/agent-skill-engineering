@@ -2,11 +2,11 @@
 
 面向开发工程师的 Agent Skill 集合，从 [mattpocock/skills](https://github.com/mattpocock/skills) 改造而来，覆盖大型事项寻路、需求收敛、接口规划、任务切分、实现提交、缺陷诊断、架构改进、代码简化和代码评审。
 
-本仓库去掉外部 Issue Tracker 依赖，使用项目内 `CONTEXT`、`RULE`、PRD、API 清单和轻量任务卡保存上下文；实现阶段按具有业务意义的完整交付单元提交。
+本仓库去掉外部 Issue Tracker 依赖，使用项目内 `CONTEXT`、`RULE`、PRD、API 清单和轻量任务卡保存上下文；实现阶段按具有业务意义的完整提交单元提交。
 
 ## 快速开始
 
-1. 优先使用对应宿主的插件安装。Codex 和 Grok 推荐项目级插件，Claude Code 使用 marketplace 插件；只在宿主不支持插件时使用独立 Skill 安装。
+1. 优先使用对应宿主的插件安装。Codex、Grok 和 Claude Code 均使用 marketplace / 用户级插件；只在宿主不支持插件时使用独立 Skill 安装。
 
 2. 在目标仓库中运行 `/setup-agent-skills`。
 
@@ -16,22 +16,7 @@
 
 ### Codex 插件
 
-#### 项目级安装（推荐）
-
-在目标项目的 `.codex/config.toml` 中声明远程 marketplace 并启用插件：
-
-```toml
-[marketplaces.agent-skill-engineering]
-source_type = "git"
-source = "https://github.com/zuozh11/agent-skill-engineering.git"
-
-[plugins."agent-skill-engineering@agent-skill-engineering"]
-enabled = true
-```
-
-新建 Codex 任务后，该项目会加载插件中的全部 Skill，不需要再写入 `.agents/skills/` 或 `skills-lock.json`。
-
-#### 用户级安装
+#### 全局安装
 
 注册仓库 marketplace，并安装插件：
 
@@ -48,25 +33,7 @@ codex plugin marketplace upgrade agent-skill-engineering
 
 ### Grok 插件
 
-#### 项目级安装（推荐）
-
-从本仓库根目录将插件复制到目标项目：
-
-```bash
-mkdir -p <target-project>/.grok/plugins
-cp -R plugins/agent-skill-engineering <target-project>/.grok/plugins/
-```
-
-在目标项目的 `.grok/config.toml` 中启用插件：
-
-```toml
-[plugins]
-enabled = ["agent-skill-engineering"]
-```
-
-Grok 会以 `project` 作用域加载 `.grok/plugins/` 下的插件。首次加载时按 Grok 提示信任项目插件，然后新建 Session 或在插件页重新加载。
-
-#### 用户级安装
+#### 全局安装
 
 ```bash
 grok plugin install zuozh11/agent-skill-engineering#plugins/agent-skill-engineering --trust
@@ -169,7 +136,7 @@ npx skills@latest update --global
 
 > _按文件、技术层或改动类型拆分实现，容易产生没有独立业务意义、无法整笔回滚的提交。_
 
-**解法**：`/impl` 根据需求分解具有业务意义的提交单元，按最小实现阶梯选择方案，调用 `/atomic-commit` 后根据适用的 RULE 与 PRD、任务卡决定不评审、执行 `/code-review --std`、执行 `/code-review --spec` 或执行完整 `/code-review`，并将确认必要的修复 amend 到当前提交。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。代码评审可用 `/code-review --std` 检查项目工程规范与最小实现，或用 `/code-review --spec` 检查需求符合度；不传参数时评审两个互不串用的维度。
+**解法**：`/impl` 根据需求分解具有业务意义的提交单元，按最小实现阶梯选择方案，调用 `/atomic-commit` 提交后收集评审 brief（本单元提交、业务结果、候选依据），交给 `/code-review` 自行判断依据适用性并决定启用 Standards 或 Spec 维度，并将确认必要的修复 amend 到当前提交。需要隔离 worktree 时用 `/impl -w`，需要子 Agent 或 workflow 时用 `/impl -a`。用户也可直接调用 `/code-review`；`--std` / `--spec` 是维度锁，只跑被锁定的维度，不传参数时评审两个互不串用的维度。
 
 ---
 
@@ -235,7 +202,7 @@ docs/
 
 ### 大型事项寻路
 
-[wayfinder](./skills/wayfinder/SKILL.md) 把超过单次 Agent 会话容量、推进路线仍不清晰的事项记录为本地 Markdown 决策地图。它逐张解决决策票，直到迷雾和前沿清空，再按实际需要进入 PRD、API、任务或实现工作流。
+[wayfinder](./skills/wayfinder/SKILL.md) 把超过单次 Agent 会话容量、推进路线仍不清晰的事项记录为本地 Markdown 决策地图。它逐张解决决策票，直到迷雾和地图前沿清空，再按实际需要进入 PRD、API、任务或实现工作流。
 
 ### 主管线
 
@@ -244,12 +211,12 @@ docs/
 | **[to-prd](./skills/to-prd/SKILL.md)** | **将需求上下文整理为可独立评审的 `PRD.md`** |
 | **[to-api](./skills/to-api/SKILL.md)** | **将需求上下文规划为公开路由、内部入口、停用入口、对象图与跨接口 ID 的接口清单** |
 | **[to-task](./skills/to-task/SKILL.md)** | **按完整业务结果将需求上下文切分为轻量任务卡** |
-| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解并提交最小正确实现，再按适用的 RULE 与 PRD、任务卡决定是否评审并 amend 必要修复；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
-| **[code-review](./skills/code-review/SKILL.md)** | **快速评审固定范围；`--std` 用项目规范和最小实现阶梯快速检查，`--spec` 检查需求符合度** |
+| **[impl](./skills/impl/SKILL.md)** | **按业务意义分解并提交最小正确实现，再收集评审 brief 交给 `code-review` 自动判定维度并 amend 必要修复；`-w` 使用 worktree，`-a` 使用子 Agent 或 workflow** |
+| **[code-review](./skills/code-review/SKILL.md)** | **只读评审固定范围；未指定维度时自动分类依据并启用有依据的维度，`--std` / `--spec` 为维度锁** |
 
 ### 关键辅助
 
-[ask-me](./skills/ask-me/SKILL.md) 使用设计树、当前前沿和分轮追问收口决策。默认在关键取舍足以支持下一步时结束；被 `wayfinder` / `improve-codebase-architecture` 调用或用户要求完整遍历时，穷尽约定范围。
+[ask-me](./skills/ask-me/SKILL.md) 使用设计树、设计树前沿和分轮追问收口决策。默认在关键取舍足以支持下一步时结束；被 `wayfinder` / `improve-codebase-architecture` 调用或用户要求完整遍历时，穷尽约定范围。
 
 `to-prd` 使用它收口需求；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。`to-task` 只切分已有需求上下文，不依赖它。
 
@@ -261,7 +228,7 @@ docs/
 |-------|------|
 | **[diagnosing-bugs](./skills/diagnosing-bugs/SKILL.md)** | 按代码、数据和必要实验诊断；难复现、间歇或性能问题再用能变红的循环 |
 | **[improve-codebase-architecture](./skills/improve-codebase-architecture/SKILL.md)** | 扫描模块深化机会，生成可视化 HTML 报告，并围绕选中候选收口决策 |
-| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整交付单元整理为可直接回滚的本地提交 |
+| **[atomic-commit](./skills/atomic-commit/SKILL.md)** | 将具有业务意义的完整提交单元整理为可直接回滚的本地提交 |
 
 ### 配置
 
@@ -279,7 +246,7 @@ docs/
 | 依赖 Issue Tracker 和 triage labels | 使用项目内 `CONTEXT`、`RULE` 和 Markdown 需求材料 |
 | `/to-spec` 发布规格到 Issue Tracker | `/to-prd` 在本地生成 PRD |
 | `/to-tickets` 发布 tracer-bullet tickets | `/to-task` 生成只描述需求的轻量任务卡 |
-| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义选择并提交最小正确实现，再按适用依据决定是否评审和 amend 必要修复 |
+| `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义选择并提交最小正确实现，再收集评审 brief 交给 `code-review` 自动判定维度并 amend 必要修复 |
 | `/triage` 管理 Issue 分诊状态机 | 移除，本地工作流不维护分诊状态机 |
 | 英文 Skill | 翻译核心方法，并接入项目知识与本地授权边界 |
 

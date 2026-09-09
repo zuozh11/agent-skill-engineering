@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: 从工程规范与需求符合度两个维度只读评审固定代码范围。适用于评审分支、PR、未提交改动、文件或目录或当前实现；可用 --std 或 --spec 单独选择维度。
+description: 从工程规范与需求符合度两个维度只读评审固定代码范围。适用于评审分支、PR、未提交改动、文件或目录或当前实现；可用 --std 或 --spec 锁定维度。
 ---
 
 # Code Review
@@ -10,7 +10,7 @@ description: 从工程规范与需求符合度两个维度只读评审固定代�
 - **Standards**：检查项目工程规范，并判断改动是否选择了最小正确实现。
 - **Spec**：检查实现是否符合 PRD、任务卡等已确认需求。
 
-`--std` 只评审 Standards，`--spec` 只评审 Spec；不传参数或同时传入两个参数时评审两个维度。两个维度只共享固定代码范围，不共享依据或 finding。本 Skill 不修改代码、提交或远端状态。
+调用方或用户指定 `--std` / `--spec` 时，视为维度锁：只跑被锁定的维度。未锁维度时，由本 Skill 判断每条依据的适用性并归入 Standards 或 Spec，只启用有依据的维度。两个维度只共享固定代码范围，不共享依据或 finding。本 Skill 不修改代码、提交或远端状态。
 
 ## 1. 加载项目上下文
 
@@ -20,7 +20,9 @@ description: 从工程规范与需求符合度两个维度只读评审固定代�
 
 ## 2. 固定评审范围
 
-优先使用用户指定的 commit、branch、tag、range、PR 或路径，并记录实际 diff 命令和 commit 列表。分支使用 `git diff <fixed-point>...HEAD`。
+优先使用调用方或用户指定的 commit、branch、tag、range、PR 或路径，并记录实际 diff 命令和 commit 列表。分支使用 `git diff <fixed-point>...HEAD`。
+
+调用方指定的 commit、range 或 pathspec 与用户指定同等优先。`impl` 传入单笔提交时，范围就是该 SHA，不使用分支 merge-base。
 
 用户未明确固定点时：
 
@@ -35,7 +37,7 @@ description: 从工程规范与需求符合度两个维度只读评审固定代�
 
 读取范围内生效的 `AGENTS.md`、`CLAUDE.md` 和适用的工程 RULE、其他工程规范、测试约定与模块约束。PRD、任务卡等需求不进入 Standards。
 
-`--std` 由一个 Standards 子 Agent 单次完成。主 Agent 先固定范围并准备全部工程规范，再把 diff、必要上下文和规范一次性交给它；子 Agent 逐个 changed hunk 阅读必要的调用者，只扩展到能够判断所有权、消费者和替代方案的范围。
+Standards 维度由一个 Standards 子 Agent 单次完成。主 Agent 先固定范围并准备全部工程规范，再把 diff、必要上下文和规范一次性交给它；子 Agent 逐个 changed hunk 阅读必要的调用者，只扩展到能够判断所有权、消费者和替代方案的范围。
 
 先读取 [MIN-IMPL.md](../codebase-design/MIN-IMPL.md)，按阶梯停在第一项成立的位置。候选替代方案必须完整满足需求，并有可说明的正确性或维护收益。
 
@@ -65,6 +67,10 @@ CONTEXT 可帮助理解项目术语，但不代替需求来源。工程 RULE、�
 
 Spec 只报告需求遗漏、错误行为和需求之外的 scope creep；命名、重复、架构和测试写法不进入 Spec。每条适用的已确认需求都在本轮内部判定为符合、不适用或违反。
 
+调用方给出的候选 `ruleId` 与需求材料必须纳入分类，不得静默丢弃。判定不适用只允许四类可复核理由：历史、场景不匹配、被本次明确要求取代、不在本单元业务结果内；缺这类理由时保持适用。调用方声明本单元业务结果后，未纳入该结果的其余需求判不适用，不报遗漏。
+
+需求材料在本提交中已被用户确认修正时，以修正后的文本为 Spec 依据。实现方私下的解释、注释或偏差记录不构成依据。Implementation Decisions 中来源为用户确认的授权例外，对应条款判定为不适用，并在覆盖状态中说明。
+
 ## 5. 执行与终检
 
 只启用 Standards 时创建一个 Standards 子 Agent，只启用 Spec 时创建一个 Spec 子 Agent；两个维度同时启用时并行创建两者。每个子 Agent 只接收自己的完整依据和固定范围，一次返回工程规范或需求覆盖状态及候选 finding。
@@ -79,6 +85,10 @@ Spec 只报告需求遗漏、错误行为和需求之外的 scope creep；命名
 
 ```markdown
 评审范围：<固定点、diff 命令和路径>
+本单元业务结果：<调用方声明；无则写「未声明」>
+维度：
+- Standards：启用 / 未启用（<依据列表>）
+- Spec：启用 / 未启用（<依据或「无可用需求依据」>）
 
 ## Standards
 - [STD-001] [P2] <delete/reuse/stdlib/native/dependency/shrink：问题> — `<文件:行>`
