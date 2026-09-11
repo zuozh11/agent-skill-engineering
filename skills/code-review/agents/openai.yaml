@@ -1,4 +1,4 @@
 interface:
   display_name: "Code Review"
-  short_description: "Standards 检查工程规范与最小实现，Spec 检查需求符合度"
-  default_prompt: "使用 $code-review 分别从项目工程规范与最小正确实现、需求符合度两个互不串用的维度评审当前代码范围。"
+  short_description: "Standards 逐条核对全部 RULE，Spec 检查需求符合度"
+  default_prompt: "使用 $code-review 逐条核对项目全部 RULE 和最小必要实现，并独立检查当前代码范围的需求符合度。"
