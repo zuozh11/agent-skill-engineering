@@ -1,4 +1,4 @@
 interface:
   display_name: "Code Review"
-  short_description: "Standards 审项目 RULE，Spec 只审业务规则"
-  default_prompt: "使用 $code-review：Standards 逐条核对项目全部 RULE 和代码必要性，Spec 只核对 PRD、任务卡等来源中的已确认业务规则。"
+  short_description: "Standards 全量逐条审 RULE，Spec 只审业务规则"
+  default_prompt: "使用 $code-review：Standards 全文读取项目全部 RULE，逐条对照完整代码范围并输出符合、违反或不适用；Spec 只核对已确认业务规则。"
