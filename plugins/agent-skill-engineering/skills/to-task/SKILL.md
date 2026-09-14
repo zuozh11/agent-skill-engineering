@@ -1,6 +1,6 @@
 ---
 name: to-task
-description: 将当前需求上下文切分为轻量任务卡。适用于用户要求拆任务、生成任务卡、to-task 或出开发计划。
+description: 按完整业务结果拆分已有需求；用户要求任务卡或开发任务拆分时使用。
 ---
 
 # To Task

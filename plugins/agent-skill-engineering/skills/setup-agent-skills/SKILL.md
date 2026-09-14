@@ -1,11 +1,13 @@
 ---
 name: setup-agent-skills
-description: 为仓库初始化或升级 Agent 项目知识基础设施。部署 CONTEXT/RULE 格式、按需加载脚本和当前宿主的项目级 Hook。首次使用工程 Skill 前运行，或在配置缺失、升级后需要检查漂移时重新运行。
+description: 为仓库安装或升级 CONTEXT/RULE、知识加载脚本与当前宿主的项目 Hook。
 ---
 
 # Setup Agent Skills
 
-为目标仓库部署项目知识基础设施。本 Skill 是唯一安装和升级入口。项目运行时依赖 `AGENTS.md` / `CLAUDE.md` 标记块与 `docs/agents/project-knowledge.mjs`；无 Hook 宿主按标记块执行，Codex / Claude Code 的项目 Hook 再注入同一套协议。`maintain` 返回确认流程与已部署的两份格式文档；`protocol` 返回标记块正文。
+为目标仓库部署项目知识基础设施。本 Skill 是唯一安装和升级入口。项目运行时依赖 `AGENTS.md` / `CLAUDE.md` 标记块与 `docs/agents/project-knowledge.mjs`；无 Hook 宿主按标记块执行，项目 Hook 按事件提供提醒或恢复协议。`maintain` 返回维护边界与已部署的两份格式文档；`protocol` 返回标记块正文。
+
+以下确认要求均复用当前请求与会话中已明确的选择和授权。授权已覆盖的候选直接应用；仅将尚未授权的项目定制覆盖、知识归属冲突或语义变更交给用户决定。需要新确认时先准备可审阅的候选，并继续其他不依赖该决定的工作。
 
 ## 1. 探索项目
 
@@ -42,7 +44,7 @@ description: 为仓库初始化或升级 Agent 项目知识基础设施。部署
 本 Skill 内置文件是发布种子，不是覆盖用户内容的理由：
 
 - 当前文件与已知旧官方模板一致时，可以升级为当前种子；
-- 文件包含项目术语、自定义流程或其他明显定制时，保留内容，展示当前文件与建议结果，只合并用户确认的部分；
+- 文件包含项目术语、自定义流程或其他明显定制时，保留内容，展示当前文件与建议结果，只合并已获授权的部分；
 - Agent 指令只维护 `project-knowledge` 标记块；
 - Hook 只维护调用 `docs/agents/project-knowledge.mjs hook` 的三个项目级条目；
 - 无法可靠识别所有权时，停止该文件的写入并提醒用户，不影响其他只读检查。
@@ -77,7 +79,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 
 ## 5. 部署知识文件
 
-候选快照通过后，展示将创建、更新、重命名和删除的文件。涉及项目定制、RULE 重命名或删除时，在副作用发生前取得用户确认。
+候选快照通过后，展示将创建、更新、重命名和删除的文件。涉及尚未授权的项目定制覆盖、RULE 重命名或删除时，在副作用发生前取得确认。
 
 只为本轮会修改的真实文件创建恢复副本，然后应用已经验证的候选知识树：
 
@@ -91,27 +93,14 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 
 三个事件都调用项目内同一入口：`UserPromptSubmit`、`SessionStart`（只匹配 `compact`）、`SubagentStart`。按当前宿主把对应模板合并进项目配置，字段与事件结构以模板为准，不把模板内容再抄写一遍：
 
-- Codex：[hook-templates/codex-hooks.json](./hook-templates/codex-hooks.json)
-- Claude Code：[hook-templates/claude-settings.json](./hook-templates/claude-settings.json)
+- Codex：读取 [CODEX-HOOKS.md](./CODEX-HOOKS.md) 与其中的模板。
+- Claude Code：读取 [CLAUDE-HOOKS.md](./CLAUDE-HOOKS.md) 与其中的模板。
 
-### Codex
-
-- 项目已有 `.codex/hooks.json` 时，解析 JSON，只合并或更新自己的三个 Hook。
-- 项目只使用 `.codex/config.toml` 内联 Hook 时，在文件末尾维护 `# project-knowledge:start` / `# project-knowledge:end` 标记段，把模板中的三个 Hook 等价写入段内；已有完整标记段时原位更新段内内容，不解析或重写标记段外 TOML。
-- 两种 Codex Hook 表示同时存在时，只更新已经包含自有 Hook 的那一种；尚未安装时优先写入 `.codex/hooks.json`，并提醒用户 Codex 会合并同层两个来源。
-- Hook 命令从当前项目 Git 根定位 `docs/agents/project-knowledge.mjs`，不把安装时绝对路径作为身份。
-- 其他 Hook 和配置保持不变；发现相似但无法确认归属的条目时提醒用户，不自动删除。
-
-### Claude Code
-
-- `.claude/settings.json` 不存在时创建，存在时只合并模板中自己的三个 matcher group 和 handler。
-- handler 走模板的 `command` + `args`，不经过 shell。
-- 重复运行时原位更新同事件、同 matcher、同项目脚本参数的自有 Hook。
-- 其他设置、matcher group 和 Hook 保持原语义与顺序；JSON 损坏时停止该文件写入并提醒用户。
+只读取当前宿主的安装分支。
 
 安装后检查当前项目配置中每个事件只有一个自有 Hook。信任只做提醒：能在当前宿主真实触发就验证三个事件，不能自动确认时如实报告「Hook 待信任」，不维护额外状态文件。
 
-三个事件的 Hook 输出都不得内联 `scope`、Context 列表或 RULE 路径，只注入延迟选择协议。首句以 `hook` 输出为准，其余正文与 `protocol` 的步骤相同。
+三个事件的 Hook 输出都不内联 `scope` 结果、Context 列表或 RULE 正文。`UserPromptSubmit` 只提醒复用知识，并提供缺失协议的恢复命令；`SessionStart`（compact）与 `SubagentStart` 返回对应提醒及 `protocol` 的完整步骤。文案以脚本输出为准。
 
 模板中的 `additionalContextLimit` 只负责截断保护，不代替 Hook 文案精简。
 
@@ -138,7 +127,7 @@ Node 不可用或候选验证失败时，给出直接错误和失败命令，删
 - 场景编码及场景内序号按重要程度排列，每个场景从 `01` 连续编号；每个 RULE 都有 Frontmatter、非空正文且只表达一个可独立判断的原子约束；Context `description` 是发现列表显示名；
 - 当前宿主三个项目 Hook 各有一个，其他配置未被覆盖；
 - Agent 指令文件各有一个完整标记块，正文等于 `protocol` 输出，不依赖 Hook 才能加载；
-- 从项目根及一个子目录触发时，Hook 都只提供延迟选择协议；`scope` 返回的 Context、`sceneId` 与 `ruleId` 足以构造 `load`，完整正文和递归引用由加载结果返回；`maintain` 返回确认流程与当前布局格式；
+- 从项目根及一个子目录触发时，Hook 按事件提供短提醒或恢复协议；`scope` 返回的 Context、`sceneId` 与 `ruleId` 足以构造 `load`，完整正文和递归引用由加载结果返回；`maintain` 返回维护边界与当前布局格式；
 - 部署后的 `context-format.md` 只描述当前选定的单 Context 或多 Context 布局；
 - 连续运行本 Skill 第二次不产生重复块、重复 Hook 或无意义文件变化；
 - 用户原有改动和项目定制已保留。

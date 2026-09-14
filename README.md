@@ -104,7 +104,7 @@ npx skills@latest update --global
 共享设计语言: codebase-design
 ```
 
-`wayfinder` 和 `improve-codebase-architecture` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
+`wayfinder`、`improve-codebase-architecture` 和 `setup-agent-skills` 为显式调用 Skill；其他 Skill 可按描述自动匹配，也可直接点名调用。
 
 ## 为什么要这套流程
 
@@ -165,7 +165,9 @@ npx skills@latest update --global
 - **`CONTEXT.md`** — 项目术语表。定义业务概念、实体关系、规范命名。走项目知识协议的 skill 使用这里的词汇。
 - **`RULE`** — 按场景组织的项目规则。`scope` 返回的 `sceneId`、`sceneName`、`ruleId` 和 `ruleName` 帮助 Agent 判断相关性，`references` 声明需要一并加载的直接依赖。
 
-`AGENTS.md` / `CLAUDE.md` 标记块内联同一套协议，无 Hook 的宿主按该块执行。Codex / Claude Code 在 `UserPromptSubmit`、上下文压缩和子 Agent 启动时由项目 Hook 再注入一次。Agent 先执行默认输出单行 JSON 的 `scope`，再根据当前任务与返回结果自主选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE，不强制加载具体 Context。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE。加载内容提供事实和候选约束；只遵守与当前任务直接适用、仍有效且未被本次明确要求取代的规则。需要时可继续执行 `load`。发现值得长期保留的项目知识时运行 `maintain`，按其返回的确认流程和格式落盘，不必再打开这些文件。一次性结论和能从代码确认的事实不记录。同一任务已有知识足够时复用，范围变化或知识缺失时补充；参数不清或命令报错时运行 `project-knowledge -h`。
+`AGENTS.md` / `CLAUDE.md` 标记块内联同一套协议，无 Hook 的宿主按该块执行。Codex / Claude Code 的 `UserPromptSubmit` Hook 只发送短提醒；协议缺失时可按提醒运行 `protocol` 恢复。上下文压缩和子 Agent 启动时，Hook 提供完整加载步骤。Agent 在需要知识时执行默认输出单行 JSON 的 `scope`，根据当前任务选择 Context、`sceneId` 或 `ruleId`；多 Context 项目可只选择 RULE。`sceneId` 加载整个场景，`ruleId` 加载单条原子 RULE。只采用直接适用、仍有效且未被本次明确要求取代的规则，已有知识足够时复用，范围变化时补充 `load`。
+
+发现值得长期保留的项目知识时运行 `maintain`，按其返回的维护边界和格式落盘。当前请求或会话已明确授权该修改时直接完成；只对尚未授权的新规则、语义变更或冲突提问。一次性结论和能从代码确认的事实不记录；参数不清或命令报错时运行 `project-knowledge -h`。
 
 > Hook 是知识提示入口，不是安全边界。配置损坏时提醒并继续任务；只有真实使用暴露问题时再增加约束。
 
@@ -218,7 +220,7 @@ docs/
 
 [ask-me](./skills/ask-me/SKILL.md) 使用设计树、设计树前沿和分轮追问收口决策。默认在关键取舍足以支持下一步时结束；被 `wayfinder` / `improve-codebase-architecture` 调用或用户要求完整遍历时，穷尽约定范围。
 
-`to-prd` 使用它收口需求；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。`to-task` 只切分已有需求上下文，不依赖它。
+`to-prd` 在关键业务取舍未决时使用它，需求完整则直接成稿；`to-api` 和 `impl` 只在存在影响显著且无法自行确认的决策时调用。已确认决策直接复用。`to-task` 只切分已有需求上下文，不依赖它。
 
 [codebase-design](./skills/codebase-design/SKILL.md) 提供最小实现阶梯，以及所有权、接口、接缝、适配器与局部性的共享设计语言。`impl` 和 `code-review` 使用阶梯选择或评判实现；涉及模块形状时再读取所有权判断。`improve-codebase-architecture` 用它评估模块深化机会。
 
@@ -249,6 +251,17 @@ docs/
 | `/implement` 驱动 TDD 并衔接代码评审 | `/impl` 按业务意义选择并提交最小正确实现，再收集评审 brief 交给 `code-review` 自动判定维度并 amend 必要修复 |
 | `/triage` 管理 Issue 分诊状态机 | 移除，本地工作流不维护分诊状态机 |
 | 英文 Skill | 翻译核心方法，并接入项目知识与本地授权边界 |
+
+## 维护与验证
+
+`skills/` 是技能内容的权威目录，插件内的技能目录由脚本同步。评审按维度读取 `STANDARDS.md` 或 `SPEC.md`；安装按宿主读取 Hook 分支；接口模板在成稿时读取。全量 Standards 仍逐条核对全部 RULE 和目标代码段。
+
+```bash
+bash scripts/sync-codex-plugin-skills.sh
+node --test tests/plugin-mirror.test.mjs skills/setup-agent-skills/tests/project-knowledge.test.mjs
+```
+
+技能行为另用 [独立样例](./evals/skill-behavior/README.md) 验证，覆盖完整与未决 PRD、已有授权、单维度评审和修复交付。行为样例需要真实 Agent 执行，普通单元测试不代表这些样例已通过。已有项目升级知识协议时重新运行 `/setup-agent-skills`；插件更新不会自动改写其他仓库部署的脚本。
 
 ## 通用工作流工具
 

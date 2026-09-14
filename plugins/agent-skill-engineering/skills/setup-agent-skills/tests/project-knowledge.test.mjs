@@ -513,48 +513,40 @@ test("-h 与 --help 不依赖项目校验且未知参数指向帮助", (t) => {
   }
 });
 
-test("三个 Hook 只返回小型延迟选择协议", (t) => {
+test("普通消息使用短提醒，恢复事件携带完整协议且不内联知识", (t) => {
   const target = largeFixture();
   t.after(() => fs.rmSync(target.root, { recursive: true, force: true }));
   const nested = path.join(target.root, "nested", "workdir");
   fs.mkdirSync(nested, { recursive: true });
-
-  const expectations = new Map([
-    ["UserPromptSubmit", "同任务知识已完整覆盖则继续，否则按以下流程加载。"],
-    ["SessionStart", "压缩后沿用保留任务和已有知识，只补充缺失部分。"],
-    ["SubagentStart", "按当前子任务选择知识；已传入且适用的内容直接复用。"],
-  ]);
-  const commonProtocol = `1. 需要项目知识时，以项目根为工作目录执行：node docs/agents/project-knowledge.mjs scope
-2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE。加载内容提供事实和候选约束；只遵守与当前任务直接适用、仍有效且未被本次明确要求取代的规则。需要时可补充 load。
-4. 发现值得长期保留且尚未记录的项目知识时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现和能从代码确认的事实不记录。
-疑问或报错执行 node docs/agents/project-knowledge.mjs -h；知识不可用时说明缺口并继续可完成的工作。`;
-  const tails = [];
+  const protocol = run(target, ["protocol"]);
+  assert.equal(protocol.status, 0, protocol.stderr);
+  const protocolSteps = protocol.stdout.trimEnd().split("\n").slice(1).join("\n");
 
   for (const event of ["UserPromptSubmit", "SessionStart", "SubagentStart"]) {
     const codex = run(target, ["hook"], nested, JSON.stringify({ hook_event_name: event, model: "gpt-test", source: "compact" }));
     assert.equal(codex.status, 0, codex.stderr);
-    const codexContext = JSON.parse(codex.stdout).hookSpecificOutput.additionalContext;
-
+    const codexOutput = JSON.parse(codex.stdout).hookSpecificOutput;
+    assert.equal(codexOutput.hookEventName, event);
+    const codexContext = codexOutput.additionalContext;
     const claude = run(target, ["hook"], nested, JSON.stringify({ hook_event_name: event, source: "compact" }));
     assert.equal(claude.status, 0, claude.stderr);
-    const claudeContext = JSON.parse(claude.stdout).hookSpecificOutput.additionalContext;
+    assert.equal(JSON.parse(claude.stdout).hookSpecificOutput.additionalContext, codexContext);
 
-    assert.equal(claudeContext, codexContext);
-    assert.equal(codexContext, `${expectations.get(event)}\n${commonProtocol}`);
-    tails.push(codexContext.slice(codexContext.indexOf("\n") + 1));
-    assert.doesNotMatch(codexContext, new RegExp(target.root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-    assert.doesNotMatch(codexContext, /只执行一次|最终只|原子.*优先|场景.*兜底|references/);
-    assert.doesNotMatch(codexContext, /直接执行以下命令|查找 Hook|读取脚本源码|搜索命令/);
-    assert.doesNotMatch(codexContext, /--compact|--pretty|--debug|context_options|rule_scene_options|docs\/rules\/|\bcode\b|\bfiles\b|filename|basename|ruleName/);
+    if (event === "UserPromptSubmit") {
+      assert.ok(codexContext.length < protocol.stdout.length / 2, "普通消息不重复注入完整协议");
+      // 从提醒中的恢复命令取回协议，验证在缺失历史上下文时仍能使用。
+      const recovery = codexContext.match(/node (docs\/agents\/project-knowledge\.mjs) (protocol)/);
+      assert.ok(recovery, "短提醒提供可执行的协议恢复入口");
+      const recovered = spawnSync(process.execPath, recovery.slice(1), { cwd: target.root, encoding: "utf8" });
+      assert.equal(recovered.status, 0, recovered.stderr);
+      assert.equal(recovered.stdout, protocol.stdout);
+    } else {
+      assert.equal(codexContext.split("\n").slice(1).join("\n"), protocolSteps);
+    }
+    assert.equal(codexContext.includes(target.root), false);
+    assert.doesNotMatch(codexContext, /context_options|rule_scene_options|docs\/rules\/|## CONTEXT|## RULE/);
     assert.ok(codexContext.length <= 900, `${event} Hook 文案 ${codexContext.length} 字符`);
   }
-  assert.equal(new Set(tails).size, 1);
-  const protocol = run(target, ["protocol"]);
-  assert.equal(protocol.status, 0, protocol.stderr);
-  assert.equal(protocol.stdout, `执行项目任务时，按下列协议选择、加载与维护项目知识。同一任务已有知识足够时复用，范围变化或知识缺失时补充。
-${commonProtocol}\n`);
-  assert.equal(tails[0], commonProtocol);
 
   const relativeScope = spawnSync(process.execPath, ["docs/agents/project-knowledge.mjs", "scope"], {
     cwd: target.root,
@@ -612,8 +604,7 @@ test("Hook 命令不泄露带空格和特殊字符的绝对脚本路径", (t) =>
   const result = run(target, ["hook"], target.root, JSON.stringify({ hook_event_name: "UserPromptSubmit", model: "gpt-test" }));
   assert.equal(result.status, 0, result.stderr);
   const output = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(output, /node docs\/agents\/project-knowledge\.mjs scope/);
-  assert.match(output, /node docs\/agents\/project-knowledge\.mjs -h/);
+  assert.match(output, /node docs\/agents\/project-knowledge\.mjs protocol/);
   assert.doesNotMatch(output, /space-\$|quote\/docs\/agents/);
   assert.doesNotMatch(output, /--compact|--pretty|--debug/);
 });

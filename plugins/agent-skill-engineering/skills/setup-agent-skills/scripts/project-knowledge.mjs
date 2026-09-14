@@ -620,7 +620,7 @@ function renderMaintain() {
   if (missing.length) {
     throw new KnowledgeError([`缺少 ${missing.map((name) => `docs/agents/${name}`).join("、")}`]);
   }
-  const prefix = `先检查现有 CONTEXT、CONTEXT-MAP（如有）和 RULE，确认候选没有被覆盖。向用户说明候选内容、依据和预计落点。只有用户确认且当前任务允许修改项目文档时才写入；只读任务只报告候选项。冲突交给用户决定，不静默覆盖。修改后运行：
+  const prefix = `先检查现有 CONTEXT、CONTEXT-MAP（如有）和 RULE，确认候选没有被覆盖。向用户说明候选内容、依据和预计落点。复用当前请求与会话中已明确的选择和授权；授权已覆盖本次项目知识修改时直接写入，无需重复确认。未授权的新规则、语义变更或冲突交给用户决定，不静默覆盖；只读任务只报告候选项。修改后运行：
 
 node docs/agents/project-knowledge.mjs validate-context
 node docs/agents/project-knowledge.mjs validate-rules
@@ -636,7 +636,7 @@ node docs/agents/project-knowledge.mjs validate-rules
 const PROTOCOL_LEAD = "执行项目任务时，按下列协议选择、加载与维护项目知识。同一任务已有知识足够时复用，范围变化或知识缺失时补充。";
 const PROTOCOL_STEPS = `1. 需要项目知识时，以项目根为工作目录执行：node docs/agents/project-knowledge.mjs scope
 2. 根据当前任务与 scope 返回结果，自主选择 Context、sceneId 或 ruleId，执行：node docs/agents/project-knowledge.mjs load [--context <path>]... [--rule <sceneId|ruleId>]...
-3. sceneId 加载整个场景，ruleId 加载单条原子 RULE。加载内容提供事实和候选约束；只遵守与当前任务直接适用、仍有效且未被本次明确要求取代的规则。需要时可补充 load。
+3. 单 Context 自动加载，省略 --context；多 Context 才按需指定 --context。sceneId 加载整个场景，ruleId 加载单条原子 RULE。加载内容提供事实和候选约束；只遵守与当前任务直接适用、仍有效且未被本次明确要求取代的规则。需要时可补充 load。
 4. 发现值得长期保留且尚未记录的项目知识时，执行：node docs/agents/project-knowledge.mjs maintain。一次性结论、局部实现和能从代码确认的事实不记录。
 疑问或报错执行 node docs/agents/project-knowledge.mjs -h；知识不可用时说明缺口并继续可完成的工作。`;
 
@@ -684,7 +684,7 @@ function renderHelp() {
 function eventInstruction(eventName) {
   let lead;
   if (eventName === "UserPromptSubmit") {
-    lead = "同任务知识已完整覆盖则继续，否则按以下流程加载。";
+    return "复用当前任务已加载且适用的项目知识；范围变化或知识缺失时按项目知识协议补充。协议不在上下文时，以项目根为工作目录执行 node docs/agents/project-knowledge.mjs protocol。";
   } else if (eventName === "SessionStart") {
     lead = "压缩后沿用保留任务和已有知识，只补充缺失部分。";
   } else if (eventName === "SubagentStart") {
